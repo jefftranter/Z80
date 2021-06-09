@@ -205,4 +205,7 @@ SIGNON1:       DB        CS
 SIGNON2:       DB        CR,LF
                DB        "Cold or warm start (C or W)? ",0
 
+
+               DS        150H-$,$FF
+
 END
