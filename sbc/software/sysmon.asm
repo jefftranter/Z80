@@ -312,6 +312,77 @@ DUMP3:  LD      C,(HL)          ;GET BYTE
         CALL    OUTHX           ;PRINT
         INC     HL              ;POINTER
         LD      A,L
+        AND     0FH             ;LINE END?
+        JR      Z,DUMP4         ;YES, ASCII
+        AND     3               ;SPACE
+        CALL    Z,OUTSP         ; 4 BYTES
+        JR      DUMP3           ;NEXT HEX
+DUMP4:  CALL    OUTSP
+        PUSH    DE
+        LD      DE,-10H         ;RESET LINE
+        ADD     HL,DE
+        POP     DE
+DUMP5:  CALL    PASCI           ;ASCII DUMP
+        CALL    TSTOP           ;DONE?
+        LD      A,L             ;NO
+        AND     0FH             ;LINE END?
+        JR      NZ,DUMP5        ;NO
+        JR      DUMP2
+;
+; DISPLAY MEMORY BYTE IN ASCII IF
+; POSSIBLE, OTHERWISE GIVE DECIMAL PNT
+;
+PASCI:  LD      A,(HL)          ;GET BYTE
+        CP      DEL             ;HIGH BYTE ON?
+        JR      NC,PASC2        ;YES
+        CP      ' '             ;CONTROL CHAR?
+        JR      NC,PASC3        ;NO
+PASC2:  LD      A,'.'           ;CHANGE TO DOT
+PASC3:  JP      OUTT            ;SEND
+;
+; GET H,L AND D,E FROM CONSOLE
+; CHECK THAT D,E IS LARGER
+RDHLDE: CALL    HHLDE
+RDHLD2: LD      A,E
+        SUB     L               ;E - L
+        LD      A,D
+        SBC     A,H             ;D - H
+        JR      C,ERROR         ;H,L BIGGER
+        RET
+;
+; INPUT H,L AND D,E
+;
+HHLDE:  CALL    READHL          ;H,L
+        JR      C,ERROR         ;ONLY 1 ADDR
+        EX      DE,HL           ;SAVE IN DE
+        CALL    READHL          ;D,E
+        EX      DE,HL           ;PUT BACK
+        RET
+;
+;INPUT H,L FROM CONSOLE
+;
+READHL: PUSH    DE
+        PUSH    BC              ;SAVE REGS
+        LD      HL,0            ;CLEAR
+RDHL2:  CALL    GETCH           ;GET CHAR
+        JR      C,RDHL5         ;LINE END
+        CALL    NIB             ;TO BINARY
+        JR      C,RDHL4         ;NOT HEX
+        ADD     HL,HL           ;SHIFT LEFT
+        ADD     HL,HL           ; FOUR
+
+
+
+
+
+
+
+
+
+
+
+
+
 OUTHX:  LD      A,C
         RRA                     ;ROTATE
         RRA                     ; FOUR
