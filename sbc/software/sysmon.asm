@@ -545,6 +545,7 @@ HLDEBC: CALL    HLDECK          ;RANGE
         CALL    READHL          ;3RD INPUT
         LD      B,H             ;MOVE TO
         LD      C,L             ; B,C
+        POP     HL
         RET
 ;
 ; GET 2 ADDRESSES, CHECK THAT
@@ -642,6 +643,8 @@ ADMP2:  LD      A,(HL)          ;GET BYTE
         CP      ' '             ;CONTROL
         JR      NC,ADMP3        ;NO
         CP      CR              ;CARR RET?
+        JR      Z,ADMP3         ;YES, OK
+        CP      LF              ;LINE FEED?
         JR      Z,ADMP3         ;YES, OK
         CP      TAB
         JR      NZ,ADMP4        ;SKIP OTHER
