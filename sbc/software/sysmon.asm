@@ -38,8 +38,8 @@ NNULS:  EQU     4               ;LIST NULLS (18)
 ;
 PORTN:  EQU     STACK           ;CONS=0,LIST=1
 IBUFP:  EQU     STACK+3         ;BUFFER POINTER
-IBUFC:  EQU     IBUFF+2         ;BUFFER COUNT
-IBUFF:  EQU     IBUFF+3         ;INPUT BUFFER
+IBUFC:  EQU     IBUFP+2         ;BUFFER COUNT
+IBUFF:  EQU     IBUFP+3         ;INPUT BUFFER
 ;
 CTRH:   EQU     8               ;^H BACKSPACE
 TAB:    EQU     9               ;^I
@@ -49,7 +49,7 @@ CTRS:   EQU     19              ;^S
 CTRX:   EQU     24              ;^X, ABORT
 BACKUP: EQU     CTRH            ;BACKUP CHAR
 DEL:    EQU     127             ;RUBOUT
-APOS:   EQU     (39-'Q') & 0FFH
+APOS:   EQU     (39-'0') & 0FFH
 CR:     EQU     13              ;CARRIAGE RET
 LF:     EQU     10              ;LINE FEED
 ;
@@ -63,7 +63,7 @@ COUT:   JP      OUTT            ;OUTPUT CHAR
 CIN:    JP      INPUTT          ;INPUT CHAR
 INLN:   JP      INPLN           ;INPUT A LINE
 GCHAR:  JP      GETCH           ;GET CHAR
-OUTH:   JP      OUTH            ;BIN TO HEX
+OUTH:   JP      OUTHX           ;BIN TO HEX
 ;
 ; CONSOLE INPUT ROUTINE
 ; CHECK FOR CONTROL-, LIST TOGGLE
