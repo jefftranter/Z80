@@ -111,6 +111,7 @@ OUT4:   IN      A,(CSTAT)  ;GET STATUS
         JR      Z,OUT2     ;NOT READY
         POP     AF
         OUT     (CDATA),A  ;SEND DATA
+        RET
 ;
 ; LIST OUTPUT ROUTINE
 ; SEND TO CONSOLE TOO
@@ -147,13 +148,53 @@ COLD:   LD      SP,STACK
 ; INITIALIZE I/O PORTS
 ;
         LD      A,3
-
-
-
-
-
-
-
+        OUT     (CSTAT),A       ;RESET
+        OUT     (LSTAT),A       ;RESET
+        LD      A,15H
+        OUT     (CSTAT),A       ;SET
+        OUT     (LSTAT),A
+        XOR     A               ;GET A ZERO
+        LD      (PORTN),A       ;RESET
+;
+; WARM-START ENTRY
+;
+WARM:   LD      HL,WARM         ;RET TO
+        PUSH    HL              ;HERE
+;
+; FIND TOP OF USABLE MEMORY.
+; CHECK FIRST BYTE OF EACH PAGE OF MEMORY
+; STARTING AT ADDRESS ZERO.  STOP AT STACK
+; OR MISSING/DEFECTIVE/PROTECTED MEMORY.
+; DISPLAY HIGH BYTE OF MEMPRY TOP.
+;
+        LD      HL,0            ;PAGE ZERO
+        LD      B,STACK>>8     ;STOP HERE
+NPAGE:  LD      A,(HL)          ;GET BYTE
+        CPL                     ;COMPLEMENT
+        LD      (HL),A          ;PUT IT BACK
+        CP      (HL)            ;SAME?
+        JR      NZ,MSIZE        ;NO, MEM TOP
+        CPL                     ;ORIG BYTE
+        LD      (HL),A          ;RESTORE IT
+        INC     H               ;NEXT PAGE
+        DJNZ    NPAGE           ;KEEP GOING
+MSIZE:  LD      C,H             ;MEM TOP
+        CALL    CRLF            ;NEW LINE
+        CALL    OUTHX           ;PRINT MEM SIZE
+        CALL    INPLN           ;CONSOLE LINE
+        CALL    GETCH           ;FIRST CHAR
+;
+; MAIN COMMAND PROCESSOR
+;
+        SUB     'A'             ;CONVERT OFFSET
+        JP      C,ERROR         ; < A
+        CP      'Z'-'A'+1
+        JP      NC,ERROR        ; > Z
+        ADD     A,A             ;DOUBLE
+        LD      HL,TABLE        ;START
+        LD      D,0
+        LD      E,A             ;OFFSEET
+        ADD     HL,DE           ;ADD TO TABLE
         LD      E,(HL)  ;LOW BYTE
         INC     HL
         LD      D,(HL)  ;HIGH BYTE
