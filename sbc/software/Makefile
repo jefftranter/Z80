@@ -13,4 +13,5 @@ sysmon.bin: sysmon.asm
 	z80asm -o sysmon.bin -lsysmon.lst sysmon.asm
 
 clean:
-	$(RM) int32k.lst int32k.bin bas32k.lst bas32k.bin sysmon.bin rom.bin
+	$(RM) int32k.bin bas32k.bin sysmon.bin rom.bin
+	$(RM) int32k.lst bas32k.lst sysmon.lst
