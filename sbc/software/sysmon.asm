@@ -20,18 +20,18 @@
 ;  LIST OUTPUT ROUTINES
 ;
 
-TOP:    EQU     24              ;MEMORY TOP, K BYTES
+TOP:    EQU     32              ;MEMORY TOP, K BYTES
 ORGIN:  EQU     (TOP-2)*1024    ;PROGRAM START
 ;ASEG                           ;ABSOLUTE CODE
 ;.Z80
  ORG     ORGIN
 ;
 STACK:  EQU     ORGIN-60H
-CSTAT:  EQU     10H             ;CONSOLE STATUS
+CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
 INMSK:  EQU     1               ;INPUT MASK
 OMSK:   EQU     2               ;OUTPUT MASK
-LSTAT:  EQU     12H             ;LIST STATUS (18)
+LSTAT:  EQU     80H             ;LIST STATUS (18)
 LDATA:  EQU     LSTAT+1         ;LIST DATA   (18)
 LOMSK:  EQU     2               ;OUTPUT MASK (18)
 NNULS:  EQU     4               ;LIST NULLS (18)
@@ -66,7 +66,7 @@ GCHAR:  JP      GETCH           ;GET CHAR
 OUTH:   JP      OUTHX           ;BIN TO HEX
 ;
 ; CONSOLE INPUT ROUTINE
-; CHECK FOR CONTROL-, LIST TOGGLE
+; CHECK FOR CONTROL-P, LIST TOGGLE
 ;
 INPUTT: CALL    INSTAT          ;CHECK STATUS
         JR      Z,INPUTT        ;NOT READY
