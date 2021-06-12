@@ -239,7 +239,7 @@ TABLE:  DW      ASCII           ;A, DUMP,LOAD
 ;
 INPLN:  LD      A,'>'           ;PROMPT
         CALL    OUTT
-INPL1:  LD      HL,IBUFF        ;BUFFER ADDR
+INPL2:  LD      HL,IBUFF        ;BUFFER ADDR
         LD      (IBUFP),HL      ;SAVE POINTER
         LD      C,0             ;COUNT
 INPLI:  CALL    INPUTT          ;CONSOLE CHAR
@@ -254,3 +254,61 @@ INPL3:  LD      (HL),A          ;INTO BUFFER
         LD      A,32            ;BUFFER SIZE
         CP      C               ;FULL
         JR      Z,INPLI         ;YES, LOOP
+        LD      A,(HL)          ;GET CHAR
+        INC     HL              ;INCR POINTER
+        INC     C               ;AND COUNT
+INPLE:  CALL    OUT1            ;SHOW CHAR
+        JR      INPLI           ;NEXT CHAR
+;
+; PROCESS CONTROL CHARACTER
+;
+INPLC:  CP      CTRH            ;^H?
+        JR      Z,INPLB         ;YES
+        CP      CR              ;RETURN?
+        JR      NZ,INPLI        ;NO, IGNORE
+;
+; END OF INPUT LINE
+;
+        LD      A,C             ;COUNT
+        LD      (IBUFC),A       ;SAVE
+;
+; CARRIAGE-RETURN, LINE-FEED ROUTINE
+;
+CRLF:   LD      A,CR
+        CALL    OUTT            ;SEND CR
+        LD      A,LF
+        JP      OUTT            ;SEND LF
+;
+; DELETE PRIOR CHARACTER IF ANY
+;
+INPLB:  LD      A,C             ;CHAR COUNT
+        OR      A               ;ZERO?
+        JR      Z,IMNPLI        ;YES
+        DEC     HL              ;BACK POINTER
+        DEC     C               ;AND COUNT
+        LD      A,BACKUP        ;CHARACTER
+        JR      INPLE           ;SEND
+;
+; GET A CHARACTER FROM CONSOLE BUFFER
+; SET CARRY IF EMPTY
+;
+GETCH:  PUSH    HL              ;SAVE REGS
+        LD      HL,(IBUFP)      ;GET POINTER
+        LD      A,(IBUFC)       ;AND COUNT
+        SUB     1               ;DECR WITH CARRY
+        JR      C,GETC4         ;NO MORE CHAR
+        LD      (IBUFC),A       ;SAVE NEW COUNT
+        LD      A,(HL)          ;GET CHARACTER
+        INC     HL              ;INCR POINTER
+        LD      (IBUFP),HL      ;AND SAVE
+GETC4:  POP     HL              ;RESTORE REGS
+        RET
+;
+; DUMP MEMORY IN HEXADECIMAL AND ASCII
+;
+DUMP:   CALL    RDHLDE          ;RANGE
+DUMP2:  CALL    CRHL            ;NEW LINE
+DUMP3:  LD      C,(HL)          ;GET BYTE
+        CALL     OUTHX          ;PRINT
+        INC      HL             ;POINTER
+        LD       A,L
