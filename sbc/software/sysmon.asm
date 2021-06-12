@@ -370,19 +370,64 @@ RDHL2:  CALL    GETCH           ;GET CHAR
         JR      C,RDHL4         ;NOT HEX
         ADD     HL,HL           ;SHIFT LEFT
         ADD     HL,HL           ; FOUR
-
-
-
-
-
-
-
-
-
-
-
-
-
+        ADD     HL,HL           ; BYTES
+        ADD     HL,HL
+        OR      L               ;ADD NEW CHAR
+        LD      L,A
+        JR      RDHL2           ;NEXT
+;
+; CHECK FOR COMMA OR BLANK AT END
+;
+RDHL4:  CP      APOS            ;APOSTROPHE
+        JR      Z,RDHL5         ;ASCII INPUT
+        CP      (' '-'0') & 0FFH
+        JR      NZ,ERROR        ;NOT BLANK
+RDHL5:  POP     BC
+        POP     DE              ;RESTORE
+        RET
+;
+; CONVERT ASCII CHARACTERS TO BINARY
+;
+NIB:    SUB     '0'             ;ASCII BIAS
+        RET     C               ; > 0
+        CP      'F'-'0'+1
+        CCF                     ;INVERT
+        RET     C               ;ERROR, > F
+        CP      10
+        CCF                     ;INVERT
+        RET     NC              ;NUMBER 0-9
+        SUB     'A'-'9'-1
+        CP      10              ;REMOVE :-
+        RET                     ;LETTER A-F
+;
+; PRINT ? ON IMPROPER INPUT
+;
+ERROR:  LD      A,'?'
+        CALL    OUTT
+        JP      START           ;TRY AGAIN
+;
+; START NEW LINE, GIVE ADDRESS
+;
+CRHL:   CALL    CRLF            ;NEW LINE
+;
+; PRINT H,L IN HEX
+;
+OUTHL:  LD      C,H
+        CALL    OUTHX           ;H
+OUTLL:  LD      C,L
+;
+; OUTPUT HEX BYTE FROM C AND A SPACE
+;
+OUTHEX: CALL    OUTHX
+;
+; OUTPUT A SPACE
+;
+OUTSP:  LD      A,' '
+        JP      OUTT
+;
+; OUTPUT A HEX BYTE FROM C
+; BINARY TO ASCII HEX CONVERSION
+;
 OUTHX:  LD      A,C
         RRA                     ;ROTATE
         RRA                     ; FOUR
@@ -492,7 +537,7 @@ FILL4:  CALL    GETCH           ;ASCII CHAR
         LD      B,A
         JR      FILL3
 ;
-; GET H,L AND B,C
+; GET H,L D,E AND B,C
 ;
 HLDEBC: CALL    HLDECK          ;RANGE
         JP      C,ERROR         ;NO BYTE
