@@ -1,6 +1,6 @@
 ; This code came from chapter 7, "A Z-80 System Monitor" from the book
-; 8080/Z80 Assembly Language Techniques for Improved Programming by Alan
-; R. Miller
+; "8080/Z80 Assembly Language - Techniques for Improved Programming"
+; by Alan R. Miller
 ;
 ; It was modified by Jeff Tranter <tranter@pobox.com> to assemble with
 ; the z80asm cross-assembler and to run on my Z80-based Single Board
