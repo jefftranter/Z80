@@ -257,7 +257,7 @@ INPL3:  LD      (HL),A          ;INTO BUFFER
         LD      A,(HL)          ;GET CHAR
         INC     HL              ;INCR POINTER
         INC     C               ;AND COUNT
-INPLE:  CALL    OUT1            ;SHOW CHAR
+INPLE:  CALL    OUTT            ;SHOW CHAR
         JR      INPLI           ;NEXT CHAR
 ;
 ; PROCESS CONTROL CHARACTER
@@ -283,7 +283,7 @@ CRLF:   LD      A,CR
 ;
 INPLB:  LD      A,C             ;CHAR COUNT
         OR      A               ;ZERO?
-        JR      Z,IMNPLI        ;YES
+        JR      Z,INPLI         ;YES
         DEC     HL              ;BACK POINTER
         DEC     C               ;AND COUNT
         LD      A,BACKUP        ;CHARACTER
@@ -435,12 +435,12 @@ OUTHX:  LD      A,C
         RRA                     ; RIGHT
         CALL    HEX1            ;UPPER CHAR
         LD      A,C             ;LOWER CHAR
-HEX1:   AND     OFH             ;TAKE 4 BITS
+HEX1:   AND     0FH             ;TAKE 4 BITS
         ADD     A,90H
         DAA                     ;DAA TRICK
         ADC     A,40H
         DAA
-        JP      QUIT
+        JP      OUTT
 ;
 ; CHECK FOR END. H,L MINUS D,E
 ; INCREMENT H,L
@@ -498,7 +498,7 @@ LOAD6:  CALL    GETCH
 ; COPY BYTE FROM B TO MEMORY
 ; AND SEE THAT IT GOT THERE
 ;
-CHECKM: LD      (HL),B          ;PUT IN MEM
+CHEKM:  LD      (HL),B          ;PUT IN MEM
         LD      A,(HL)          ;GET BACK
         CP      B               ;SAME?
         RET     Z               ;OK
@@ -522,7 +522,7 @@ ZERO:   CALL    RDHLDE          ;RANGE
 ;
 ; FILL A PORTION OF MEMORY
 ;
-FILL:   CALL    HLDEB           ;RANGE, BYTE
+FILL:   CALL    HLDEBC          ;RANGE, BYTE
         CP      APOS            ;APOSTROPHE?
         JR      Z,FILL4         ;YES, ASCII
         LD      B,C
