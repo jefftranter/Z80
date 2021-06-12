@@ -542,3 +542,116 @@ FILL4:  CALL    GETCH           ;ASCII CHAR
 HLDEBC: CALL    HLDECK          ;RANGE
         JP      C,ERROR         ;NO BYTE
         PUSH    HL
+        CALL    READHL          ;3RD INPUT
+        LD      B,H             ;MOVE TO
+        LD      C,L             ; B,C
+        RET
+;
+; GET 2 ADDRESSES, CHECK THAT
+; ADDITIONAL DATA IS INCLUDED
+;
+HLDECK: CALL    HHLDE           ;2 ADDRS
+        JP      C,ERROR         ;THAT'S ALL
+        JP      RDHLD2          ;CHECK
+;
+; MOVE A BLOCK OF MEMORY H,L-D,E TO B,C
+;
+MOVE:   CALL    HLDEBC          ;3 ADDR
+MOVDN:  CALL    MOVIN           ;MOVE/CHECK
+        CALL    TSTOP           ;DONE
+        INC     BC              ;NO
+        JR      MOVDN
+;
+MOVIN:  LD      A,(HL)          ;BYTE
+        LD      (BC),A          ;NEW LOCATION
+        LD      A,(BC)          ;CHECK
+        CP      (HL)            ;IS IT THERE?
+        RET     Z               ;YES
+        LD      H,B             ;ERROR
+        LD      L,C             ;INTO H,L
+        JP      ERRP            ;SHOW BAD
+;
+; SEARCH FOR 1 OR 2 BYTES OVER THE
+; RANGE H,L D,E. BYTES ARE IN B,C
+; B HAS CARRIAGE RETURN IF ONLY ONE BYTE
+; PUT SPACE BETWEEN BYTES IF TWO
+; FORMAT: START STOP BYTE1 BYTE1
+;
+SEARCH: CALL    HLDEBC          ;RANGE, 1ST BYTE
+SEAR2:  LD      B,CR            ;SET FOR 1 BYTE
+        JR      C,SEAR3         ;ONLY ONE
+        PUSH    HL
+        CALL    READHL          ;2ND BYTE
+        LD      B,L             ;INTO C
+        POP     HL
+SEAR3:  LD      A,(HL)          ;GET BYTE
+        CP      C               ;MATCH?
+        JR      NZ,SEAR4        ;NO
+        INC     HL              ;YES
+        LD      A,B             ;ONLY 1?
+        CP      CR
+        JR      Z,SEAR5         ;YES
+;
+; FOUND FIRST MATCH, CHECK FOR SECOND
+;
+        LD      A,(HL)          ;NEXT BYTE
+        CP      B               ;MATCH?
+        JR      NZ,SEAR4        ;NO
+;
+SEAR5:  DEC     HL              ;A MATCH
+        PUSH    BC
+        CALL    CRHL            ;SHOW ADDR
+        POP     BC
+SEAR4:  CALL    TSTOP           ;DONE?
+        JR      SEAR3           ;NO
+;
+; ASCII SUB-COMMAND PROCESSOR
+;
+ASCII:  CALL    GETCH           ;NEXT CHAR
+        CP      'D'             ;DISPLAY
+        JR      Z,ADUMP
+        CP      'S'             ;SEARCH
+        JR      Z,ASCS
+        CP      'L'             ;LOAD
+        JP      NZ,ERROR
+;
+; LOAD ASCII CHARACTERS INTO MEMORY
+; QUIT ON CONTROL-X
+;
+        CALL    READHL          ;ADDRESS
+        CALL    OUTHL           ;PRINT IT
+ALOD2:  CALL    INPUTT          ;NEXT CHAR
+        CALL    OUTT            ;PRINT IT
+        LD      B,A             ;SAVE
+        CALL    CHEKM           ;INTO MEMORY
+        INC     HL              ;POINTER
+        LD      A,L
+        AND     7FH             ;LINE END?
+        JR      NZ,ALOD2        ;NO
+        CALL    CRHL            ;NEW LINE
+        JR      ALOD2
+;
+; DISPLAY MEMORY IN STRAIGHT ASCII.
+; KEEP CARRIAGE RETURN, LINE FEED, CHANGE
+; TAB TO SPACE, REMOVE OTHER ONTROL CHAR.
+;
+ADUMP:  CALL    RDHLDE          ;RANGE
+ADMP2:  LD      A,(HL)          ;GET BYTE
+        CP      DEL             ;HIGH BIT ON?
+        JR      NC,ADMP4        ;YES
+        CP      ' '             ;CONTROL
+        JR      NC,ADMP3        ;NO
+        CP      CR              ;CARR RET?
+        JR      Z,ADMP3         ;YES, OK
+        CP      TAB
+        JR      NZ,ADMP4        ;SKIP OTHER
+        LD      A,' '           ;SPACE FOR TAB
+ADMP3:  CALL    OUTT            ;SEND
+ADMP4:  CALL    TSTOP           ;DONE?
+        JR      ADMP2           ;NO
+;
+; SEARCH FOR 1 OR 2 ASCII CHARACTERS
+; NO SPACE BETWEEN ASCII CHARS
+; FORMAT: START STOP 1 OR 2 ASCII CHAR
+;
+
