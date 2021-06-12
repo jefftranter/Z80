@@ -309,6 +309,120 @@ GETC4:  POP     HL              ;RESTORE REGS
 DUMP:   CALL    RDHLDE          ;RANGE
 DUMP2:  CALL    CRHL            ;NEW LINE
 DUMP3:  LD      C,(HL)          ;GET BYTE
-        CALL     OUTHX          ;PRINT
-        INC      HL             ;POINTER
-        LD       A,L
+        CALL    OUTHX           ;PRINT
+        INC     HL              ;POINTER
+        LD      A,L
+OUTHX:  LD      A,C
+        RRA                     ;ROTATE
+        RRA                     ; FOUR
+        RRA                     ; BITS TO
+        RRA                     ; RIGHT
+        CALL    HEX1            ;UPPER CHAR
+        LD      A,C             ;LOWER CHAR
+HEX1:   AND     OFH             ;TAKE 4 BITS
+        ADD     A,90H
+        DAA                     ;DAA TRICK
+        ADC     A,40H
+        DAA
+        JP      QUIT
+;
+; CHECK FOR END. H,L MINUS D,E
+; INCREMENT H,L
+;
+TSTOP:  INC     HL
+        LD      A,E
+        SUB     L               ; E - L
+        LD      A,D
+        SBC     A,H             ; D - H
+        RET     NC              ;NOT DONE
+        POP     HL              ;RAISE STACK
+        RET
+;
+; ROUTINE TO GO ANYWHERE IN MEMORY
+; FOR CALL ENTRY, ADDRESS OF WARM
+; IS ON STACK, SO A SIMPLE RET
+; WILL RETURN TO THIS MONITOR
+;
+GO:     POP     HL              ;RAISE STACK
+CALLS:  CALL    READHL          ;GET ADDRESS
+        JP      (HL)            ;GO THERE
+;
+; LOAD HEX OR ASCII CAHR INTO MEMORY
+; FROM CONSOLE. CHECK TO SEE IF
+; THE DATA ACTUALLY GOT THERE
+; APOSTROPHE PRECEEDS ASCII CHAR
+; CARRIAGE RET PASSES OVER LOCATION
+;
+LOAD:   CALL    READHL          ;ADDRESS
+LOAD2:  CALL    OUTHL           ;PRINT IT
+        CALL    PASCI           ;ASCII
+        CALL    OUTSP
+        LD      C,(HL)          ;ORIG BYTE
+        CALL    OUTHEX          ;HEX
+        PUSH    HL              ;SAVE PNTR
+        CALL    INPL2           ;INPUT
+        CALL    READHL          ; BYTE
+        LD      B,L             ; TO B
+        POP     HL
+        CP      APOS
+        JR      Z,LOAD6         ;ASCII INPUT
+        LD      A,C             ;HOW MANY?
+        OR      A               ;NONE?
+        JR      Z,LOAD3         ;YES
+LOAD4:  CALL    CHEKM           ;INTO MEMORY
+LOAD3:  INC     HL              ;POINTER
+        JR      LOAD2
+;
+; LOAD ASCII CHARACTER
+;
+LOAD6:  CALL    GETCH
+        LD      B,A
+        JR      LOAD4
+;
+; COPY BYTE FROM B TO MEMORY
+; AND SEE THAT IT GOT THERE
+;
+CHECKM: LD      (HL),B          ;PUT IN MEM
+        LD      A,(HL)          ;GET BACK
+        CP      B               ;SAME?
+        RET     Z               ;OK
+ERRP:   POP     AF              ;RAISE STACK
+ERRB:   LD      A,'B'           ;BAD
+        CALL    OUTT
+        CALL    OUTSP
+        JP      OUTHL           ;POINTER
+;
+; DISPLAY STACK POINTER
+;
+REGS:   LD      HL,0
+        ADD     HL,SP
+        JP      OUTHL
+;
+; ZERO A PORTION OF MEMORY
+;
+ZERO:   CALL    RDHLDE          ;RANGE
+        LD      B,0
+        JR      FILL2
+;
+; FILL A PORTION OF MEMORY
+;
+FILL:   CALL    HLDEB           ;RANGE, BYTE
+        CP      APOS            ;APOSTROPHE?
+        JR      Z,FILL4         ;YES, ASCII
+        LD      B,C
+FILL2:  LD      A,H             ;FILL BYTE
+        CP      STACK>>8        ;TOO FAR?
+        JP      NC,ERROR        ;YES
+FILL3:  CALL    CHEKM           ;PUT, CHECK
+        CALL    TSTOP           ;DONE?
+        JR      FILL2           ;NEXT
+;
+FILL4:  CALL    GETCH           ;ASCII CHAR
+        LD      B,A
+        JR      FILL3
+;
+; GET H,L AND B,C
+;
+HLDEBC: CALL    HLDECK          ;RANGE
+        JP      C,ERROR         ;NO BYTE
+        PUSH    HL
