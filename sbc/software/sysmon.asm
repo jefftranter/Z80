@@ -33,7 +33,7 @@ INMSK:  EQU     1               ;INPUT MASK
 OMSK:   EQU     2               ;OUTPUT MASK
 LSTAT:  EQU     12H             ;LIST STATUS (18)
 LDATA:  EQU     LSTAT+1         ;LIST DATA   (18)
-LOMSK:  EQU     2               ;OUTPUT MAST (18)
+LOMSK:  EQU     2               ;OUTPUT MASK (18)
 NNULS:  EQU     4               ;LIST NULLS (18)
 ;
 PORTN:  EQU     STACK           ;CONS=0,LIST=1
@@ -166,7 +166,7 @@ WARM:   LD      HL,WARM         ;RET TO
 ; CHECK FIRST BYTE OF EACH PAGE OF MEMORY
 ; STARTING AT ADDRESS ZERO.  STOP AT STACK
 ; OR MISSING/DEFECTIVE/PROTECTED MEMORY.
-; DISPLAY HIGH BYTE OF MEMPRY TOP.
+; DISPLAY HIGH BYTE OF MEMORY TOP.
 ;
         LD      HL,0            ;PAGE ZERO
         LD      B,STACK>>8      ;STOP HERE
@@ -194,7 +194,7 @@ MSIZE:  LD      C,H             ;MEM TOP
         ADD     A,A             ;DOUBLE
         LD      HL,TABLE        ;START
         LD      D,0
-        LD      E,A             ;OFFSEET
+        LD      E,A             ;OFFSET
         ADD     HL,DE           ;ADD TO TABLE
         LD      E,(HL)          ;LOW BYTE
         INC     HL
@@ -463,7 +463,7 @@ GO:     POP     HL              ;RAISE STACK
 CALLS:  CALL    READHL          ;GET ADDRESS
         JP      (HL)            ;GO THERE
 ;
-; LOAD HEX OR ASCII CAHR INTO MEMORY
+; LOAD HEX OR ASCII CHAR INTO MEMORY
 ; FROM CONSOLE. CHECK TO SEE IF
 ; THE DATA ACTUALLY GOT THERE
 ; APOSTROPHE PRECEEDS ASCII CHAR
@@ -634,7 +634,7 @@ ALOD2:  CALL    INPUTT          ;NEXT CHAR
 ;
 ; DISPLAY MEMORY IN STRAIGHT ASCII.
 ; KEEP CARRIAGE RETURN, LINE FEED, CHANGE
-; TAB TO SPACE, REMOVE OTHER ONTROL CHAR.
+; TAB TO SPACE, REMOVE OTHER CONTROL CHAR.
 ;
 ADUMP:  CALL    RDHLDE          ;RANGE
 ADMP2:  LD      A,(HL)          ;GET BYTE
