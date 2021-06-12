@@ -654,4 +654,131 @@ ADMP4:  CALL    TSTOP           ;DONE?
 ; NO SPACE BETWEEN ASCII CHARS
 ; FORMAT: START STOP 1 OR 2 ASCII CHAR
 ;
-
+ASCS:   CALL    RDHLDE          ;RANGE
+        CALL    GETCH           ;FIRST CHAR
+        LD      C,A
+        CALL    GETCH           ;2ND OR CARR RET
+        JP      C,SEAR2         ;ONLY ONE CHAR
+        LD      B,A             ;2ND
+        JP      SEAR3
+;
+; INPUT FROM ANY PORT (Z-80 VERSION)
+;
+IPORT:  CALL    READHL          ;PORT
+        LD      C,L             ;PORT TO C
+        IN      L,(C)           ;INPUT
+        CALL     OUTLL          ;HEX VALUE
+;
+; PRINT L REGISTER IN BINARY (Z-80 VER)
+;
+BITS:   LD      B,8             ;8 BITS
+BIT2:   SLA     L               ;SHIFT L LEFT
+        LD      A,'0'/2         ;HALF OF 0
+        ADC     A,A             ;DOUBLE+CARRY
+        CALL    OUTT            ;PRINT BIT
+        DJNZ    BIT2            ;8 TIMES
+        RET
+;
+; OUTPUT BYTE FROM PORT (Z-80 VERSION)
+;
+OPORT:  CALL    READHL          ;PORT
+        LD      C,L
+        CALL    READHL          ;DATA
+        OUT     (C),L           ;OUTPUT
+        RET
+;
+; HEXADECIMAL MATH, SUM AND DIFFERENCE
+;
+HMATH:  CALL    HHLDE           ;TWO NUMBERS
+        PUSH    HL              ;SAVE H,L
+        ADD     HL,DE           ;SUM
+        CALL    OUTHL           ;PRINT IT
+        POP     HL
+        OR      A               ;CLEAR CARRY
+        SBC     HL,DE
+        JP      OUTHL           ;DIFFERENCE
+;
+; MEMORY TEST THAT DOESN'T ALTER CURRENT BYTE
+; INPUT RANGE OF ADDRESSES, ABORT WITH ^X
+;
+JUST:   CALL    RDHLDE          ;RANGE
+        PUSH    HL              ;SAVE START ADDR
+JUST2:  LD      A,(HL)          ;GET BYTE
+        CPL                     ;COMPLEMENT IT
+        LD      (HL),A          ;PUT IT BACK
+        CP      (HL)            ;DID IT GO?
+        JP      NZ,JERR         ;NO
+        CPL                     ;ORIGINAL BYTE
+        LD      (HL),A          ;PUT IT BACK
+JUST3:  LD      A,L             ;PASS
+        SUB     E               ; COMPLETED?
+        LD      A,H
+        SBC     A,D
+        INC     HL
+        JR      C,JUST2         ;NO
+;
+; AFTER EACH PASS,
+; SEE IF ABORT WANTED
+;
+        CALL    INSTAT          ;INPUT
+        CALL    NZ,INPUTT       ;YES, GET IT
+        POP     HL              ;START ADDR
+        PUSH    HL              ;SAVE AGAIN
+        JR      JUST2           ;NEXT PASS
+;
+; FOUND MEMORY ERROR, PRINT POINTER AND
+; BIT MAP: 0=GOOD, 1=BAD BIT
+JERR:   PUSH    AF              ;SAVE COMPLEMENT
+        CALL    CRHL            ;PRINT POINTER
+        POP     AF
+        XOR     (HL)            ;SET BAD BITS
+        PUSH    HL              ;SAVE POINTER
+        LD      L,A             ;BIT MAP TO L
+        CALL    BITS            ;PRINT BINARY
+        POP     HL
+        JR      JUST3           ;CONTINUE
+;
+; REPLACE HEX BYTE WITH ANOTHER
+; FORMAT IS: START, STOP, ORIG, NEW
+REPL:   CALL    HLDEBC          ;RANGE, 1ST BYTE
+        JP      C,ERROR         ;NO 2ND
+        LD      B,C             ;1ST TO B
+        PUSH    HL
+        CALL    READHL          ;2ND BYTE
+        LD      C,L             ;INTO C
+        POP     HL
+REPL2:  LD      A,(HL)          ;FETCH BYTE
+        CP      B               ;A MATCH?
+        JR      NZ,REPL3        ;NO
+        LD      (HL),C          ;SUBSTITUTE
+        LD      A,C
+        CP      (HL)            ;SAME
+        JP      NZ,ERRB         ;NO, BAD
+REPL3:  CALL    TSTOP           ;DONE?
+        JR      REPL2
+;
+; GIVE RANGE OF 1ST BLOCK AND START OF SECOND
+;
+VERM:   CALL    HLDEBC          ;3 ADDRESSES
+VERM2:  LD      A,(BC)          ;FETCH BYTE
+        CP      (HL)            ;SAME AS OTHER?
+        JR      Z,VERM3         ;YES
+        PUSH    HL              ;DIFFERENT
+        PUSH    BC
+        CALL    CRHL            ;PRINT 1ST POINTER
+        LD      C,(HL)          ;FIRST BYTE
+        CALL    OUTHEX          ;PRINT IT
+        LD      A,':'
+        CALL    OUTT
+        POP     HL              ;B,C TO H,L
+        CALL    OUTHL           ;SECOND POINTER
+        LD      C,(HL)          ;2ND BYTE
+        CALL    OUTHX           ;PRINT IT
+        LD      C,L             ;RESTORE C
+        LD      B,H             ;AND B
+        POP     HL              ;AND H,L
+VERM3:  CALL    TSTOP           ;DONE?
+        INC     BC              ;2ND POINTER
+        JR      VERM2
+;
+        END
