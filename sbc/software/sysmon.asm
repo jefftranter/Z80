@@ -6,6 +6,23 @@
 ; the z80asm cross-assembler and to run on my Z80-based Single Board
 ; Computer.
 
+; Commands:
+;
+; Dump:        D<start> <end>
+; Call:        C<address>
+; Go:          G<address>
+; Load:        L<address>
+; Stack:       X<addreess>
+; Fill:        F<start> <end> <value>
+; Move:        M<start> <end> <dest>
+; Search:      S<start> <byte [<byte>]
+; Input port:  I<addr>
+; Output port: O<port> <data>
+; Hex math:    H<value1> <value2>
+; Memory test: J<start> <end>
+; Replace:     R<start> <stop> <orig> <new>
+; Verify:      V<start> <end> <compare>
+
 ;TITLE   Z-80 SYSTEM MONITOR
 ;
 ; 11 June 2020
