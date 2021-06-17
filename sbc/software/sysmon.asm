@@ -12,7 +12,7 @@
 ; Call:        C<address>
 ; Go:          G<address>
 ; Load:        L<address>
-; Stack:       X<addreess>
+; Stack:       X<address>
 ; Fill:        F<start> <end> <value>
 ; Move:        M<start> <end> <dest>
 ; Search:      S<start> <byte [<byte>]
