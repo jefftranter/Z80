@@ -27,22 +27,13 @@
 ;
 ; 11 June 2020
 ;
-; FOUR SECTIONS HAVE BEEN REMOVED:
-;  VERS EQU     ...     (1 LINE)
-;  SIGNON:      ...     (4 LINES)
-;  LXI   D,SIGNUM       (2 LINES)
-;  SENDM:       ...     (6 LINES)
-;
-; ONE SECTION HAS BEEN ADDED:
-;  LIST OUTPUT ROUTINES
-;
 
-TOP:    EQU     32              ;MEMORY TOP, K BYTES
-ORGIN:  EQU     (TOP-2)*1024    ;PROGRAM START
-;ASEG                           ;ABSOLUTE CODE
-;.Z80
- ORG     ORGIN
+TOP:    EQU     64              ;MEMORY TOP, K BYTES
+ORGIN:  EQU     (TOP-1)*1024    ;PROGRAM START
+
+        ORG     ORGIN
 ;
+VERS:   EQU     '1'             ;VERSION NUMBER
 STACK:  EQU     ORGIN-60H
 CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
@@ -71,6 +62,7 @@ CR:     EQU     13              ;CARRIAGE RET
 LF:     EQU     10              ;LINE FEED
 ;
 START:
+        DI                      ;DISABLE INTERRUPTS
         JP      COLD            ;COLD START
 RESTRT: JP      WARM            ;WARM START
 ;
@@ -159,9 +151,17 @@ OUTCR2: DEC     E
         POP     DE              ;RESTORE
         RET
 ;
+SIGNON: DB      CR,LF
+        DB      'Z80 System Monitor Version '
+        DB      VERS
+        DB      CR,LF
+        DB      0
+;
 ; CONTINUATION OF COLD START
 ;
 COLD:   LD      SP,STACK
+        LD      DE,SIGNON       ;MESSAGE
+        CALL    SENDM           ;SEND IT
 ;
 ; INITIALIZE I/O PORTS
 ;
@@ -181,11 +181,11 @@ WARM:   LD      HL,WARM         ;RET TO
 ;
 ; FIND TOP OF USABLE MEMORY.
 ; CHECK FIRST BYTE OF EACH PAGE OF MEMORY
-; STARTING AT ADDRESS ZERO.  STOP AT STACK
+; STARTING AT ADDRESS $8000. STOP AT STACK
 ; OR MISSING/DEFECTIVE/PROTECTED MEMORY.
 ; DISPLAY HIGH BYTE OF MEMORY TOP.
 ;
-        LD      HL,0            ;PAGE ZERO
+        LD      HL,$8000        ;START OF RAM
         LD      B,STACK>>8      ;STOP HERE
 NPAGE:  LD      A,(HL)          ;GET BYTE
         CPL                     ;COMPLEMENT
@@ -320,6 +320,16 @@ GETCH:  PUSH    HL              ;SAVE REGS
         LD      (IBUFP),HL      ;AND SAVE
 GETC4:  POP     HL              ;RESTORE REGS
         RET
+;
+; SEND ASCII MESSAGE UNTIL BINARY ZERO
+; IS FOUND. POINTER IS D,E.
+;
+SENDM:  LD      A,(DE)          ;GET BYTE
+        OR      A               ;ZERO?
+        RET     Z               ;YES, DONE
+        CALL    OUTT            ;SEND IT
+        INC     DE              ;POINTER
+        JR      SENDM           ;NEXT
 ;
 ; DUMP MEMORY IN HEXADECIMAL AND ASCII
 ;
