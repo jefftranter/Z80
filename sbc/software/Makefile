@@ -1,4 +1,4 @@
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin hexmon.bin
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -12,7 +12,10 @@ bas32k.bin: bas32k.asm
 sysmon.bin: sysmon.asm
 	z80asm -o sysmon.bin -lsysmon.lst -Lsysmon.map sysmon.asm
 
+hexmon.bin: hexmon.asm
+	z80asm -o hexmon.bin -lhexmon.lst -Lhexmon.map hexmon.asm
+
 clean:
-	$(RM) int32k.bin bas32k.bin sysmon.bin rom.bin
-	$(RM) int32k.lst bas32k.lst sysmon.lst
-	$(RM) int32k.map bas32k.map sysmon.map
+	$(RM) int32k.bin bas32k.bin sysmon.bin rom.bin hexmon.bin
+	$(RM) int32k.lst bas32k.lst sysmon.lst hexmon.lst
+	$(RM) int32k.map bas32k.map sysmon.map hexmon.map
