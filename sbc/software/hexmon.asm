@@ -172,7 +172,7 @@ INPL2:  LD      HL,IBUFF        ;BUFFER ADDRESS
         LD      C,0             ;INITIALIZE COUNT
 INPLI:  CALL    INPUTT          ;CHAR FROM CONSOLE
         CP      ' '             ;CONTROL CHAR?
-        JP      C,INPLC         ;YES, GO PROECSS
+        JP      C,INPLC         ;YES, GO PROCESS
         CP      DEL             ;DELETE CHAR?
         JP      Z,INPLB         ;YES
         CP      'Z'+1           ;UPPER CASE?
