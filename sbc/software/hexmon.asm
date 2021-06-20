@@ -231,7 +231,7 @@ INPLB:  LD      A,C             ;CHAR COUNT
 ; BUFFER. SET CARRY IF EMPTY.
 ;
 GETCH:  PUSH    HL              ;SAVE REGS
-        LD      (HL),           ;GET POINTER
+        LD      HL,(IBUFP)      ;GET POINTER
 GETCH2: LD      A,(IBUFC)       ;GET COUNT
         SUB     1               ;DECR WITH CARRY
         JP      C,GETCH4        ;NO CHARACTERS
@@ -415,7 +415,7 @@ HEAD:   CALL    PIN             ;INPUT FROM TAPE
         LD      C,A             ;SAVE REC.LEN.
         CALL    TAPEHL          ;GET H/L
         EX      DE,HL           ;ADDR TO D,E
-        LD      (HL),OFSET      ;GET OFFSET
+        LD      HL,(OFSET)      ;GET OFFSET
         ADD     HL,DE           ;ADD
 LOOP:   CALL    PHEX            ;INPUT DATA BYTE
         LD      E,A             ;SAVE BYTE
@@ -424,7 +424,7 @@ LOOP:   CALL    PHEX            ;INPUT DATA BYTE
         LD      A,E             ;MOVE BACK
         JP      Z,SKIP          ;JUMP IF VERIFYING
         LD      (HL),A          ;DATA TO MEMORY
-SKIP:   CP      M               ;CHECK MEMORY
+SKIP:   CP      (HL)            ;CHECK MEMORY
         JP      NZ,MERROR       ;BAD MEMORY
         INC     HL              ;INCREMENT POINTER
         DEC     C               ;DECR RECORD LEN
