@@ -90,6 +90,7 @@ NIB:    SUB     '0'             ;ASCII BIAS
         RET     C               ;ERROR, IF > 'F'
         CP      10
         CCF                     ;INVERT
+        RET     NC
         SUB     'A'-'9'-1
         CP      10
         RET                     ;CHARACTER IS A-F
@@ -387,8 +388,6 @@ PCRLF:  LD      A,CR
         LD      A,LF
         CALL    POUT
         XOR     A
-        CALL    POUT
-        XOR     A
         CALL    POUT            ;TWO NULLS
         CALL    POUT
         LD      A,':'           ;COLON
@@ -509,7 +508,7 @@ SIGN:   DB      CR,LF
         DB      CR,LF,LF
         DB      'E - load and execute'
         DB      CR,LF
-        DB      'G - go to address given'
+        DB      'G - go to addresses given'
         DB      CR,LF
         DB      'R - read tape into memory'
         DB      CR,LF
@@ -518,7 +517,8 @@ SIGN:   DB      CR,LF
         DB      'V - verify tape against'
         DB      ' memory',CR,LF
         DB      'W - write paper tape'
-        DB      ' (and label)',CR,LF
+        DB      ' (and label)',CR,LF,'    '
+        DB      '(with optional autostart)'
         DB      CR,LF,0
 LMESG:  DB      CR,LF,'Enter leader message'
         DB      CR,LF,0
