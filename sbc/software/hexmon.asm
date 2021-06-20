@@ -269,7 +269,7 @@ NEWREC: CALL    PCRLF           ;CR, LF, NULLS
         SUB     L               ; TO LOW POINTER
         LD      C,A             ;DIFFERENCE IN C
         LD      A,D             ;COMPARE HIGH STOP
-        SBC     A,(HL)          ; TO HIGH POINTER
+        SBC     A,H             ; TO HIGH POINTER
         LD      B,A             ;DIFFERENCE IN B
         JP      C,ERROR         ;IMPROPER H,L > D,E
         LD      A,RLEN          ;FULL RECORD
@@ -542,7 +542,7 @@ LABL1:  CALL    GETCH           ;GET CHARACTER
         LD      D,0
         ADD     HL,HL           ;DOUBLE IT
         ADD     HL,HL           ;TIMES 4
-        ADD     HL,HL           ;TIMES 5
+        ADD     HL,DE           ;TIMES 5
         EX      DE,HL
         LD      HL,TABL
         ADD     HL,DE
@@ -591,8 +591,8 @@ TABL:   DB      0,  0,  0,  0,  0       ; SPACE
         DB      16, 40, 68, 130,0       ; <
         DB      40, 40, 40, 40, 40      ; =
         DB      130,68, 40, 16, 0       ; >
-        DB      6,  1,  15, 9,  6       ; ?
-        DB      126,129,157,154,14      ;
+        DB      6,  1,  185,9,  6       ; ?
+        DB      126,129,157,145,14      ;
         DB      254,9,  9,  9,  254     ; A
         DB      129,255,137,137,118     ; B
         DB      126,129,129,129,66      ; C
@@ -617,11 +617,11 @@ TABL:   DB      0,  0,  0,  0,  0       ; SPACE
         DB      15, 48, 192,48, 15      ; V
         DB      127,128,112,128,127     ; W
         DB      195,36, 24, 36, 195     ; X
-        DB      3,  4,  248,3,  3       ; Y
+        DB      3,  4,  248,4,  3       ; Y
         DB      193,161,145,137,135     ; Z
         DB      0,  255,129,129,129     ; [
         DB      4,  8,  16, 32, 64      ; \
-        DB      129,129,129,255,9       ; [
+        DB      129,129,129,255,0       ; [
         DB      12, 2,  1,  2,  12      ; ^
 ;
 TASK:   DS      1               ;SAVE IT
