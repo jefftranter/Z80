@@ -47,213 +47,213 @@ INPUTT: IN      A,(CSTAT)
         AND     7FH             ;STRIP PARITY
         RET
 ;
-OUTT:   PUSH    PSW
-OUTW:   IN      CSTAT
-        ANI     COMSK
-        JZ      OUTW
-        POP     PSW
-        OUT     CDATA
+OUTT:   PUSH    AF
+OUTW:   IN      A,(CSTAT)
+        AND     COMSK
+        JP      Z,OUTW
+        POP     AF
+        OUT     (CDATA),A
         RET
 ; OUTPUT H,L TO CONSOLE
 ; 16-BT BINARY TO HEX
 ;
-OUTHL:  MOVE    C,H             ;FETCH H
+OUTHL:  LD      C,H             ;FETCH H
         CALL    OUTHX           ;PRINT IT
-        MOVE    C,L             ;FETCH L, PRINT IT
+        LD      C,L             ;FETCH L, PRINT IT
 ;
 ; CONVERT A BINARY NUMBER TO TWO
 ; HEX CHARACTERS, AND PRINT THEM
-OUTHX:  MOVE    A,C
-        RAR                     ;ROTATE
-        RAR                     ; UPPER
-        RAR                     ; CHARACTER
-        RAR                     ; TO LOWER
+OUTHX:  LD      A,C
+        RRA                     ;ROTATE
+        RRA                     ; UPPER
+        RRA                     ; CHARACTER
+        RRA                     ; TO LOWER
         CALL    HEX1            ;OUTPUT UPPER
-        MOVE    A,C             ;OUTPUT LOWER
+        LD      A,C             ;OUTPUT LOWER
 ;
 ; OUTPUT A HEX CHARACTER
 ; FROM LOWER FOUR BITS
 ;
-HEX1:   ANI     0FH             ;TAKE 4 BITS
-        ADDI    144
+HEX1:   AND     0FH             ;TAKE 4 BITS
+        ADD     A,144
         DAA                     ;DAA TRICK
-        ACI     64
+        ADC     A,64
         DAA                     ;ONCE AGAIN
-        JMP     OUTT
+        JP      OUTT
 ;
 ; CONVERT ASCII CHARACTER FROM CONSOLE
 ; TO 4 BINARY BITS
-NIB:    SUI     '0'             ;ASCII BIAS
-        RC                      ;< '0'
-        CPI     'F'-'0'+1
-        CMC                     ;INVERT
-        RC                      ;ERROR, IF > 'F'
-        CPI     10
-        CMC                     ;INVERT
-        SUI     'A'-'9'-1
-        CPI     10
+NIB:    SUB     '0'             ;ASCII BIAS
+        RET     C               ;< '0'
+        CP      'F'-'0'+1
+        CCF                     ;INVERT
+        RET     C               ;ERROR, IF > 'F'
+        CP      10
+        CCF                     ;INVERT
+        SUB     'A'-'9'-1
+        CP      10
         RET                     ;CHARACTER IS A-F
 ;
 ; INPUT H,L FROM CONSOLE
 ;
-READHL: PUSH    D
-        PUSH    B
-        LXI     H,0             ;START WITH 0
+READHL: PUSH    DE
+        PUSH    BC
+        LD      HL,0            ;START WITH 0
 RDHL2:  CALL    GETCH
-        JC      RDHL5           ;END OF LINE
+        JP      C,RDHL5         ;END OF LINE
         CALL    NIB             ;CONVERT TO BINARY
-        JC      RDHL4           ;NOT HEX
-        DAD     H               ; SHIFT LEFT
-        DAD     H
-        DAD     H
-        DAD     H
-        ORA     L               ;COMBINE NEW
-        MOVE    L,A
-        JMP     RDHL2           ;NEXT
+        JP      C,RDHL4         ;NOT HEX
+        ADD     HL,HL           ; SHIFT LEFT
+        ADD     HL,HL
+        ADD     HL,HL
+        ADD     HL,HL
+        OR      L               ;COMBINE NEW
+        LD      L,A
+        JP      RDHL2           ;NEXT
 ;
 ; CHECK FOR COMMA OR BLANK
 ; AT END OF ADDRESS
 ;
-RDHL4:  CPI     ','-'0'         ;COMMA?
-        JZ      RDHL5           ;YES, OK
-        CPI     ' ' -'0'        ;BLANK?
-        JNZ     ERROR           ;NO
-RDHL5:  POP     B
-        POP     D
+RDHL4:  CP      ','-'0'         ;COMMA?
+        JP      Z,RDHL5         ;YES, OK
+        CP      ' ' -'0'        ;BLANK?
+        JP      NZ,ERROR        ;NO
+RDHL5:  POP     BC
+        POP     DE
         RET
 ;
-ERROR:  MVI     A,'?'           ;IMPROPER INPUT
+ERROR:  LD      A,'?'           ;IMPROPER INPUT
         CALL    OUTT
-        JMP     START           ;TELL HOW AGAIN
+        JP      START           ;TELL HOW AGAIN
 ;
 ; SEND CHARACTERS POINTED TO BY D,E
 ; UNTIL A BINARY ZERO IS FOUND
 ;
-SENDM:  LDAX    D               ;NEXT BYTE
-        ORA     A               ;SEE IF ZERO
-        RZ
+SENDM:  LD      A,(DE)          ;NEXT BYTE
+        OR      A               ;SEE IF ZERO
+        RET     Z
         CALL    OUTT
-        INX     D
-        JMP     SENDM
+        INC     DE
+        JP      SENDM
 ;
-CONTIN: LXI     SP,STACK
-        LXI     D,SIGN          ;MESSAGE
+CONTIN: LD      SP,STACK
+        LD      DE,SIGN         ;MESSAGE
         CALL    SENDM           ;SEND IT
 ;
-RSTRT:  LXI     SP,STACK
+RSTRT:  LD      SP,STACK
         CALL    INPLN           ;GET A LINE
         CALL    GETCH           ;INPUT THE TASK
-        CPI     'W'             ;DUMP
-        JZ      PDUMP
-        CPI     'R'             ;READ,NO AUTOSTART
-        JZ      PLOAD
-        CPI     'E'             ;LOAD AND EXECUTE
-        JZ      PLOAD
-        CPI     'V'             ;VERIFY
-        JZ      PLOAD
-        CPI     'G'             ;GO SOMEWHERE
-        JNZ     ERROR
+        CP      'W'             ;DUMP
+        JP      Z,PDUMP
+        CP      'R'             ;READ,NO AUTOSTART
+        JP      Z,PLOAD
+        CP      'E'             ;LOAD AND EXECUTE
+        JP      Z,PLOAD
+        CP      'V'             ;VERIFY
+        JP      Z,PLOAD
+        CP      'G'             ;GO SOMEWHERE
+        JP      NZ,ERROR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; JUMP TO ANOTHER PROGRAM
 ;
         CALL    READHL          ;JUMP ADDRESS
-JPCHL:  PCHL                    ;OK, GOODBYE
+JPCHL:  JP      (HL)            ;OK, GOODBYE
 ;
 ; INPUT A LINE FROM THE CONSOLE
 ; AND PUT IT INTO A BUFFER
 ;
 INPLN:  CALL    CRLF
-        MVI     A,'>'           ;COMMAND PROMPT
+        LD      A,'>'           ;COMMAND PROMPT
         CALL    OUTT            ;SEND TO CONSOLE
-INPL2:  LXI     H,IBUFF         ;BUFFER ADDRESS
-        SHLD    IBUFP           ;INITIALIZE POINTER
-        MVI     C,0             ;INITIALIZE COUNT
+INPL2:  LD      HL,IBUFF        ;BUFFER ADDRESS
+        LD      (IBUFP),HL      ;INITIALIZE POINTER
+        LD      C,0             ;INITIALIZE COUNT
 INPLI:  CALL    INPUTT          ;CHAR FROM CONSOLE
-        CPI     ' '             ;CONTROL CHAR?
-        JC      INPLC           ;YES, GO PROECSS
-        CPI     DEL             ;DELETE CHAR?
-        JZ      INPLB           ;YES
-        CPI     'Z'+1           ;UPPER CASE?
-        JC      INPL3           ;NO
-        ANI     5FH             ;MAKE UPPER
-INPL3:  MOVE    M,A             ;PUT IN BUFFER
-        MVI     A,32            ;GET BUFFER SIZE
-        CMP     C               ;TEST IF FULL
-        JZ      INPLI           ;YES, LOOP
-        MOV     A,M             ;RECALL CHARACTER
-        INX     H               ;INCR POINTER
-        INR     C               ;AND INCR COUNT
+        CP      ' '             ;CONTROL CHAR?
+        JP      C,INPLC         ;YES, GO PROECSS
+        CP      DEL             ;DELETE CHAR?
+        JP      Z,INPLB         ;YES
+        CP      'Z'+1           ;UPPER CASE?
+        JP      C,INPL3         ;NO
+        AND     5FH             ;MAKE UPPER
+INPL3:  LD      (HL),A          ;PUT IN BUFFER
+        LD      A,32            ;GET BUFFER SIZE
+        CP      C               ;TEST IF FULL
+        JP      Z,INPLI         ;YES, LOOP
+        LD      A,(HL)          ;RECALL CHARACTER
+        INC     HL              ;INCR POINTER
+        INC     C               ;AND INCR COUNT
 INPLE:  CALL    OUTT            ;OUTPUT CHARACTER
-        JM      INPL            ;GET NEXT CHAR
+        JP      INPLI           ;GET NEXT CHAR
 ;
 ; PROCESS CONTROL CHARACTER
 ;
-INPLC:  CPI     CTRH            ;^H?
-        JZ      INPLB           ;YES
-        CPI     CR              ;TEST IF RETURN
-        JNZ     INPLI           ;NO, IGNORE CHAR
+INPLC:  CP      CTRH            ;^H?
+        JP      Z,INPLB         ;YES
+        CP      CR              ;TEST IF RETURN
+        JP      NZ,INPLI        ;NO, IGNORE CHAR
 ;
 ; END OF INPUT LINE
 ;
-        MOV     A,C             ;LINE COUNT
-        STA     IBUFC           ;SAVE
+        LD      A,C             ;LINE COUNT
+        LD      (IBUFC),A       ;SAVE
 ;
 ; CARRIAGE RETURN, LINE FEED
 ;
-CRLF:   MVI     A,CR
+CRLF:   LD      A,CR
         CALL    OUTT
-        MVI     A,LF
+        LD      A,LF
 ;
 ; USE NULLS REQUIRED AFTER  CR, LF
 ; USE REPEAT MACRO
-        IF NULS > 0             ;ASSEMBLE
-        CALL    OUTT
-        XRA     A               ;GET A NULL
-        REPT    NNULS-1
-        CALL    OUTT
-        ENDM
-        ENDIF
+;       IF NULS > 0             ;ASSEMBLE
+;       CALL    OUTT
+;       XRA     A               ;GET A NULL
+;       REPT    NNULS-1
+;       CALL    OUTT
+;       ENDM
+;       ENDIF
 ;                               ;NULLS
-        JMP     OUTT
+        JP      OUTT
 ;
 ; DELETE ANY PRIOR CHARACTER
 ;
-INPLS:  MOV     A,C             ;CHAR COUNT
-        ORA     A               ;ZERO?
-        JZ      INPLI           ;YES
-        DCX     H               ;BACK POINTER
-        DCR     C               ;AND COUNT
-        MVI     A,CTRH          ;BACK CURSOR
-        JMP     INPLE           ;PRINT IT
+INPLB:  LD      A,C             ;CHAR COUNT
+        OR      A               ;ZERO?
+        JP      Z,INPLI         ;YES
+        DEC     HL              ;BACK POINTER
+        DEC     C               ;AND COUNT
+        LD      A,CTRH          ;BACK CURSOR
+        JP      INPLE           ;PRINT IT
 ;
 ; OBTAIN A CHARACTER FROM THE CONSOLE
 ; BUFFER. SET CARRY IF EMPTY.
 ;
-GETCH:  PUSH    H               ;SAVE REGS
-        LHLD    IBUFP           ;GET POINTER
-GETCH2: LDA     IBUFC           ;GET COUNT
-        SUI     1               ;DECR WITH CARRY
-        JC      GETC4           ;NO CHARACTERS
-        STA     IBUFC           ;REPLACE COUNT
-        MOV     A,M             ;GET CHARACTER
-GETCH3: INX     H               ;INCR POINTER
-        SHLD    IBUFP           ;REPLACE POINTER
-GETCH4: POP     H               ;RESTORE REGS
+GETCH:  PUSH    HL              ;SAVE REGS
+        LD      (HL),           ;GET POINTER
+GETCH2: LD      A,(IBUFC)       ;GET COUNT
+        SUB     1               ;DECR WITH CARRY
+        JP      C,GETCH4        ;NO CHARACTERS
+        LD      (IBUFC),A       ;REPLACE COUNT
+        LD      A,(HL)          ;GET CHARACTER
+GETCH3: INC     HL              ;INCR POINTER
+        LD      (IBUFP),HL      ;REPLACE POINTER
+GETCH4: POP     HL              ;RESTORE REGS
         RET                     ;CARRY IF NO CHAR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; PUNCH A PAPER TAPE
 ;
 PDUMP:  CALL    READHL          ;START ADDRESS
-        JC      ERROR           ;TOO FEW PARAM
-        XCHG
+        JP      C,ERROR         ;TOO FEW PARAM
+        EX      DE,HL
         CALL    READHL          ;STOP ADDRESS
-        XCHG
-        INX     D
-        PUSH    H
+        EX      DE,HL
+        INC     DE
+        PUSH    HL
         CALL    READHL          ;AUTOSTART ADDR
-        XTHL                    ;PUT ON STACK
+        EX      (SP),HL         ;PUT ON STACK
         CALL    LEADR           ;PUNCH LEADER
         CALL    LABEL           ;PUNCH LABEL
 ;
@@ -264,303 +264,303 @@ NEWREC: CALL    PCRLF           ;CR, LF, NULLS
 ;
 ; FIND THE RECORD LENGTH
 ;
-        MOV     A,E             ;COMPARE LOW STOP
+        LD      A,E             ;COMPARE LOW STOP
         SUB     L               ; TO LOW POINTER
-        MOV     C,A             ;DIFFERENCE IN C
-        MOV     A,D             ;COMPARE HIGH STOP
-        SBB     H               ; TO HIGH POINTER
-        MOV     B,A             ;DIFFERENCE IN B
-        JC      ERROR           ;IMPROPER H,L > D,E
-        MVI     A,RLEN          ;FULL RECORD
-        JNZ     NEW2
-        CMP     C               ;COMPARE TO E-L
-        JC      NEW2            ;FULL RECORD LENGTH
-        MOV     A,B             ;ARE BOTH E-L AND
-        ORA     C               ; D-E ZERO?
-        JZ      DONE            ;YES, REC LENGTH = 0
-        MOV     A,C             ;SHORT RECORD
-NEW2:   MOV     C,A             ;RECORD LENGTH TO C
-        MVI     B0              ;ZERO THE CHECKSUM
+        LD      C,A             ;DIFFERENCE IN C
+        LD      A,D             ;COMPARE HIGH STOP
+        SBC     A,(HL)          ; TO HIGH POINTER
+        LD      B,A             ;DIFFERENCE IN B
+        JP      C,ERROR         ;IMPROPER H,L > D,E
+        LD      A,RLEN          ;FULL RECORD
+        JP      NZ,NEW2
+        CP      C               ;COMPARE TO E-L
+        JP      C,NEW2          ;FULL RECORD LENGTH
+        LD      A,B             ;ARE BOTH E-L AND
+        OR      C               ; D-E ZERO?
+        JP      Z,DONE          ;YES, REC LENGTH = 0
+        LD      A,C             ;SHORT RECORD
+NEW2:   LD      C,A             ;RECORD LENGTH TO C
+        LD      B,0             ;ZERO THE CHECKSUM
         CALL    PNHEX           ;PUNCH RECORD LENGTH
         CALL    PUNHL           ;PUNCH HL
-        XRA     A
+        XOR     A
         CALL    PNHEX           ;PUNCH RECORD TYPE 0
-PMEM:   MOV     A,M
+PMEM:   LD      A,(HL)
         CALL    PNHEX           ;PUNCH MEMORY BYTE
-        INX     H               ;INCR. MEMORY POINTER
-        DCR     C               ;DECR RECORD LENGTH
-        JNZ     PMEM
+        INC     HL              ;INCR. MEMORY POINTER
+        DEC     C               ;DECR RECORD LENGTH
+        JP      NZ,PMEM
         CALL    CSUM            ;PUNCH CHECKSUM
-        JMP     NEWREC          ;NEXT RECORD
+        JP      NEWREC          ;NEXT RECORD
 ;
-; FINSIHED, PUNCH LAST RECORD, RECORD
+; FINISHED, PUNCH LAST RECORD, RECORD
 ; LENGTH 00, THE START ADDRESS,
 ; AND A RECORD TYPE OF 01
 ;
-DONE:   XRA     A
-        MOV     B,A             ;ZERO CHECKSUM
+DONE:   XOR     A
+        LD      B,A             ;ZERO CHECKSUM
         CALL    PNHEX           ;ZERO RECORD LEN.
-        POP     H
+        POP     HL
         CALL    PUNHL           ;AUTOSTART H/L
-        MOV     A,H             ;CHECK FOR
-        ORA     L               ; AUTOSTART
-        MV      A,0             ;0 WITH CARRY
-        JZ      DON2            ;NO AUTOSTART
-        INR     A
+        LD      A,H             ;CHECK FOR
+        OR      L               ; AUTOSTART
+        LD      A,0             ;0 WITH CARRY
+        JP      Z,DON2          ;NO AUTOSTART
+        INC     A
 DON2:   CALL    PNHEX           ;RECORD TYPE 1
         CALL    CSUM            ;PUNCH CHECKSUM
         CALL    LEADR           ;PUNCH TRAILER
-        JMP     RSTRT           ;NEXT JOB
+        JP      RSTRT           ;NEXT JOB
 ;
 ; PUNCH BLANK HEADER AND TRAILER
 ;
-LEADR:  XRA     A
-        MVI     B,60            ;TAPE NULLS
+LEADR:  XOR     A
+        LD      B,60            ;TAPE NULLS
 NLDR:   CALL    POUT
-        DCR     B
-        JNZ     NLDR
+        DEC     B
+        JP      NZ,NLDR
         RET
 ;
 ; PUNCH THE H,L REGISTER PAIR
 ;
-PUNHL:  MOV     A,H             ;FETCH H
+PUNHL:  LD      A,H             ;FETCH H
         CALL    PNHEX           ;PUNCH IT
-        MOV     A,L             ;GET L, PUNCH IT
+        LD      A,L             ;GET L, PUNCH IT
 ;
 ; CONVERT A BINARY NUMBER TO TWO HEX
 ; CHARACTERS, PUNCH THEM, ADD TO CHECKSUM
 ;
-PNHEX:  PUSH    PSW             ;SAVE ON STACK
+PNHEX:  PUSH    AF              ;SAVE ON STACK
         ADD     B               ;ADD TO CHECKSUM
-        MOV     B,A             ;SAVE IT IN B
-        POP     PSW             ;RETRIEVE BYTE
-        PUSH    PSW
-        RAR
-        RAR                     ;ROTATE UPPER
-        RAR
-        RAR                     ;TO LOWER
+        LD      B,A             ;SAVE IT IN B
+        POP     AF              ;RETRIEVE BYTE
+        PUSH    AF
+        RRA
+        RRA                     ;ROTATE UPPER
+        RRA
+        RRA                     ;TO LOWER
         CALL    PHEX1           ;LEFT CHARACTER
-        POP     PSW             ;RIGHT CHARACTER
+        POP     AF              ;RIGHT CHARACTER
 ;
 ; PUNCH A HEX CHARACTER FROM
 ; LOWER FOUR BITS
 ;
-PHEX1:  ANI     OFH             ;MASK UPPER 4 BITS
-        ADI     144
+PHEX1:  AND     0FH             ;MASK UPPER 4 BITS
+        ADD     A,144
         DAA
-        ACI     64
+        ADC     A,64
         DAA
-        JMP     POUT
+        JP      POUT
 ;
 ; INPUT A HEX CHARACTER FROM TAPE
 ;
 HEX:    CALL    PIN
-        SUI     '0'
-        CPI     10
-        RC                      ;0-9
-        SUI     7               ;A-F
+        SUB     '0'
+        CP      10
+        RET     C               ;0-9
+        SUB     7               ;A-F
         RET
 ;
 ; OUTPUT A BYTE TO THE PUNCH
 ;
-POUT:   PUSH    PSW
-PUTW:   IN      PSTAT
-        ANI     POMSK
-        JNZ     POUTW
-        POP     PSW
-        OUT     PDATA
+POUT:   PUSH    AF
+PUTW:   IN      A,(PSTAT)
+        AND     POMSK
+        JP      NZ,PUTW
+        POP     AF
+        OUT     (PDATA),A
         RET
 ;
 ; INPUT A BYTE FROM PAPER TAPE
 ;
-PIN:    IN      PSTAT
-        ANI     PIMSK
-        JNZ     PIN
-        IN      PDAT
-        ANI     7FH             ;STRIP PARITY
+PIN:    IN      A,(PSTAT)
+        AND     PIMSK
+        JP      NZ,PIN
+        IN      A,(PDATA)
+        AND     7FH             ;STRIP PARITY
         RET
 ;
 ; PUNCH CR, LF, NULLS AND COLON
 ;
-PCRLF:  MVI     A,CR
+PCRLF:  LD      A,CR
         CALL    POUT
-        MOVI    A,LF
+        LD      A,LF
         CALL    POUT
-        XRA     A
+        XOR     A
         CALL    POUT
-        XRA     A
+        XOR     A
         CALL    POUT            ;TWO NULLS
         CALL    POUT
-        MVI     A,':'           ;COLON
-        JMP     POUT
+        LD      A,':'           ;COLON
+        JP      POUT
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ENTRY FOR LOAD, EXECUTE AND VERIFY
 ;
-PLOAD:  STA     TASK
-        MVI     A,17            ;TAPE READER ON
+PLOAD:  LD      (TASK),A
+        LD      A,17            ;TAPE READER ON
         CALL    POUT
         CALL    READHL          ;OFFSET
-        SHLD    OFSET           ;SAVE IT
+        LD      (OFSET),HL      ;SAVE IT
 ;
 ; PROCESS THE RECORD HEADING ON INPUT
 ;
 HEAD:   CALL    PIN             ;INPUT FROM TAPE
-        CPI     ':'             ;COLON?
-        JNZ     HEAD            ;NO, TRY AGAIN
-        MVI     B,0             ;ZERO THE CHECKSUM
+        CP      ':'             ;COLON?
+        JP      NZ,HEAD         ;NO, TRY AGAIN
+        LD      B,0             ;ZERO THE CHECKSUM
         CALL    PHEX            ;RECORD LENGTH
-        ORA     A               ;IS IT ZERO?
-        JZ      ENDFL           ;YES, DONE
-        MOV     C,A             ;SAVE REC.LEN.
+        OR      A               ;IS IT ZERO?
+        JP      Z,ENDFL         ;YES, DONE
+        LD      C,A             ;SAVE REC.LEN.
         CALL    TAPEHL          ;GET H/L
-        XCHG                    ;ADDR TO D,E
-        LHLD    OFSET           ;GET OFFSET
-        DAD     D               ;ADD
+        EX      DE,HL           ;ADDR TO D,E
+        LD      (HL),OFSET      ;GET OFFSET
+        ADD     HL,DE           ;ADD
 LOOP:   CALL    PHEX            ;INPUT DATA BYTE
-        MOV     E,A             ;SAVE BYTE
-        LDA     TASK            ;GET TASK
-        CPI     'V'             ;SEE IF VERIFYING
-        MOV     A,E             ;MOVE BACK
-        JZ      SKIP            ;JUMP IF VERIFYING
-        MOV     M,A             ;DATA TO MEMORY
-SKIP:   CMP     M               ;CHECK MEMORY
-        JNZ     MERROR          ;BAD MEMORY
-        INX     H               ;INCREMENT POINTER
-        DCR     C               ;DECR RECORD LEN
-        JNZ     LOOP            ;NOT YET ZERO
+        LD      E,A             ;SAVE BYTE
+        LD      A,(TASK)        ;GET TASK
+        CP      'V'             ;SEE IF VERIFYING
+        LD      A,E             ;MOVE BACK
+        JP      Z,SKIP          ;JUMP IF VERIFYING
+        LD      (HL),A          ;DATA TO MEMORY
+SKIP:   CP      M               ;CHECK MEMORY
+        JP      NZ,MERROR       ;BAD MEMORY
+        INC     HL              ;INCREMENT POINTER
+        DEC     C               ;DECR RECORD LEN
+        JP      NZ,LOOP         ;NOT YET ZERO
         CALL    CHECK           ;PROCESS CHECKSUM
-        JMP     HEAD            ;START NEXT RECORD
+        JP      HEAD            ;START NEXT RECORD
 ;
 ; INPUT H,L AND RECORD TYPE FROM TAPE
 ;
 TAPEHL: CALL    PHEX            ;READ H
-        MOV     H,A
+        LD      H,A
         CALL    PHEX            ;READ L
-        MOV     L,A             ;READ RECORD TYPE
+        LD      L,A             ;READ RECORD TYPE
 ;
 ; CONVERT 2 CHAR FROM TAPE TO ONE BINARY
 ; WORD, STORE IN A AND ADD TO CHECKSUM
 ;
 PHEX:   CALL    HEX             ;UPPER CHARACTER
-        RLC
-        RAL                     ;MOVE TO UPPER
-        RAL
-        RAL
-        MOV     E,A             ;SAVE IT
+        RLCA
+        RLA                     ;MOVE TO UPPER
+        RLA
+        RLA
+        LD      E,A             ;SAVE IT
         CALL    HEX             ;LOWER CHARACTER
         ADD     E               ;COMBINE BOTH
-        MOV     E,A             ;SAVE IT
+        LD      E,A             ;SAVE IT
         ADD     B               ;ADD TO CHECKSUM
-        MOV     B,A             ;SAVE T
-        MOV     A,E             ;RETRIEVE DATA
+        LD      B,A             ;SAVE T
+        LD      A,E             ;RETRIEVE DATA
         RET
 ;
 ; ROUTINE TO CHECK FOR AUTOSTART
 ;
 ENDFL:  CALL    TAPEHL          ;AUTOSTART ADDRESS
                                 ;AND RECORD TYPE
-        PUSH    PSW             ;SAVE RECORD TYPE
+        PUSH    AF              ;SAVE RECORD TYPE
         CALL    PHEX            ;INPUT CHECKSUM
         CALL    TOFF            ;TAPE READER OFF
-        POP     PSW             ;RETRIEVE REC TYPE
-        CPI     1               ;AUTOSTART?
-        JNZ     RSTRT           ;NO
-        LDA     TASK            ;CHECK TASK
-        CPI     'E'             ;EXECUTE?
-        JZ      JPCHL           ;YES, GO THERE
+        POP     AF              ;RETRIEVE REC TYPE
+        CP      1               ;AUTOSTART?
+        JP      NZ,RSTRT        ;NO
+        LD      A,(TASK)        ;CHECK TASK
+        CP      'E'             ;EXECUTE?
+        JP      Z,JPCHL         ;YES, GO THERE
         CALL    OUTHL           ;NO, PRINT HL
-        JMP     RSTRT           ;NEXT TASK
+        JP      RSTRT           ;NEXT TASK
 ;
 ;TURN OFF TAPE READER
 ;
-TOFF:   MVI     A,19
-        JMP     POUT
+TOFF:   LD      A,19
+        JP      POUT
 ;
 ; CALCULATE AND PUNCH THE CHECKSUM
 ;
-CSUM:   MOVE    A,B             ;CHECKSUM TO A
-        CMA                     ;ONE'S COMPLEMENT
-        INR     A               ;TWO'S COMPLEMENT
-        JMP     PNHEX           ;PUNCH CHECKSUM
+CSUM:   LD      A,B             ;CHECKSUM TO A
+        CPL                     ;ONE'S COMPLEMENT
+        INC     A               ;TWO'S COMPLEMENT
+        JP      PNHEX           ;PUNCH CHECKSUM
 ;
 ; SEE IF CHECKSUM IS CORRECT (ZERO)
 ;
 CHECK:  CALL    PHEX            ;INPUT CHECKSUM
-        XRA     A
+        XOR     A
         ADD     B               ;IS CHECKSUM ZERO?
-        RZ                      ;YES, RETURN
+        RET     Z               ;YES, RETURN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; ERROR MESSAGES
 ;
-        MVI     A,'C'           ;CHECKSUM ERROR
+        LD      A,'C'           ;CHECKSUM ERROR
         DB      1               ;DB TRICK TO SKIP
-MERROR: MVI     A,'M'           ;M FOR BAD MEMORY
-        PUSH    PSW
+MERROR: LD      A,'M'           ;M FOR BAD MEMORY
+        PUSH    AF
         CALL    TOFF            ;TAPE READER OFF
-        POP     PSW
+        POP     AF
         CALL    OUTT            ;PRINT ERROR TYPE
         CALL    OUTHL           ;PRINT H/L
-        JMP     RSTR
+        JP      RSTRT
 ;
-SGN:    DB      CR,LF
+SIGN:   DB      CR,LF
         DB      'Hex paper-tape program'
         DB      CR,LF,LF
         DB      'E - load and execute'
         DB      CR,LF
         DB      'G - go to address given'
         DB      CR,LF
-        DF      'R - read tape into memory'
+        DB      'R - read tape into memory'
         DB      CR,LF
-        DB      '    (with optional offset)"
+        DB      '    (with optional offset)'
         DB      CR,LF
         DB      'V - verify tape against'
         DB      ' memory',CR,LF
         DB      'W - write paper tape'
         DB      ' (and label)',CR,LF
         DB      CR,LF,0
-MESG:   DB      CR,LF,'Enter leader message'
+LMESG:  DB      CR,LF,'Enter leader message'
         DB      CR,LF,0
 ;
 ; PUNCH READABLE LABELS ON PAPER TAPE
 ;
-LABEL:  PUSH    H
-        PUSH    D
-        LXI     D,LMESG         ;LABEL MESS.
+LABEL:  PUSH    HL
+        PUSH    DE
+        LD      DE,LMESG        ;LABEL MESS.
         CALL    SENDM           ;SEND IT
         CALL    INPLN           ;GET A LINE
 LABL1:  CALL    GETCH           ;GET CHARACTER
-        JC      LABL2           ;DONE ON CARRY
-        SBI     20H             ;ASCII BIAS
-        JC      LABL1           ;< SPACE
-        CPI     63
-        JNC     LABL1           ;TOO BIG
-        MOV     L,A
-        MOV     E,A
-        MVI     H,0
-        MVI     D,0
-        DAD     H               ;DOUBLE IT
-        DAD     H               ;TIMES 4
-        DAD     H               ;TIMES 5
-        XCHG
-        LXI     H,TABL
-        DAD     D
-        MVI     C,5
-NEXTC:  MOV     A,M
+        JP      C,LABL2         ;DONE ON CARRY
+        SBC     A,20H           ;ASCII BIAS
+        JP      C,LABL1         ;< SPACE
+        CP      63
+        JP      NC,LABL1        ;TOO BIG
+        LD      L,A
+        LD      E,A
+        LD      H,0
+        LD      D,0
+        ADD     HL,HL           ;DOUBLE IT
+        ADD     HL,HL           ;TIMES 4
+        ADD     HL,HL           ;TIMES 5
+        EX      DE,HL
+        LD      HL,TABL
+        ADD     HL,DE
+        LD      C,5
+NEXTC:  LD      A,(HL)
         CALL    POUT
-        INX     H
-        DCR     C
-        JNZ     NEXTC
-        XRA     A
+        INC     HL
+        DEC     C
+        JP      NZ,NEXTC
+        XOR     A
         CALL    POUT
-        JMP     LABL1           ;NEXT CHARACTER
-        CALL    LEADR
-        POP     D
-        POP     H
+        JP      LABL1           ;NEXT CHARACTER
+LABL2:  CALL    LEADR
+        POP     DE
+        POP     HL
         RET
 ;
-        DB      0,  0,  0,  0,  0       ; SPACE
+TABL:   DB      0,  0,  0,  0,  0       ; SPACE
         DB      0,  0,  207,207,0       ; !
         DB      0,  7,  0,  7,  0       ; "
         DB      40, 254,40, 254,40      ; #
