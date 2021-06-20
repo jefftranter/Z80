@@ -7,3 +7,5 @@ Minimal Chip Count Z80 Computer (32K version). A few change were made:
 - 36 pin expansion header connector
 - Power on LED
 - PCB was designed
+
+For the EasyEDA design, see https://oshwlab.com/tranter/z80-single-board-computer
