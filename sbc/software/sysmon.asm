@@ -29,14 +29,12 @@
 ;
 
 TOP:    EQU     64              ;MEMORY TOP, K BYTES
-;ORGIN:  EQU     (TOP-1)*1024   ;PROGRAM START (WHEN RUNNING FROM RAM)
 ORGIN:  EQU     $0000           ;PROGRAM START (WHEN RUNNING FROM ROM)
 
         ORG     ORGIN
 ;
 VERS:   EQU     '1'             ;VERSION NUMBER
-;STACK: EQU     ORGIN-60H       ;USE WHEN RUNNING FROM RAM
-STACK:  EQU     $FFF0           ;USE WHEN RUNNING FROM ROM
+STACK:  EQU     $FFF0           ;INITIALIZE ADDRESS OF TOP OF STACK
 CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
 INMSK:  EQU     1               ;INPUT MASK
@@ -63,12 +61,51 @@ APOS:   EQU     (39-'0') & 0FFH
 CR:     EQU     13              ;CARRIAGE RET
 LF:     EQU     10              ;LINE FEED
 ;
-START:
-        JP      COLD            ;COLD START
-RESTRT: JP      WARM            ;WARM START
+
+; Reset/RST 00 vector: jump to cold start entry point
+RESET:  JP      START           ;COLD START
+
+; RST 08 vector
+        DS      $0008-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; RST 10 vector
+        DS      $0010-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; RST 18 vector
+        DS      $0018-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; RST 20 vector
+        DS      $0020-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; RST 28 vector
+        DS      $0028-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; RST 30 vector
+        DS      $0030-$,$FF
+        RET                     ;SIMPLY RETURN
+
+; Mode 1 IRQ/RST 38 vector
+        DS      $0038-$,$FF
+IRQ:    RETI                    ;RETURN FROM IRQ
+
+; NMI vector
+        DS      $0066-$,$FF
+NMI:    RETN                    ;RETURN FROM NMI
+
+; Start actual code at $0100
+
+        DS      $0100-$,$FF
+
 ;
 ; VECTORS TO USEFUL ROUTINES
 ;
+START:  JP      COLD            ;COLD START
+RESTRT: JP      WARM            ;WARM START
 COUT:   JP      OUTT            ;OUTPUT CHAR
 CIN:    JP      INPUTT          ;INPUT CHAR
 INLN:   JP      INPLN           ;INPUT A LINE
