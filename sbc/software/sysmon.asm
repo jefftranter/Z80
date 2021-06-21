@@ -29,12 +29,14 @@
 ;
 
 TOP:    EQU     64              ;MEMORY TOP, K BYTES
-ORGIN:  EQU     (TOP-1)*1024    ;PROGRAM START
+;ORGIN:  EQU     (TOP-1)*1024   ;PROGRAM START (WHEN RUNNING FROM RAM)
+ORGIN:  EQU     $0000           ;PROGRAM START (WHEN RUNNING FROM ROM)
 
         ORG     ORGIN
 ;
 VERS:   EQU     '1'             ;VERSION NUMBER
-STACK:  EQU     ORGIN-60H
+;STACK: EQU     ORGIN-60H       ;USE WHEN RUNNING FROM RAM
+STACK:  EQU     $FFF0           ;USE WHEN RUNNING FROM ROM
 CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
 INMSK:  EQU     1               ;INPUT MASK
@@ -62,7 +64,6 @@ CR:     EQU     13              ;CARRIAGE RET
 LF:     EQU     10              ;LINE FEED
 ;
 START:
-        DI                      ;DISABLE INTERRUPTS
         JP      COLD            ;COLD START
 RESTRT: JP      WARM            ;WARM START
 ;
@@ -159,7 +160,7 @@ SIGNON: DB      CR,LF
 ;
 ; CONTINUATION OF COLD START
 ;
-COLD:   LD      SP,STACK
+COLD:   LD      SP,STACK        ;INITIALIZE STACK
         LD      DE,SIGNON       ;MESSAGE
         CALL    SENDM           ;SEND IT
 ;
@@ -811,4 +812,8 @@ VERM3:  CALL    TSTOP           ;DONE?
         INC     BC              ;2ND POINTER
         JR      VERM2
 ;
+; Fill rest of 8K ROM
+;
+        DS      $2000-$,$FF
+
         END
