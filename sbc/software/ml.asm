@@ -14,16 +14,21 @@
 ;
 ; Example basic program:
 ;
-; 10 FOR I = 0 TO 9
+; 10 A = &HF000
 ; 20 READ D
-; 30 POKE &HF000+I,D
-; 40 NEXT I
-; 50 POKE &H8049,&H00
-; 60 POKE &H804A,&HFF
-; 70 FOR I = 0 TO 1000
-; 80 PRINT "USR(";I;")=";USR(I)
-; 90 NEXT I
-; 100 DATA 205,7,10,19,122,67,205,125,17,201
+; 30 IF D = -1 THEN 70
+; 40 POKE A,D
+; 50 A = A + 1
+; 60 GOTO 20
+; 70 POKE &H8049,&H00
+; 80 POKE &H804A,&HFF
+; 90 FOR I = 0 TO 100
+; 100 PRINT "USR(";I;")=";USR(I)
+; 110 NEXT I
+; 120 DATA 205,7,10,19,122,67,195,125,17,-1
+
+; Can generate decimal data above using Linux command like:
+; hexdump -v -e '/1 "%u,\n"' ml.bin
 
 ; Source code
 ; Takes value passed to it, increments it, and returns value.
@@ -37,5 +42,4 @@ ABPASS: EQU     $117D           ; Routine to pass value in AB back to Basic
         INC     DE              ; Increment value
         LD      A,D             ; Put D in A
         LD      B,E             ; Put E in B
-        CALL    ABPASS          ; Pass back to Basic
-        RET                     ; Return to Basic
+        JP      ABPASS          ; Pass back to Basic

@@ -54,8 +54,9 @@ OUTW:   IN      A,(CSTAT)
         POP     AF
         OUT     (CDATA),A
         RET
+;
 ; OUTPUT H,L TO CONSOLE
-; 16-BT BINARY TO HEX
+; 16-BIT BINARY TO HEX
 ;
 OUTHL:  LD      C,H             ;FETCH H
         CALL    OUTHX           ;PRINT IT
@@ -63,6 +64,7 @@ OUTHL:  LD      C,H             ;FETCH H
 ;
 ; CONVERT A BINARY NUMBER TO TWO
 ; HEX CHARACTERS, AND PRINT THEM
+;
 OUTHX:  LD      A,C
         RRA                     ;ROTATE
         RRA                     ; UPPER
@@ -83,6 +85,7 @@ HEX1:   AND     0FH             ;TAKE 4 BITS
 ;
 ; CONVERT ASCII CHARACTER FROM CONSOLE
 ; TO 4 BINARY BITS
+;
 NIB:    SUB     '0'             ;ASCII BIAS
         RET     C               ;< '0'
         CP      'F'-'0'+1
