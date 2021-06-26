@@ -198,8 +198,7 @@ SIGNON: DB      CR,LF
 ; CONTINUATION OF COLD START
 ;
 COLD:   LD      SP,STACK        ;INITIALIZE STACK
-        LD      DE,SIGNON       ;MESSAGE
-        CALL    SENDM           ;SEND IT
+
 ;
 ; INITIALIZE I/O PORTS
 ;
@@ -211,6 +210,9 @@ COLD:   LD      SP,STACK        ;INITIALIZE STACK
         OUT     (LSTAT),A
         XOR     A               ;GET A ZERO
         LD      (PORTN),A       ;RESET
+
+        LD      DE,SIGNON       ;MESSAGE
+        CALL    SENDM           ;SEND IT
 ;
 ; WARM-START ENTRY
 ;
