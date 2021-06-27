@@ -39,7 +39,8 @@
 ; Revision History
 ; Version Date         Comments
 ; 0.1     26-Jun-2021  First version started, based on 8080 version for
-;                      Altair, converted to Z80 mnemonics
+;                      Altair, converted to Z80 mnemonics and ported to
+;                      Z80 SBC.
 
 ; To Do:
 ; Implement other commands
@@ -56,7 +57,7 @@ stack:  equ 8000h        ; Starting address for stack
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Main program entry point
- 
+
 Start:
 
 ; Save registers on entry (for later use by commands like REGISTERS and GO)
@@ -554,35 +555,9 @@ MathCommand:
 ;
 ; Utility Routines
 
-; The Briel Altair 8800 emulates a MITS 88-2SIO serial interface to the
-; console. The hardware interface is as follows:
-; 
-; I/O Port  Read             Write
-; --------  ---------------  ----------------
-; 10h       Status Register  Control Register
-; 11h       Input Data       Output Data
-; 
-; The control register can set parameters such as bit rate. It does not
-; need to be initialized on the Briel Altair.
-; 
-; The status register has a number of bits. Not all are emulated. The
-; following are the ones of interest for console serial input/output:
-; 
-; Bit Function
-; 
-; 0   Receive Data Register Full (RDRF). Set to 1 when data is ready to
-;     be read. Reading the input data register clears it.
-; 
-; 1   Transmit Data Register Empty (TDRE). Set to 1 when output data has
-;     been transferred out and new data may be entered.
-; 
-; References:
-; 1. MITS 88-2 Serial Input/Output Board Theory of Operation
-; 
-
-SREG:   equ     10h
-CREG:   equ     10h
-DREG:   equ     11h
+SREG:   equ     80h
+CREG:   equ     80h
+DREG:   equ     81h
 
 ; PrintChar
 ; Output character in A register to console.
@@ -591,9 +566,8 @@ DREG:   equ     11h
 PrintChar:
         push    af              ; Save A register
 loop1:  in      a,(SREG)        ; Read status register
-        and     02h             ; Mask out TDRE bit
-        jp      z,loop1         ; Repeat until TDRE is set
-        call    Delay           ; Delay seems to be needed to avoid dropped characters
+        bit     1,A             ; Test TDRE bit
+        jr      z,loop1         ; Repeat until TDRE is set
         pop     af              ; Restore A
         out     (DREG),a        ; Output it to data register
         ret                     ; And return
@@ -605,8 +579,8 @@ loop1:  in      a,(SREG)        ; Read status register
 
 GetChar:
         in      a,(SREG)        ; Read status register
-        and     01H             ; Mask out RDRF bit
-        jp      z,GetChar       ; Repeat until RDRF is set
+        bit     0,A             ; Test RDRF bit
+        jr      z,GetChar       ; Repeat until RDRF is set
         in      a,(DREG)            ; Read character from data register
         ret                     ; And return
 
@@ -754,21 +728,6 @@ bin1:
         cp      '9'+1           ; Is it greater than '9'?
         ret     c               ; If not, we are done
         add     a,'A'-'9'-1     ; Add offset to convert to hex letter A-F
-        ret                     ; Return
-
-
-; Delay
-; Delay of a few 10s of microseconds. Seems to be needed during
-; serial out to avoid dropped characters. Value determined
-; experimentally.
-; Registers affected: none
-
-Delay:
-        push    af              ; Save A
-        ld      a,50            ; Delay constant
-decr:   dec     a               ; Decrement counter
-        jp      nz,decr         ; Repeat until A reaches zero
-        pop     af              ; Restore A
         ret                     ; Return
 
 
