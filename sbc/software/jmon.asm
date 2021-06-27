@@ -98,72 +98,72 @@ mainloop:
         call    ToUpper         ; Convert to upper case
 
         cp      'C'
-        jp      nz,tryD
+        jr      nz,tryD
         call    CopyCommand
-        jp      mainloop
+        jr      mainloop
 tryD:
         cp      'D'
-        jp      nz,tryF
+        jr      nz,tryF
         call    DumpCommand
-        jp      mainloop
+        jr      mainloop
 tryF:
         cp      'F'
-        jp      nz,tryG
+        jr      nz,tryG
         call    FillCommand
-        jp      mainloop
+        jr      mainloop
 tryG:
         cp      'G'
-        jp      nz,tryI
+        jr      nz,tryI
         call    GoCommand
-        jp      mainloop
+        jr      mainloop
 tryI:
         cp      'I'
-        jp      nz,tryK
+        jr      nz,tryK
         call    InfoCommand
-        jp      mainloop
+        jr      mainloop
 tryK:
         cp      'K'
-        jp      nz,tryL
+        jr      nz,tryL
         call    ChecksumCommand
-        jp      mainloop
+        jr      mainloop
 tryL:
         cp      'L'
-        jp      nz,tryR
+        jr      nz,tryR
         call    ClearCommand
-        jp      mainloop
+        jr      mainloop
 tryR:
         cp      'R'
-        jp      nz,tryS
+        jr      nz,tryS
         call    RegistersCommand
-        jp      mainloop
+        jr      mainloop
 tryS:
         cp      'S'
-        jp      nz,tryT
+        jr      nz,tryT
         call    SearchCommand
-        jp      mainloop
+        jr      mainloop
 tryT:
         cp      'T'
-        jp      nz,tryV
+        jr      nz,tryV
         call    TestCommand
-        jp      mainloop
+        jr      mainloop
 tryV:
         cp      'V'
-        jp      nz,tryColon
+        jr      nz,tryColon
         call    VerifyCommand
-        jp      mainloop
+        jr      mainloop
 tryColon:
         cp      ':'
-        jp      nz,tryEquals
+        jr      nz,tryEquals
         call    MemoryCommand
-        jp      mainloop
+        jr      mainloop
 tryEquals:
         cp      '='
-        jp      nz,tryHelp
+        jr      nz,tryHelp
         call    MathCommand
         jp      mainloop
 tryHelp:
         cp      '?'
-        jp      nz,invalid
+        jr      nz,invalid
         call    HelpCommand
         jp      mainloop
 
@@ -192,7 +192,7 @@ DumpCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for address
-        jp      nc,startScreen  ; Carry set indicates <ESC> pressed
+        jr      nc,startScreen  ; Carry set indicates <ESC> pressed
         call    PrintCR
         ret
 startScreen:
@@ -210,7 +210,7 @@ doline:
         call    PrintByte       ; Print it
         inc     hl              ; Increment current address
         dec     b               ; Decrement byte count
-        jp      nz,doline       ; Continue until full line displayed
+        jr      nz,doline       ; Continue until full line displayed
 
 ; Now dump line of data in ASCII
 
@@ -222,24 +222,24 @@ doAscii:
         call    PrintAscii      ; Print it
         inc     hl              ; Increment current address
         dec     b               ; Decrement byte count
-        jp      nz,doAscii      ; Continue until full line displayed
+        jr      nz,doAscii      ; Continue until full line displayed
 
         call    PrintCR
         dec     c               ; Decrement count of lines printed
-        jp      nz,startLine    ; Do the next line
+        jr      nz,startLine    ; Do the next line
         push    hl              ; Save HL
         ld      hl,strContinue  ; Prompt whether to continue
         call    PrintString
         pop     hl              ; Restore HL
 cont:   call    GetChar         ; Get key
         cp      1BH             ; Escape?
-        jp      nz,trySpace        
+        jr      nz,trySpace        
         call    PrintCR         ; If so, return
         ret
 trySpace:
         cp      ' '             ; Space?
-        jp      z,startScreen   ; If so, do next screen
-        jp      cont            ; Invalid key, try again
+        jr      z,startScreen   ; If so, do next screen
+        jr      cont            ; Invalid key, try again
 
 
 ; Go.
@@ -250,7 +250,7 @@ GoCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for address
-        jp      nc,contgo       ; Carry set indicates <ESC> pressed
+        jr      nc,contgo       ; Carry set indicates <ESC> pressed
         call    PrintCR
         ret
 contgo:
@@ -308,14 +308,14 @@ InfoCommand:
         ld      a,c             ; Ld e flags to A
         and     00101010b       ; Mask out bit we don't care about
         cp      00000010b       ; Should have this value for 8080
-        jp      nz,z80          ; If not, assume Z80 CPU
+        jr      nz,z80          ; If not, assume Z80 CPU
         ld      hl,str8080      ; It is an 8080
 prnt:   call    PrintString     ; Print CPU type
         call    PrintCR
         ret                     ; Return
 z80:    
         ld      hl,strZ80       ; It is a Z80
-        jp      prnt
+        jr      prnt
 
 
 ; REGISTERS command.
@@ -375,7 +375,7 @@ nextbit:
         call    c,PrintOne      ; Print "1" if set
         call    nc,PrintZero    ; Print "0" if cleared
         dec     l               ; Decrement counter
-        jp      nz,nextbit      ; Repeat until all bits done
+        jr      nz,nextbit      ; Repeat until all bits done
 
         call    PrintSpace
         ld      a,'S'
@@ -419,25 +419,25 @@ FillCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ex      de,hl           ; Put HL (start address) in DE
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         call    PrintSpace
         ex      de,hl           ; Put HL (end address) in DE, start address goes back in HL
         call    GetByte         ; Prompt for fill byte
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ld      b,a             ; Store fill byte in B
 fill:
         ld      (hl),b          ; Fill address with byte
         inc     hl              ; Increment current address in HL
         ld      a,h             ; Get H
         cp      d               ; Compare to D
-        jp      nz,fill         ; If no match, continue filling
+        jr      nz,fill         ; If no match, continue filling
         ld      a,l             ; Get L
         cp      e               ; Compare to E
-        jp      nz,fill         ; If no match, continue filling
+        jr      nz,fill         ; If no match, continue filling
         ld      (hl),b          ; We are at last address, write byte to it
 finish:
         call    PrintCR
@@ -454,21 +454,21 @@ CopyCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ld      a,l             ; Save source address in src (low,high)
         ld      (src),a
         ld      a,h
         ld      (src+1),a
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ld      a,l             ; Save destination address in dst (low,high)
         ld      (dst),a
         ld      a,h
         ld      (dst+1),a
         call    PrintSpace
         call    GetAddress      ; Prompt for number of bytes
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ld      a,l             ; Save length in size (low,high)
         ld      (size),a
         ld      a,h
@@ -487,13 +487,13 @@ CopyCommand:
         ld      d,a
 copy:   ld      a,b             ; Get B (remaining bytes)
         or      c               ; Also get C
-        jp      z,finish        ; If BC is zero, we are done, so return
+        jr      z,finish        ; If BC is zero, we are done, so return
         ld      a,(de)          ; Get byte from source address (DE)
         ld      (hl),a          ; Store byte in destination address (HL)
         inc     de              ; Increment source address
         inc     hl              ; Increment destination address
         dec     bc              ; Decrement count of bytes
-        jp      copy            ; Repeat
+        jr      copy            ; Repeat
 
 ; Checksum Command
 ; Calculate 16-bit checksum of a block of memory.
@@ -502,11 +502,11 @@ ChecksumCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ex      de,hl           ; Swap HL and DE (put start in DE)
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jp      c,finish        ; Carry set indicates <ESC> pressed
+        jr      c,finish        ; Carry set indicates <ESC> pressed
         ex      de,hl           ; Swap HL and DE
                                 ; HL holds start/current address
                                 ; DE holds end address
@@ -523,10 +523,10 @@ checkloop:
         ld      b,a             ; Store MSB of checksum
         ld      a,h             ; See if MSB of pointer has reached end address yet
         cp      d               ; e.g. H = D
-        jp      nz,inc
+        jr      nz,inc
         ld      a,l             ; See if MSB of pointer has reached end address yet
         cp      e               ; e.g. L = E
-        jp      nz,inc
+        jr      nz,inc
         call    PrintSpace      ; Done, print checksum value
         ld      h,b             ; Put value in HL
         ld      l,c
@@ -534,7 +534,7 @@ checkloop:
         call    PrintCR
         ret
 inc:    inc     hl              ; Increment address pointer
-        jp      checkloop
+        jr      checkloop
 
 
 ; Unimplemented commands
@@ -635,15 +635,15 @@ PrintOne:
 PrintAscii:
         push    af              ; Save A
         cp      ' '             ; Less than <Space> ?
-        jp      c,notPrintable  ; If so, not printable
+        jr      c,notPrintable  ; If so, not printable
         cp      '~'+1           ; Greater than tilde?
-        jp      nc,notPrintable ; If so, not printable
+        jr      nc,notPrintable ; If so, not printable
 ppr:    call    PrintChar       ; Print character
         pop     af              ; Restore A
         ret
 notPrintable:
         ld      a,'.'
-        jp      ppr
+        jr      ppr
 
 
 ; ClearScreen
@@ -663,10 +663,10 @@ PrintString:
         push    af              ; Save A register
 nextch: ld      a,(hl)          ; Get a character
         cp      0               ; Is it a null?
-        jp      z,eos           ; If so, exit
+        jr      z,eos           ; If so, exit
         call    PrintChar       ; Print the character
         inc     hl              ; Advance pointer to next character
-        jp      nextch          ; And repeat
+        jr      nextch          ; And repeat
 eos:    pop     af              ; Restore A register
         ret                     ; Return
 
@@ -685,9 +685,9 @@ PrintSpace:
 ; Registers affected: A
 ToUpper:
         cp      'a'             ; Less than 'a' ?
-        jp      c,notUpper      ; If so, branch
+        jr      c,notUpper      ; If so, branch
         cp      'z'+1           ; Greater than 'z'?
-        jp      nc,notUpper
+        jr      nc,notUpper
         and     11011111b       ; Convert to upper case
 notUpper:
         ret
@@ -751,33 +751,33 @@ PrintAddress:
 GetHex:
         call    GetChar         ; Get a character
         cp      1BH             ; Is it <Escape> ?
-        jp      nz,next         ; Branch if not
+        jr      nz,next         ; Branch if not
         sub     a               ; Set A to zero
         scf                     ; Otherwise set carry and return.
         ret
 next:   cp      '0'             ; Less than '0'?
-        jp       c,GetHex       ; Yes, ignore and try again
+        jr       c,GetHex       ; Yes, ignore and try again
         cp      '9'+1           ; Greater than 9?
-        jp       c,validDigit   ; Branch if not (is 0-9)
+        jr       c,validDigit   ; Branch if not (is 0-9)
         cp      'A'             ; Less than 'A'?
-        jp       c,GetHex       ; Yes, ignore and try again
+        jr       c,GetHex       ; Yes, ignore and try again
         cp      'F'+1           ; Greater than 'F'?
-        jp       c,validULetter ; Branch if not (is A-F)
+        jr       c,validULetter ; Branch if not (is A-F)
         cp      'a'             ; less that 'a'?
-        jp       c,GetHex       ; Yes, ignore and try again
+        jr       c,GetHex       ; Yes, ignore and try again
         cp      'f'+1           ; Greater than 'f'?
-        jp       c,validLLetter ; Branch if not (is a-f)
-        jp      GetHex          ; Invalid, try again
+        jr       c,validLLetter ; Branch if not (is a-f)
+        jr      GetHex          ; Invalid, try again
 validDigit:
         call    PrintChar       ; Echo the character
         sub     '0'             ; Convert digit to binary
-        jp      done
+        jr      done
 validLLetter:
         and     11011111b       ; Convert to lowercase letter to upper case
 validULetter:
         call    PrintChar       ; Echo the character
         sub     'A'-10          ; Convert uppercase letter to binary
-        jp      done
+        jr      done
 done:   scf                     ; Weird 8080 way to clear carry
         ccf                     ; Set it and then complement it
         ret
