@@ -85,6 +85,10 @@ Start:
         ld      (save_sp+1),a
 
         ld      sp,stack        ; Set up stack pointer
+
+        ld      a,$16           ; Initialize 6850 ACIA
+        out     (CREG),a
+
         call    ClearScreen     ; Clear screen
         ld      hl,strStartup   ; Print startup message
         call    PrintString
