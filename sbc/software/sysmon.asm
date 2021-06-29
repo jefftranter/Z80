@@ -205,7 +205,7 @@ COLD:   LD      SP,STACK        ;INITIALIZE STACK
         LD      A,3
         OUT     (CSTAT),A       ;RESET
         OUT     (LSTAT),A       ;RESET
-        LD      A,15H
+        LD      A,16H
         OUT     (CSTAT),A       ;SET
         OUT     (LSTAT),A
         XOR     A               ;GET A ZERO

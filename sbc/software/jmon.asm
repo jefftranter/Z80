@@ -49,16 +49,58 @@
 
 ; Constants
 
-prompt: equ '?'          ; Prompt character
-CR:     equ '\r'         ; Carriage Return
-NL:     equ '\n'         ; Newline
-stack:  equ 8000h        ; Starting address for stack
+prompt: equ     '?'             ; Prompt character
+CR:             equ '\r'        ; Carriage Return
+NL:             equ '\n'        ; Newline
+stack:          equ $F000       ; Starting address for stack
+
+
+; Reset/RST 00 vector: jump to start entry point
+RESET:  JP      Start
+
+; RST 08 vector
+        DS      $0008-$,$FF
+        RET                     ; Simply return
+
+; RST 10 vector
+        DS      $0010-$,$FF
+        RET                     ; Simply return
+
+; RST 18 vector
+        DS      $0018-$,$FF
+        RET                     ; Simply return
+
+; RST 20 vector
+        DS      $0020-$,$FF
+        RET                     ; Simply return
+
+; RST 28 vector
+        DS      $0028-$,$FF
+        RET                     ; Simply return
+
+; RST 30 vector
+        DS      $0030-$,$FF
+        RET                     ; Simply return
+
+; Mode 1 IRQ/RST 38 vector
+        DS      $0038-$,$FF
+IRQ:    RETI                    ; Return from IRQ
+
+; NMI vector
+        DS      $0066-$,$FF
+NMI:    RETN                    ; Return from NMI
+
+; Start actual code at $0100
+
+        DS      $0100-$,$FF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Main program entry point
 
 Start:
+        DI                      ; Disable interrupts
+        IM        1             ; Use interrupt mode 1
 
 ; Save registers on entry (for later use by commands like REGISTERS and GO)
         ld      (save_a),a
@@ -864,11 +906,16 @@ strContinue:
 strNotImplemented:
         db      "Sorry, command not yet implemented",0
 
+;
+; Fill rest of 8K ROM
+;
+        ds      $2000-$,$FF
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Variables
 
-vars:   equ     7000H
+vars:   equ     $FF00
 save_a: equ     vars
 save_f: equ     vars+1
 save_b: equ     vars+2
