@@ -42,10 +42,10 @@
 ;                      Altair, converted to Z80 mnemonics and ported to
 ;                      Z80 SBC.
 
-; To Do:
+; TODO:
 ; Implement other commands
 
-        org     0000H    ; Start at address 0 if running from ROM
+        org     0000H           ; Start at address 0 if running from ROM
 
 ; Constants
 
@@ -367,6 +367,7 @@ z80:
 ; REGISTERS command.
 ; Example output:
 ; A=01 BC=4E56 DE=0000 HL=021C F=10101011 SP=6FFE PC=00C3
+; TODO: Show additional Z80 registers.
 
 RegistersCommand:
         call    PrintChar       ; Echo command back
