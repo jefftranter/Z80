@@ -43,7 +43,7 @@
 ;                      Z80 SBC.
 
 ; TODO:
-; Implement other commands
+; Implement other commands: Memory, Search, Verify, Test, Math
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -116,6 +116,12 @@ Start:
         ld      (save_h),a
         ld      a,l
         ld      (save_l),a
+        ld      a,i
+        ld      (save_i),a
+        ld      a,r
+        ld      (save_r),a
+        ld      (save_ix),ix
+        ld      (save_iy),iy
         push    af              ; Push A and Flags
         pop     bc              ; Pull A and flags to B,C
         ld      a,c             ; Put flags in A
@@ -323,6 +329,12 @@ contgo:
         ld      b,a
         ld      a,(save_c)
         ld      c,a
+        ld      a,(save_i)
+        ld      i,a
+        ld      a,(save_r)
+        ld      r,a
+        ld      ix,(save_ix)
+        ld      iy,(save_iy)
                                 ; TODO: Restore flags?
         ld      a,(save_a)
         ret                     ; This jumps to go address
@@ -367,7 +379,7 @@ z80:
 ; REGISTERS command.
 ; Example output:
 ; A=01 BC=4E56 DE=0000 HL=021C F=10101011 SP=6FFE PC=00C3
-; TODO: Show additional Z80 registers.
+; IX=1234 IY=2345 I=12 R=34
 
 RegistersCommand:
         call    PrintChar       ; Echo command back
@@ -383,30 +395,24 @@ RegistersCommand:
         ld      a,'C'
         call    PrintChar
         call    PrintEquals
-        ld      a,(save_b)
-        call    PrintByte
-        ld      a,(save_c)
-        call    PrintByte
+        ld      hl,(save_b)
+        call    PrintAddress
         call    PrintSpace
         ld      a,'D'
         call    PrintChar
         ld      a,'E'
         call    PrintChar
         call    PrintEquals
-        ld      a,(save_d)
-        call    PrintByte
-        ld      a,(save_e)
-        call    PrintByte
+        ld      hl,(save_d)
+        call    PrintAddress
         call    PrintSpace
         ld      a,'H'
         call    PrintChar
         ld      a,'L'
         call    PrintChar
         call    PrintEquals
-        ld      a,(save_h)
-        call    PrintByte
-        ld      a,(save_l)
-        call    PrintByte
+        ld      hl,(save_h)
+        call    PrintAddress
         call    PrintSpace
 
 ; print flags in binary
@@ -430,24 +436,48 @@ nextbit:
         ld      a,'P'
         call    PrintChar
         call    PrintEquals
-        ld      a,(save_sp)
-        call    PrintByte
-        ld      a,(save_sp+1)
-        call    PrintByte
+        ld      hl,(save_sp)
+        call    PrintAddress
         call    PrintSpace
         ld      a,'P'
         call    PrintChar
         ld      a,'C'
         call    PrintChar
         call    PrintEquals
-        ld      a,(save_pc+1)
+        ld      hl,(save_pc)
+        call    PrintAddress
+        call    PrintCR
+        ld      a,'I'
+        call    PrintChar
+        ld      a,'X'
+        call    PrintChar
+        call    PrintEquals
+        ld      hl,(save_ix)
+        call    PrintAddress
+        call    PrintSpace
+        ld      a,'I'
+        call    PrintChar
+        ld      a,'Y'
+        call    PrintChar
+        call    PrintEquals
+        ld      hl,(save_iy)
+        call    PrintAddress
+        call    PrintSpace
+        ld      a,'I'
+        call    PrintChar
+        call    PrintEquals
+        ld      a,(save_i)
         call    PrintByte
-        ld      a,(save_pc)
+        call    PrintSpace
+        ld      a,'R'
+        call    PrintChar
+        call    PrintEquals
+        ld      a,(save_r)
         call    PrintByte
         call    PrintCR
+
 ; TODO: Add support for editing registers
         ret
-
 
 ; HELP command.
 ; Displays list of valid commands.
@@ -925,10 +955,14 @@ save_d: equ     vars+4
 save_e: equ     vars+5
 save_h: equ     vars+6
 save_l: equ     vars+7
-save_sp: equ    vars+8
-save_pc: equ    vars+10
-src:    equ     vars+12        ; Used for commands like Copy
-dst:    equ     vars+14
-size:   equ     vars+16
+save_i: equ     vars+8
+save_r: equ     vars+9
+save_sp: equ    vars+10
+save_pc: equ    vars+12
+save_ix: equ    vars+14
+save_iy: equ    vars+16
+src:    equ     vars+18        ; Used for commands like Copy
+dst:    equ     vars+20
+size:   equ     vars+22
 
         end
