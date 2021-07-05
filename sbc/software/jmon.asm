@@ -41,9 +41,10 @@
 ; 0.1     26-Jun-2021  First version started, based on 8080 version for
 ;                      Altair, converted to Z80 mnemonics and ported to
 ;                      Z80 SBC.
+; 0.2     05-Jul-2021  Added support for Z80 registers.
+;                      Implemented memory (":") command.
 
-; TODO:
-; Implement other commands: Memory, Search, Verify, Test, Math
+; TODO: Implement other commands: Search, Verify, Test, Math
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -614,11 +615,29 @@ inc:    inc     hl              ; Increment address pointer
         jr      checkloop
 
 
+MemoryCommand:
+; Format:
+; : <addr> <bb> <bb> ... <Esc>
+; eg:
+; : A000 12 34 56 78
+Memory:
+        call    PrintChar       ; Echo command
+        call    PrintSpace
+        call    GetAddress      ; Get start address
+        ret     c               ; Return if carry set (<ESC> pressed)
+writeLoop:
+        call    PrintSpace      ; Echo space
+        call    GetByte         ; Get data byte (ESC will exit)
+        ret     c               ; Return if carry set (<ESC> pressed)
+        ld      (hl),a          ; Write data to address
+        inc     hl
+        jr      writeLoop       ; Input more data
+
+
 ; Unimplemented commands
 SearchCommand:
 TestCommand:
 VerifyCommand:
-MemoryCommand:
 MathCommand:
         call    PrintChar        ; Echo the command back
         call    PrintCR
@@ -900,7 +919,7 @@ GetAddress:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.1 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.2 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
