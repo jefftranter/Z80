@@ -47,7 +47,7 @@
 ;                      Added scope loop ("P") command.
 ;                      Implemented math ("=") command.
 
-; TODO: Implement other commands: Search, Verify, Test, Math
+; TODO: Implement other commands: Search, Verify, Test
 
         org     0000H           ; Start at address 0 if running from ROM
 
