@@ -44,6 +44,7 @@
 ; 0.2     05-Jul-2021  Added support for Z80 registers.
 ;                      Implemented memory (":") command.
 ;                      Added support for setting register values.
+;                      Added scope loop ("P") command.
 
 ; TODO: Implement other commands: Search, Verify, Test, Math
 
@@ -182,8 +183,13 @@ tryK:
         jr      mainloop
 tryL:
         cp      'L'
-        jr      nz,tryR
+        jr      nz,tryP
         call    ClearCommand
+        jr      mainloop
+tryP:
+        cp      'P'
+        jr      nz,tryR
+        call    LoopCommand
         jr      mainloop
 tryR:
         cp      'R'
@@ -209,7 +215,7 @@ tryColon:
         cp      ':'
         jr      nz,tryEquals
         call    MemoryCommand
-        jr      mainloop
+        jp      mainloop
 tryEquals:
         cp      '='
         jr      nz,tryHelp
@@ -786,6 +792,18 @@ writeLoop:
         inc     hl
         jr      writeLoop       ; Input more data
 
+; Scope loop command. For hardware debugging, loops on reading from an address.
+; Continuously loops until reset.
+; SCOPE LOOP: P <ADDRESS>
+
+LoopCommand:
+        call    PrintChar       ; Echo command
+        call    PrintSpace
+        call    GetAddress      ; Get address
+        call    PrintCR
+ReadLoop:
+        ld      a,(hl)          ; Read from address
+        jr      ReadLoop        ; Repeat forever
 
 ; Unimplemented commands
 SearchCommand:
@@ -1087,6 +1105,7 @@ strHelp:
         db      "I                          Show info\r\n"
         db      "K <start> <end>            Checksum\r\n"
         db      "L                          Clear screen\r\n"
+        db      "P <address>                Scope loop\r\n"
         db      "R                          Examine registers\r\n"
         db      "S <start> <end> <data>     Search memory\r\n"
         db      "T <start> <end>            Test memory\r\n"
