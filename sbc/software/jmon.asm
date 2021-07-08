@@ -45,6 +45,7 @@
 ;                      Implemented memory (":") command.
 ;                      Added support for setting register values.
 ;                      Added scope loop ("P") command.
+;                      Implemented math ("=") command.
 
 ; TODO: Implement other commands: Search, Verify, Test, Math
 
@@ -805,11 +806,61 @@ ReadLoop:
         ld      a,(hl)          ; Read from address
         jr      ReadLoop        ; Repeat forever
 
+
+; Math command. Add or substract two 16-bit hex numbers.
+; Format: = <ADDRESS> +/- <ADDRESS>
+; e.g.
+; = 1234 + 0077 = 12AB
+; = FF00 - 0002 = FEFE
+MathCommand:
+        call    PrintChar       ; Echo command
+        call    PrintSpace
+        call    GetAddress      ; Get first number
+        ld      (src),hl
+        call    PrintSpace
+PlusOrMinus:
+        call    GetChar
+        cp      '+'             ; Is it plus?
+        jr      z,Okay
+        cp      '-'             ; Is it minus?
+        jr      z,Okay
+        jr      PlusOrMinus     ; If not, try again
+Okay:
+        ld      (op),a          ; Save operator
+        call    PrintChar       ; Echo operator
+        call    PrintSpace
+        call    GetAddress      ; Get second number
+        ld      (dst),hl
+
+        call    PrintSpace
+        ld      a,'='
+        call    PrintChar
+        call    PrintSpace
+        ld      a,(op)
+        cp      '-'
+        jr      z,Sub           ; Branch if operation is subtract
+
+        ld      hl,(src)        ; Perform 16-bit add
+        ld      de,(dst)
+        add     hl,de
+        jr      PrintResult
+
+Sub:
+        ld      hl,(src)        ; Perform 16-bit add
+        ld      de,(dst)
+        scf                     ; Clear carry
+        ccf
+        sbc     hl,de
+
+PrintResult:
+        call    PrintAddress
+        jr      PrintCR
+
+
 ; Unimplemented commands
 SearchCommand:
 TestCommand:
 VerifyCommand:
-MathCommand:
         call    PrintChar        ; Echo the command back
         call    PrintCR
         ld      hl,strNotImplemented
@@ -1155,5 +1206,6 @@ save_iy: equ    vars+16
 src:    equ     vars+18        ; Used for commands like Copy
 dst:    equ     vars+20
 size:   equ     vars+22
+op:     equ     vars+24
 
         end
