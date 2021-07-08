@@ -43,6 +43,7 @@
 ;                      Z80 SBC.
 ; 0.2     05-Jul-2021  Added support for Z80 registers.
 ;                      Implemented memory (":") command.
+;                      Added support for setting register values.
 
 ; TODO: Implement other commands: Search, Verify, Test, Math
 
@@ -378,6 +379,9 @@ z80:
 
 
 ; REGISTERS command.
+; Displays saved value of registers
+; Prompts for new value for each register.
+; <Esc> cancels at any time.
 ; Example output:
 ; A=01 BC=4E56 DE=0000 HL=021C F=10101011 SP=6FFE PC=00C3
 ; IX=1234 IY=2345 I=12 R=34
@@ -477,7 +481,156 @@ nextbit:
         call    PrintByte
         call    PrintCR
 
-; TODO: Add support for editing registers
+; Now print and prompt for new values
+
+        ld      a,'A'           ; Prompt A=
+        call    PrintChar
+        call    PrintEquals
+        call    GetByte         ; Get new value
+        jr      c,EscPressed1   ; Skip if <ESC> pressed
+        ld      (save_a),a      ; Otherwise save value
+        jr      EnterBC
+EscPressed1:
+        ld      a,(save_a)
+        call    PrintByte
+EnterBC:
+        call    PrintSpace
+        ld      a,'B'
+        call    PrintChar
+        ld      a,'C'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed2   ; Skip if <ESC> pressed
+        ld      (save_b),hl     ; Otherwise save value
+        jr      EnterDE
+EscPressed2:
+        ld      hl,(save_b)
+        call    PrintAddress
+EnterDE:
+        call    PrintSpace
+        ld      a,'D'
+        call    PrintChar
+        ld      a,'E'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed3   ; Skip if <ESC> pressed
+        ld      (save_d),hl     ; Otherwise save value
+        jr      EnterHL
+EscPressed3:
+        ld      hl,(save_d)
+        call    PrintAddress
+EnterHL:
+        call    PrintSpace
+        ld      a,'H'
+        call    PrintChar
+        ld      a,'L'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed4   ; Skip if <ESC> pressed
+        ld      (save_h),hl     ; Otherwise save value
+        jr      EnterF
+EscPressed4:
+        ld      hl,(save_h)
+        call    PrintAddress
+EnterF:
+        call    PrintSpace
+        ld      a,'F'
+        call    PrintChar
+        call    PrintEquals
+        call    GetByte
+        jr      c,EscPressed5   ; Skip if <ESC> pressed
+        ld      (save_f),a      ; Otherwise save value
+        jr      EnterSP
+EscPressed5:
+        ld      a,(save_f)
+        call    PrintByte
+EnterSP:
+        call    PrintSpace
+        ld      a,'S'
+        call    PrintChar
+        ld      a,'P'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed6   ; Skip if <ESC> pressed
+        ld      (save_sp),hl    ; Otherwise save value
+        jr      EnterPC
+EscPressed6:
+        ld      hl,(save_sp)
+        call    PrintAddress
+EnterPC:
+        call    PrintSpace
+        ld      a,'P'
+        call    PrintChar
+        ld      a,'C'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed7   ; Skip if <ESC> pressed
+        ld      (save_pc),hl    ; Otherwise save value
+        jr      EnterIX
+EscPressed7:
+        ld      hl,(save_pc)
+        call    PrintAddress
+EnterIX:
+        call    PrintCR
+        call    PrintSpace
+        ld      a,'I'
+        call    PrintChar
+        ld      a,'X'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed8   ; Skip if <ESC> pressed
+        ld      (save_ix),hl    ; Otherwise save value
+        jr      EnterIY
+EscPressed8:
+        ld      hl,(save_ix)
+        call    PrintAddress
+EnterIY:
+        call    PrintCR
+        call    PrintSpace
+        ld      a,'I'
+        call    PrintChar
+        ld      a,'Y'
+        call    PrintChar
+        call    PrintEquals
+        call    GetAddress
+        jr      c,EscPressed9   ; Skip if <ESC> pressed
+        ld      (save_iy),hl    ; Otherwise save value
+        jr      EnterI
+EscPressed9:
+        ld      hl,(save_iy)
+        call    PrintAddress
+EnterI:
+        call    PrintSpace
+        ld      a,'I'
+        call    PrintChar
+        call    PrintEquals
+        call    GetByte
+        jr      c,EscPressed10  ; Skip if <ESC> pressed
+        ld      (save_i),a      ; Otherwise save value
+        jr      EnterR
+EscPressed10:
+        ld      a,(save_i)
+        call    PrintByte
+EnterR:
+        call    PrintSpace
+        ld      a,'R'
+        call    PrintChar
+        call    PrintEquals
+        call    GetByte
+        jr      c,EscPressed11  ; Skip if <ESC> pressed
+        ld      (save_i),a      ; Otherwise save value
+        jr      Eol
+EscPressed11:
+        ld      a,(save_r)
+        call    PrintByte
+Eol:
+        call    PrintCR
         ret
 
 ; HELP command.
@@ -677,7 +830,7 @@ GetChar:
         in      a,(SREG)        ; Read status register
         bit     0,A             ; Test RDRF bit
         jr      z,GetChar       ; Repeat until RDRF is set
-        in      a,(DREG)            ; Read character from data register
+        in      a,(DREG)        ; Read character from data register
         ret                     ; And return
 
 ; PrintCR
