@@ -49,8 +49,8 @@
 ;                      Implemented math ("=") command.
 ;                      Implemented search ("S") command.
 ;                      Implemented verify ("V") command.
+; 0.3     10-Jul-2021  Implemented test ("T") command.
 
-; TODO: Implement other commands: Test
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -243,7 +243,7 @@ invalid:
 ; Commands
 
 
-; Dump. Dumps memory in hex and ascii, as below:
+; Dump. Dumps memory in hex and ASCII, as below:
 ;
 ; 0000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
 ;
@@ -760,7 +760,7 @@ checkloop:
         adc     a,(hl)          ; Add next date byte of memory
         ld      c,a             ; Store LSB of checksum
         ld      a,b             ; Get MSB of checksum
-        adc     a,0              ; Add possible carry from LSB
+        adc     a,0             ; Add possible carry from LSB
         ld      b,a             ; Store MSB of checksum
         ld      a,h             ; See if MSB of pointer has reached end address yet
         cp      d               ; e.g. H = D
@@ -810,7 +810,7 @@ ReadLoop:
         jr      ReadLoop        ; Repeat forever
 
 
-; Math command. Add or substract two 16-bit hex numbers.
+; Math command. Add or subtract two 16-bit hex numbers.
 ; Format: = <ADDRESS> +/- <ADDRESS>
 ; e.g.
 ; = 1234 + 0077 = 12AB
@@ -963,15 +963,62 @@ mismatch:
         call    PrintCR
         ret
 
+; Memory test command
+; Format: T <START> <END>
+; TODO: Make sure start <= end
 
-; Unimplemented commands
 TestCommand:
-        call    PrintChar        ; Echo the command back
+        call    PrintChar       ; Echo the command back
+        call    PrintSpace
+        call    GetAddress      ; Get start address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      (src),hl        ; Save start address
+        call    PrintSpace
+        call    GetAddress      ; Get end address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      (size),hl       ; Save end address
+
         call    PrintCR
-        ld      hl,strNotImplemented
-        call    PrintString
-        call    PrintCR
-        ret
+        ld      hl,(size)       ; Get end address
+        ld      de,(src)        ; Get start address
+        scf                     ; Clear carry
+        ccf
+        sbc     hl,de           ; Calculate byte count (HL) = end (HL) - start (DE)
+        inc     hl              ; Need to add one for actual byte count
+        ld      (size),hl       ; Store size
+
+
+        ld      hl,(src)        ; Parameters to RAM test
+        ld      de,(size)
+        call    RAMTST          ; Call RAM test
+        ret     nc              ; Return if no errors
+
+; Test failed. Display error, e.g.
+; Error at: 1234 Exp: 55 Read: AA
+
+       ld      (src),hl         ; Save error address
+       ld      (size),a         ; Save expected data
+
+       ld      hl,strError      ; Error message
+       call    PrintString
+
+       ld      hl,(src)         ; Display error address
+       call    PrintAddress
+
+       ld      hl,strExp        ; Expected message
+       call    PrintString
+
+       ld      a,(size)         ; Get expected data
+       call    PrintByte        ; Print expected data
+
+       ld      hl,strRead       ; Read message
+       call    PrintString
+
+       ld      hl,(src)
+       ld      a,(hl)           ; Get actual data
+       call    PrintByte        ; Print actual data
+       call    PrintCR
+       ret
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1146,7 +1193,7 @@ bhconv:
 
 ; Convert bottom nybble of byte on A to ASCII
 bin1:
-        and     0Fh             ; Mask out lower nybble
+        and     0FH             ; Mask out lower nybble
         add     a,'0'           ; Convert to ASCII digit, e.g. 0->'0'
         cp      '9'+1           ; Is it greater than '9'?
         ret     c               ; If not, we are done
@@ -1241,12 +1288,178 @@ GetAddress:
         ld      l,a             ; Save LSB in L
         ret                     ; Return
 
+
+; The code below was taken from the book "Z80 Assembly Language
+; Subroutines" by Lance Leventhal and Winthrop Saville.
+;
+; Title RAM        test
+; Name:            RAMTST
+;
+; Purpose:         Test a RAM (read/write memory) area.
+;                    1) Write all 0 and test
+;                    2) Write all FF hex and test
+;                    3) Write all AA hex and test
+;                    4) Write all 55 hex and test
+;                    5) Shift a single 1 through each bit,
+;                       while clearing all other bits
+;
+;                    If the program finds an error, it exits
+;                    immediately with the Carry flag set and
+;                    indicates where the error occurred and
+;                    what value it used in the test.
+;
+; Entry:           Register pair HL = Base address of test area
+;                  Register pair DE = Size of area in bytes
+;
+; Exit:            If there are no errors then
+;                    Carry flag = 0
+;                    test area contains 0 in all bytes
+;                  else
+;                    Carry flag = 1
+;                    Register pair HL = Address of error
+;                    Register A = Expected value
+;
+; Registers used:  AF,BC,DE,HL
+;
+; Time:            Approximately 633 cycles per byte plus
+;                  663 cycles overhead
+;
+; Size:            Program 82 bytes
+
+RAMTST:
+
+; Exit with no errors if area size is 0
+
+        ld      a,d             ; Test areas size
+        or      e
+        ret     z               ; Exit with no errors if size is zero
+        ld      b,d             ; BC = area size
+        ld      c,e
+
+; Fill memory with a 0 and test
+
+       sub      a
+       call     FILCMP
+       ret      c               ; Exit if error found
+
+; Fill memory with FF hex (all 1's) and test
+
+       ld       a,0FFH
+       call     FILCMP
+       ret      c               ; Exit if error found
+
+; Fill memory with AA hex (alternating 1's and 0's) and test
+
+       ld       a,0AAH
+       call     FILCMP
+       ret      c               ; Exit if error found
+
+; Fill memory with 55 hex (alternating 0's and 1's) and test
+
+       ld       a,55H
+       call     FILCMP
+       ret      c               ; Exit if error found
+
+; Perform walking bit test. Place a 1 in bit 7 and
+; see if it can be read back. Then move the 1 to
+; bits 6, 5, 4, 3, 2, 1, and 0 and see if it can
+; be read back.
+WLKLP:
+        ld      a,10000000B     ; Make bit 7 1, all other bits 0
+WLKLP1:
+        ld      (hl),a          ; Store test pattern in memory
+        cp      (hl)            ; Try to read it back
+        scf                     ; Set carry in case of error
+        ret     nz              ; Return if error
+        rrca                    ; Rotate pattern to move 1 right
+        cp      10000000B
+        jr      nz,WLKLP1       ; Continue until 1 is back in bit 7
+        ld      (hl),0          ; Clear byte just checked
+        inc     hl
+        dec     bc              ; Decrement and test 16-bit counter
+        ld      a,b
+        or      c
+        jr      nz,WLKLP        ; Continue until memory tested
+        ret                     ; No errors (note OR C clears carry)
+
+; ***********************************
+; Routine: FILCMP
+; Purpose: Fill memory with a value and test
+;          that it can be read back
+; Entry:   A = test value
+;          HL = base address
+;          BC = size of area in bytes
+; Exit:    If no errors then
+;            carry flag is 0
+;          else
+;            carry flag is 1
+;          HL = address of error
+;          DE = base address
+;          BC = size if area in bytes
+;          A = test value
+; Registers used: AF,BC,DE,HL
+; ***********************************
+FILCMP:
+        push    hl              ; Save base address
+        push    bc              ; Save size of area
+        ld      e,a             ; Save test value
+        ld      (hl),a          ; Store test value in first byte
+        dec     bc              ; Remaining area = size - 1
+        ld      a,b             ; Check if anything in remaining area
+        or      c
+        ld      a,e             ; Restore test value
+        jr      z,COMPARE       ; Branch if area has only 1 byte
+
+; Fill rest of area using block move
+; Each iteration moves test value to next higher address
+
+        ld      d,h             ; Destination is always source + 1
+        ld      e,l
+        inc     de
+        ldir                    ; Fill memory
+
+; Now that memory has been filled, test to see it
+; each byte can be read back correctly.
+
+COMPARE:
+        pop     bc              ; Restore size of area
+        pop     hl              ; Restore base address
+        push    hl              ; Save base address
+        push    bc              ; Save size of value
+
+; Compare memory and test value
+
+CMPLP:
+        cpi
+        jr      nz,CMPER        ; Jump if not equal
+        jp      pe,CMPLP        ; Continue through entire area
+                                ; Note CPI clears P/V flag if it
+                                ; decrements BC to 0
+
+; No errors found, so clear carry
+
+        pop     bc              ; BC = size of area
+        pop     hl              ; HL = base address
+        or      a               ; Clear carry, indicating no errors
+        ret
+
+; Error exit, set carry
+; HL = address of error
+; A = test value
+
+CMPER:
+        pop     bc              ; BC = size of area
+        pop     de              ; DE = base address
+        scf                     ; Set carry, indicating an error
+        ret
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.2 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.3 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1254,7 +1467,7 @@ strInvalid:
 strHelp:
         db      "\r\n"
         db      "Valid commands:\r\n"
-        db      "C <src> <dest> <num bytes> Copy memory\r\n"
+        db      "C <src> <dest> <size>      Copy memory\r\n"
         db      "D <address>                Dump memory\r\n"
         db      "F <start> <end> <data>     Fill memory\r\n"
         db      "G <address>                Go\r\n"
@@ -1281,14 +1494,18 @@ strZ80:
         db      "Z80",0
 strContinue:
         db      "Press <Space> to continue, <ESC> to stop ",0
-strNotImplemented:
-        db      "Sorry, command not yet implemented",0
 strNotFound:
         db      "Not found",0
 strFound:
         db      "Found at: ",0
 strMismatch:
         db      "Mismatch at: ",0
+strError:
+        db      "Error at: ",0
+strExp:
+        db      " Exp: ",0
+strRead:
+        db      " Read: ",0
 
 ;
 ; Fill rest of 8K ROM

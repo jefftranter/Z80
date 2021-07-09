@@ -1,10 +1,12 @@
 Firmware and software for Z80 Single Board Computer
 
-int32k.asm - Grant Searle's i.o routines and startup program to boot into BASIC.
+int32k.asm - Grant Searle's i/o routines and startup program to boot into BASIC.
 
 bas32k.asm - Grant Searle's port of Microsoft BASIC 4.7.
 
-sysmon.asm - System Monitor from the book "8080/Z80 Assembly Language - Techniques for Improved Programming" ; by Alan R. Miller
+jmon.asm   - Port of my JMON monitor to Z80 (ROM image).
+
+sysmon.asm - System Monitor from the book "8080/Z80 Assembly Language - Techniques for Improved Programming" by Alan R. Miller (untested).
 
 Notes from Grant Searle's web page on BASIC:
 
