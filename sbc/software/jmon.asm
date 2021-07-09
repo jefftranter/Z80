@@ -23,13 +23,14 @@
 ; Commands:
 ;   COPY: C <START> <END> <DEST>
 ;   DUMP: D <START>
-;   FILL: F <START> <END> <DATA>...
+;   FILL: F <START> <END> <DATA>
 ;   GO: G <ADDRESS>
 ;   INFO: I
 ;   CHECKSUM: K <START> <END>
 ;   CLR SCREEN: L
+;   SCOPE LOOP: P <address>
 ;   REGISTERS: R
-;   SEARCH: S <START> <END> <DATA>...
+;   SEARCH: S <START> <END> <DATA>
 ;   TEST: T <START> <END>
 ;   VERIFY: V <START> <END> <DEST>
 ;   WRITE: : <ADDRESS> <DATA>...
@@ -46,8 +47,9 @@
 ;                      Added support for setting register values.
 ;                      Added scope loop ("P") command.
 ;                      Implemented math ("=") command.
+;                      Implemented search ("S") command.
 
-; TODO: Implement other commands: Search, Verify, Test
+; TODO: Implement other commands: Verify, Test
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -826,7 +828,7 @@ PlusOrMinus:
         jr      z,Okay
         jr      PlusOrMinus     ; If not, try again
 Okay:
-        ld      (op),a          ; Save operator
+        ld      b,a             ; Save operator in B
         call    PrintChar       ; Echo operator
         call    PrintSpace
         call    GetAddress      ; Get second number
@@ -836,7 +838,7 @@ Okay:
         ld      a,'='
         call    PrintChar
         call    PrintSpace
-        ld      a,(op)
+        ld      a,b             ; Get operator
         cp      '-'
         jr      z,Sub           ; Branch if operation is subtract
 
@@ -857,8 +859,56 @@ PrintResult:
         jr      PrintCR
 
 
-; Unimplemented commands
+; Search Memory
+; Format: S <START> <END> <DATA>
+; TODO: Make sure start <= end
 SearchCommand:
+        call    PrintChar       ; Echo command
+        call    PrintSpace
+        call    GetAddress      ; Get start address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      d,h             ; DE = HL
+        ld      e,l
+        call    PrintSpace
+        call    GetAddress      ; Get end address in HL
+        ret     c               ; Return if <ESC> pressed
+        call    PrintSpace
+        call    GetByte         ; Get search pattern in A
+        ret     c               ; Return if <ESC> pressed
+        call    PrintCR
+        scf                     ; Clear carry
+        ccf
+        sbc     hl,de           ; Calculate byte count (HL) = end (HL) - start (DE)
+        inc     hl              ; Need to add one for actual byte count
+        ld      b,h             ; Put byte count HL in BC
+        ld      c,l
+        ld      h,d             ; Put start address DE in HL
+        ld      l,e
+
+; Byte to search for is in A
+; Start address is in HL
+; Byte count is in BC
+
+        cpir                    ; Do search
+        jr      z,match         ; Branch if match found
+        ld      hl,strNotFound  ; Not found message
+        call    PrintString
+        call    PrintCR
+        ret
+match:
+        ld      d,h             ; Save HL in DE
+        ld      e,l
+        ld      hl,strFound     ; Found at message
+        call    PrintString
+        ld      h,d             ; Restore HL from DE
+        ld      l,e
+        dec     hl              ; Points one past the match address, so subtract one
+        call    PrintAddress
+        call    PrintCR
+        ret
+
+
+; Unimplemented commands
 TestCommand:
 VerifyCommand:
         call    PrintChar        ; Echo the command back
@@ -1178,6 +1228,10 @@ strContinue:
         db      "Press <Space> to continue, <ESC> to stop ",0
 strNotImplemented:
         db      "Sorry, command not yet implemented",0
+strNotFound:
+        db      "Not found",0
+strFound:
+        db      "Found at: ",0
 
 ;
 ; Fill rest of 8K ROM
@@ -1206,6 +1260,5 @@ save_iy: equ    vars+16
 src:    equ     vars+18        ; Used for commands like Copy
 dst:    equ     vars+20
 size:   equ     vars+22
-op:     equ     vars+24
 
         end
