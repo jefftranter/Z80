@@ -48,8 +48,9 @@
 ;                      Added scope loop ("P") command.
 ;                      Implemented math ("=") command.
 ;                      Implemented search ("S") command.
+;                      Implemented verify ("V") command.
 
-; TODO: Implement other commands: Verify, Test
+; TODO: Implement other commands: Test
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -856,7 +857,7 @@ Sub:
 
 PrintResult:
         call    PrintAddress
-        jr      PrintCR
+        jp      PrintCR
 
 
 ; Search Memory
@@ -867,23 +868,24 @@ SearchCommand:
         call    PrintSpace
         call    GetAddress      ; Get start address in HL
         ret     c               ; Return if <ESC> pressed
-        ld      d,h             ; DE = HL
-        ld      e,l
+        ld      (src),hl        ; Save start address
         call    PrintSpace
         call    GetAddress      ; Get end address in HL
         ret     c               ; Return if <ESC> pressed
+        ld      (size),hl       ; Save end address
         call    PrintSpace
         call    GetByte         ; Get search pattern in A
         ret     c               ; Return if <ESC> pressed
         call    PrintCR
+        ld      hl,(size)       ; Get end address
+        ld      de,(src)        ; Get start address
         scf                     ; Clear carry
         ccf
         sbc     hl,de           ; Calculate byte count (HL) = end (HL) - start (DE)
         inc     hl              ; Need to add one for actual byte count
         ld      b,h             ; Put byte count HL in BC
         ld      c,l
-        ld      h,d             ; Put start address DE in HL
-        ld      l,e
+        ld      hl,(src)        ; Put start address in HL
 
 ; Byte to search for is in A
 ; Start address is in HL
@@ -908,9 +910,62 @@ match:
         ret
 
 
+; Verify range of memory matches another
+; Format: S <START> <END> <DEST>
+; TODO: Make sure start <= end
+VerifyCommand:
+        call    PrintChar       ; Echo command
+        call    PrintSpace
+        call    GetAddress      ; Get start address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      (src),hl        ; Save start address
+        call    PrintSpace
+        call    GetAddress      ; Get end address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      (size),hl       ; Save end address
+        call    PrintSpace
+        call    GetAddress      ; Get dest address in HL
+        ret     c               ; Return if <ESC> pressed
+        ld      (dst),hl        ; Save dest address
+        call    PrintCR
+        ld      hl,(size)       ; Get end address
+        ld      de,(src)        ; Get start address
+        scf                     ; Clear carry
+        ccf
+        sbc     hl,de           ; Calculate byte count (HL) = end (HL) - start (DE)
+        inc     hl              ; Need to add one for actual byte count
+        ld      b,h             ; Put byte count HL in BC
+        ld      c,l
+        ld      hl,(src)        ; Put start address in HL
+        ld      de,(dst)        ; Put end address in DE
+
+; Start address is in HL
+; End address is in DE
+; Byte count is in BC
+
+verify:
+        ld      a,(de)          ; Get byte from destination
+        cpi                     ; Do compare, increment HL, decrement BC
+        jr      nz,mismatch     ; Branch if mismatch
+        ret     p               ; Done if end of range (BC=0)
+        inc     de              ; Increment destination pointer
+        jr      verify          ; Otherwise go back
+
+mismatch:
+        ld      d,h             ; Save HL in DE
+        ld      e,l
+        ld      hl,strMismatch  ; Mismatch message
+        call    PrintString
+        ld      h,d             ; Restore HL from DE
+        ld      l,e
+        dec     hl              ; Points to one past the mismatch address, so subtract one
+        call    PrintAddress
+        call    PrintCR
+        ret
+
+
 ; Unimplemented commands
 TestCommand:
-VerifyCommand:
         call    PrintChar        ; Echo the command back
         call    PrintCR
         ld      hl,strNotImplemented
@@ -1232,6 +1287,8 @@ strNotFound:
         db      "Not found",0
 strFound:
         db      "Found at: ",0
+strMismatch:
+        db      "Mismatch at: ",0
 
 ;
 ; Fill rest of 8K ROM
