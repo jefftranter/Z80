@@ -587,7 +587,6 @@ EscPressed7:
         call    PrintAddress
 EnterIX:
         call    PrintCR
-        call    PrintSpace
         ld      a,'I'
         call    PrintChar
         ld      a,'X'
@@ -601,7 +600,6 @@ EscPressed8:
         ld      hl,(save_ix)
         call    PrintAddress
 EnterIY:
-        call    PrintCR
         call    PrintSpace
         ld      a,'I'
         call    PrintChar
@@ -634,7 +632,7 @@ EnterR:
         call    PrintEquals
         call    GetByte
         jr      c,EscPressed11  ; Skip if <ESC> pressed
-        ld      (save_i),a      ; Otherwise save value
+        ld      (save_r),a      ; Otherwise save value
         jr      Eol
 EscPressed11:
         ld      a,(save_r)
@@ -791,10 +789,15 @@ Memory:
 writeLoop:
         call    PrintSpace      ; Echo space
         call    GetByte         ; Get data byte (ESC will exit)
-        ret     c               ; Return if carry set (<ESC> pressed)
+        jr      c,retn          ; Done if carry set (<ESC> pressed)
+        cp      CR              ; Done if CR pressed
+        jr      z,retn
         ld      (hl),a          ; Write data to address
-        inc     hl
+        inc     hl              ; Increment address
         jr      writeLoop       ; Input more data
+retn:
+        call    PrintCR
+        ret
 
 ; Scope loop command. For hardware debugging, loops on reading from an address.
 ; Continuously loops until reset.
@@ -829,7 +832,7 @@ PlusOrMinus:
         jr      z,Okay
         jr      PlusOrMinus     ; If not, try again
 Okay:
-        ld      b,a             ; Save operator in B
+        ld      (size),a        ; Save operator
         call    PrintChar       ; Echo operator
         call    PrintSpace
         call    GetAddress      ; Get second number
@@ -839,7 +842,7 @@ Okay:
         ld      a,'='
         call    PrintChar
         call    PrintSpace
-        ld      a,b             ; Get operator
+        ld      a,(size)         ; Get operator
         cp      '-'
         jr      z,Sub           ; Branch if operation is subtract
 
@@ -947,7 +950,7 @@ verify:
         ld      a,(de)          ; Get byte from destination
         cpi                     ; Do compare, increment HL, decrement BC
         jr      nz,mismatch     ; Branch if mismatch
-        ret     p               ; Done if end of range (BC=0)
+        jp      pe,passed       ; Done and passed if end of range (BC=0)
         inc     de              ; Increment destination pointer
         jr      verify          ; Otherwise go back
 
@@ -991,34 +994,39 @@ TestCommand:
         ld      hl,(src)        ; Parameters to RAM test
         ld      de,(size)
         call    RAMTST          ; Call RAM test
-        ret     nc              ; Return if no errors
+        jr      c,fail          ; Error occurred
+passed: ld      hl,strPassed    ; Passed message
+        call    PrintString
+        call    PrintCR
+        ret
 
 ; Test failed. Display error, e.g.
 ; Error at: 1234 Exp: 55 Read: AA
+fail:
+        dec     hl              ; Need to decrement HL to point to error address
+        ld      (src),hl        ; Save error address
+        ld      (size),a        ; Save expected data
 
-       ld      (src),hl         ; Save error address
-       ld      (size),a         ; Save expected data
+        ld      hl,strError     ; Error message
+        call    PrintString
 
-       ld      hl,strError      ; Error message
-       call    PrintString
+        ld      hl,(src)        ; Display error address
+        call    PrintAddress
 
-       ld      hl,(src)         ; Display error address
-       call    PrintAddress
+        ld      hl,strExp       ; Expected message
+        call    PrintString
 
-       ld      hl,strExp        ; Expected message
-       call    PrintString
+        ld      a,(size)        ; Get expected data
+        call    PrintByte       ; Print expected data
 
-       ld      a,(size)         ; Get expected data
-       call    PrintByte        ; Print expected data
+        ld      hl,strRead      ; Read message
+        call    PrintString
 
-       ld      hl,strRead       ; Read message
-       call    PrintString
-
-       ld      hl,(src)
-       ld      a,(hl)           ; Get actual data
-       call    PrintByte        ; Print actual data
-       call    PrintCR
-       ret
+        ld      hl,(src)
+        ld      a,(hl)          ; Get actual data
+        call    PrintByte       ; Print actual data
+        call    PrintCR
+        ret
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1330,7 +1338,7 @@ RAMTST:
 
 ; Exit with no errors if area size is 0
 
-        ld      a,d             ; Test areas size
+        ld      a,d             ; Test area size
         or      e
         ret     z               ; Exit with no errors if size is zero
         ld      b,d             ; BC = area size
@@ -1506,6 +1514,8 @@ strExp:
         db      " Exp: ",0
 strRead:
         db      " Read: ",0
+strPassed:
+        db      "Passed",0
 
 ;
 ; Fill rest of 8K ROM
