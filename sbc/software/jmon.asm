@@ -790,8 +790,6 @@ writeLoop:
         call    PrintSpace      ; Echo space
         call    GetByte         ; Get data byte (ESC will exit)
         jr      c,retn          ; Done if carry set (<ESC> pressed)
-        cp      CR              ; Done if CR pressed
-        jr      z,retn
         ld      (hl),a          ; Write data to address
         inc     hl              ; Increment address
         jr      writeLoop       ; Input more data
@@ -940,17 +938,17 @@ VerifyCommand:
         ld      b,h             ; Put byte count HL in BC
         ld      c,l
         ld      hl,(src)        ; Put start address in HL
-        ld      de,(dst)        ; Put end address in DE
+        ld      de,(dst)        ; Put destination address in DE
 
 ; Start address is in HL
-; End address is in DE
+; Destination address is in DE
 ; Byte count is in BC
 
 verify:
         ld      a,(de)          ; Get byte from destination
         cpi                     ; Do compare, increment HL, decrement BC
         jr      nz,mismatch     ; Branch if mismatch
-        jp      pe,passed       ; Done and passed if end of range (BC=0)
+        jp      po,passed       ; Done and passed if end of range (BC=0)
         inc     de              ; Increment destination pointer
         jr      verify          ; Otherwise go back
 
