@@ -138,7 +138,7 @@ SETLST: LD      A,(PORTN)       ;CHECK FLAG
         LD      (PORTN),A       ;SAVE
         JR      INPUTT          ;NEXT BYTE
 ;
-; CONSOLE INPUT ROUTINE
+; CONSOLE OUTPUT ROUTINE
 ;
 OUTT:   PUSH    AF
         LD      A,(PORTN)       ;WHERE?
@@ -471,7 +471,7 @@ NIB:    SUB     '0'             ;ASCII BIAS
 ;
 ERROR:  LD      A,'?'
         CALL    OUTT
-        JP      START           ;TRY AGAIN
+        JP      WARM            ;TRY AGAIN
 ;
 ; START NEW LINE, GIVE ADDRESS
 ;
