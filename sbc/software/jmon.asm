@@ -52,6 +52,11 @@
 ; 0.3     10-Jul-2021  Implemented test ("T") command.
 ;                      Enhanced scope loop command.
 ;                      Add support for <ESC> to cancel in more commands.
+;                      Add memory size in info command.
+;
+; TODO:
+; Intel or Motorola hex file loader?
+; Disassembler?
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -383,11 +388,35 @@ InfoCommand:
         ld      hl,str8080      ; It is an 8080
 prnt:   call    PrintString     ; Print CPU type
         call    PrintCR
-        ret                     ; Return
+        jr      mem
 z80:    
         ld      hl,strZ80       ; It is a Z80
         jr      prnt
 
+; Detect memory size. Assume RAM at FFFF and work backward until we
+; find non-writable memory. Make sure we restore any memory we change.
+
+mem:    ld      hl,$FFFF        ; Start at FFFF
+tst:    ld      a,(hl)          ; Read memory location
+        cpl                     ; Complement it
+        ld      (hl),a          ; Write it back
+        cp      (hl)            ; Did it change?
+        jr      nz,startRam     ; No, found start of RAM
+        cpl                     ; Get back original data
+        ld      (hl),a          ; Put it back
+        dec     hl              ; Point to next location to test
+        jr      tst
+startRam:
+        inc     hl              ; Actual start is previous location tested
+        push    hl              ; Save RAM start
+        ld      hl,strRamFound1 ; String to print
+        call    PrintString     ; Print it
+        pop     hl              ; Restore RAM start
+        call    PrintAddress    ; Display it
+        ld      hl,strRamFound2 ; String to print
+        call    PrintString     ; Print it
+        call    PrintCR
+        ret
 
 ; REGISTERS command.
 ; Displays saved value of registers
@@ -806,7 +835,7 @@ LoopCommand:
 AorI:
         call    GetChar
         cp      ESC             ; Is it <ESC>
-        jp      c,CancelCmd     ; Cancel if <ESC> pressed
+        jp      z,CancelCmd     ; Cancel if <ESC> pressed
         call    ToUpper
         cp      'A'             ; Is it 'A'?
         jr      z,Okay1
@@ -819,7 +848,7 @@ Okay1:
         call    PrintSpace
 EorW:   call    GetChar         ; Get R or W
         cp      ESC             ; Is it <ESC>
-        jp      c,CancelCmd     ; Cancel if <ESC> pressed
+        jp      z,CancelCmd     ; Cancel if <ESC> pressed
         call    ToUpper
         cp      'R'             ; Is it 'R'?
         jr      z,Okay2
@@ -915,7 +944,7 @@ MathCommand:
 PlusOrMinus:
         call    GetChar
         cp      ESC             ; Is it <ESC>
-        jr      c,CancelCmd     ; Cancel if <ESC> pressed
+        jr      z,CancelCmd     ; Cancel if <ESC> pressed
         cp      '+'             ; Is it plus?
         jr      z,Okay
         cp      '-'             ; Is it minus?
@@ -1607,6 +1636,10 @@ strRead:
         db      " Read: ",0
 strPassed:
         db      "Passed",0
+strRamFound1:
+        db      "RAM found from $",0
+strRamFound2:
+        db      " to $FFFF",0
 
 ;
 ; Fill rest of 8K ROM
