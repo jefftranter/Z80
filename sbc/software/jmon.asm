@@ -50,7 +50,8 @@
 ;                      Implemented search ("S") command.
 ;                      Implemented verify ("V") command.
 ; 0.3     10-Jul-2021  Implemented test ("T") command.
-
+;                      Enhanced scope loop command.
+;                      Add support for <ESC> to cancel in more commands.
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -314,9 +315,7 @@ GoCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for address
-        jr      nc,contgo       ; Carry set indicates <ESC> pressed
-        call    PrintCR
-        ret
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
 contgo:
         ld      (save_pc),hl    ; Save it
         call    PrintCR
@@ -659,15 +658,15 @@ FillCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ex      de,hl           ; Put HL (start address) in DE
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         call    PrintSpace
         ex      de,hl           ; Put HL (end address) in DE, start address goes back in HL
         call    GetByte         ; Prompt for fill byte
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      b,a             ; Store fill byte in B
 fill:
         ld      (hl),b          ; Fill address with byte
@@ -679,9 +678,6 @@ fill:
         cp      e               ; Compare to E
         jr      nz,fill         ; If no match, continue filling
         ld      (hl),b          ; We are at last address, write byte to it
-finish:
-        call    PrintCR
-        ret
 
 
 ; Copy Command
@@ -694,21 +690,21 @@ CopyCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      a,l             ; Save source address in src (low,high)
         ld      (src),a
         ld      a,h
         ld      (src+1),a
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      a,l             ; Save destination address in dst (low,high)
         ld      (dst),a
         ld      a,h
         ld      (dst+1),a
         call    PrintSpace
         call    GetAddress      ; Prompt for number of bytes
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      a,l             ; Save length in size (low,high)
         ld      (size),a
         ld      a,h
@@ -727,7 +723,7 @@ CopyCommand:
         ld      d,a
 copy:   ld      a,b             ; Get B (remaining bytes)
         or      c               ; Also get C
-        jr      z,finish        ; If BC is zero, we are done, so return
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      a,(de)          ; Get byte from source address (DE)
         ld      (hl),a          ; Store byte in destination address (HL)
         inc     de              ; Increment source address
@@ -742,11 +738,11 @@ ChecksumCommand:
         call    PrintChar       ; Echo command back
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ex      de,hl           ; Swap HL and DE (put start in DE)
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
-        jr      c,finish        ; Carry set indicates <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ex      de,hl           ; Swap HL and DE
                                 ; HL holds start/current address
                                 ; DE holds end address
@@ -786,17 +782,14 @@ Memory:
         call    PrintChar       ; Echo command
         call    PrintSpace
         call    GetAddress      ; Get start address
-        ret     c               ; Return if carry set (<ESC> pressed)
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
 writeLoop:
         call    PrintSpace      ; Echo space
         call    GetByte         ; Get data byte (ESC will exit)
-        jr      c,retn          ; Done if carry set (<ESC> pressed)
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (hl),a          ; Write data to address
         inc     hl              ; Increment address
         jr      writeLoop       ; Input more data
-retn:
-        call    PrintCR
-        ret
 
 ; Scope loop command. For hardware debugging, loops on reading or
 ; writing a memory or i/o address. Continuously loops until reset.
@@ -821,13 +814,13 @@ Okay1:
         ld      (size),a        ; Save operation (A or I)
         call    PrintChar       ; Echo operation
         call    PrintSpace
-        call    GetChar         ; Get R or W
+EorW:   call    GetChar         ; Get R or W
         call    ToUpper
         cp      'R'             ; Is it 'R'?
         jr      z,Okay2
         cp      'W'             ; Is it 'W'?
         jr      z,Okay2
-        jr      Okay1           ; If not, try again
+        jr      EorW            ; If not, try again
 Okay2:
         ld      (size+1),a      ; Save operation (R or W)
         call    PrintChar       ; Echo operation
@@ -848,6 +841,7 @@ loopA:
 
 addrRead:
         call    GetAddress      ; Get 16-bit address
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save it
         call    PrintCR
         ld      hl,(src)        ; Get address
@@ -857,9 +851,11 @@ ReadLoop:
 
 addrWrite:
         call    GetAddress      ; Get 16-bit address
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save it
         call    PrintSpace
         call    GetByte         ; Get 8-bit data
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (dst),a         ; Save it
         call    PrintCR
         ld      hl,(src)        ; Get address
@@ -870,6 +866,7 @@ WriteLoop:
 
 ioRead:
         call    GetByte         ; Get 8-bit I/O address
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),a         ; Save it
         call    PrintCR
         ld      a,(src)         ; Get  address
@@ -880,9 +877,11 @@ ReadLoop1:
 
 ioWrite:
         call    GetByte         ; Get 8-bit I/O address
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),a         ; Save it
         call    PrintSpace
         call    GetByte         ; Get 8-bit data
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (dst),a         ; Save it
         call    PrintCR
         ld      a,(src)         ; Get address
@@ -892,6 +891,9 @@ WriteLoop1:
         out     (c),a           ; Write to I/O port
         jr      WriteLoop1      ; Repeat forever
 
+CancelCmd:
+        call    PrintCR
+        ret
 
 ; Math command. Add or subtract two 16-bit hex numbers.
 ; Format: = <ADDRESS> +/- <ADDRESS>
@@ -902,6 +904,7 @@ MathCommand:
         call    PrintChar       ; Echo command
         call    PrintSpace
         call    GetAddress      ; Get first number
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl
         call    PrintSpace
 PlusOrMinus:
@@ -916,6 +919,7 @@ Okay:
         call    PrintChar       ; Echo operator
         call    PrintSpace
         call    GetAddress      ; Get second number
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (dst),hl
 
         call    PrintSpace
@@ -950,15 +954,15 @@ SearchCommand:
         call    PrintChar       ; Echo command
         call    PrintSpace
         call    GetAddress      ; Get start address in HL
-        ret     c               ; Return if <ESC> pressed
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save start address
         call    PrintSpace
         call    GetAddress      ; Get end address in HL
-        ret     c               ; Return if <ESC> pressed
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (size),hl       ; Save end address
         call    PrintSpace
         call    GetByte         ; Get search pattern in A
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         call    PrintCR
         ld      hl,(size)       ; Get end address
         ld      de,(src)        ; Get start address
@@ -1000,15 +1004,15 @@ VerifyCommand:
         call    PrintChar       ; Echo command
         call    PrintSpace
         call    GetAddress      ; Get start address in HL
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save start address
         call    PrintSpace
         call    GetAddress      ; Get end address in HL
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (size),hl       ; Save end address
         call    PrintSpace
         call    GetAddress      ; Get dest address in HL
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (dst),hl        ; Save dest address
         call    PrintCR
         ld      hl,(size)       ; Get end address
@@ -1054,11 +1058,11 @@ TestCommand:
         call    PrintChar       ; Echo the command back
         call    PrintSpace
         call    GetAddress      ; Get start address in HL
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save start address
         call    PrintSpace
         call    GetAddress      ; Get end address in HL
-        ret     c               ; Return if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (size),hl       ; Save end address
 
         call    PrintCR
