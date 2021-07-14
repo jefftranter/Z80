@@ -28,7 +28,7 @@
 ;   INFO: I
 ;   CHECKSUM: K <START> <END>
 ;   CLR SCREEN: L
-;   SCOPE LOOP: P <address>
+;   SCOPE LOOP: P <A/I> <R/W> <addr> [<data>]
 ;   REGISTERS: R
 ;   SEARCH: S <START> <END> <DATA>
 ;   TEST: T <START> <END>
@@ -362,6 +362,7 @@ ClearCommand:
 
 
 ; INFO command.
+; TODO: Show amount of RAM detected
 InfoCommand:
         call    PrintChar       ; Echo command back
         call    PrintCR
@@ -797,18 +798,99 @@ retn:
         call    PrintCR
         ret
 
-; Scope loop command. For hardware debugging, loops on reading from an address.
-; Continuously loops until reset.
-; SCOPE LOOP: P <ADDRESS>
+; Scope loop command. For hardware debugging, loops on reading or
+; writing a memory or i/o address. Continuously loops until reset.
+; FORMAT:
+; P A R <address>
+; P A W <address> <data>
+; P I R <ioaddress>
+; P I W <ioaddress> <data>
 
 LoopCommand:
         call    PrintChar       ; Echo command
         call    PrintSpace
-        call    GetAddress      ; Get address
+AorI:
+        call    GetChar
+        call    ToUpper
+        cp      'A'             ; Is it 'A'?
+        jr      z,Okay1
+        cp      'I'             ; Is it 'I'?
+        jr      z,Okay1
+        jr      AorI            ; If not, try again
+Okay1:
+        ld      (size),a        ; Save operation (A or I)
+        call    PrintChar       ; Echo operation
+        call    PrintSpace
+        call    GetChar         ; Get R or W
+        call    ToUpper
+        cp      'R'             ; Is it 'R'?
+        jr      z,Okay2
+        cp      'W'             ; Is it 'W'?
+        jr      z,Okay2
+        jr      Okay1           ; If not, try again
+Okay2:
+        ld      (size+1),a      ; Save operation (R or W)
+        call    PrintChar       ; Echo operation
+        call    PrintSpace
+
+        ld      a,(size)        ; Get operation (A or I)
+        cp      'A'             ; Address?
+        jr      z,loopA         ; if so, branch
+        ld      a,(size+1)      ; Get operation (R or W)
+        cp      'R'
+        jr      z,ioRead        ; Operation is I/O read
+        jr      ioWrite         ; Operation is I/O write
+loopA:
+        ld      a,(size+1)      ; Get operation (R or W)
+        cp      'R'
+        jr      z,addrRead      ; Operation is address read
+        jr      addrWrite       ; Operation is address write
+
+addrRead:
+        call    GetAddress      ; Get 16-bit address
+        ld      (src),hl        ; Save it
         call    PrintCR
+        ld      hl,(src)        ; Get address
 ReadLoop:
         ld      a,(hl)          ; Read from address
         jr      ReadLoop        ; Repeat forever
+
+addrWrite:
+        call    GetAddress      ; Get 16-bit address
+        ld      (src),hl        ; Save it
+        call    PrintSpace
+        call    GetByte         ; Get 8-bit data
+        ld      (dst),a         ; Save it
+        call    PrintCR
+        ld      hl,(src)        ; Get address
+        ld      a,(dst)         ; Get data
+WriteLoop:
+        ld      (hl),a          ; Write to address
+        jr      WriteLoop       ; Repeat forever
+
+ioRead:
+        call    GetByte         ; Get 8-bit I/O address
+        ld      (src),a         ; Save it
+        call    PrintCR
+        ld      a,(src)         ; Get  address
+        ld      c,a
+ReadLoop1:
+        in      a,(c)           ; Read from I/O port
+        jr      ReadLoop1       ; Repeat forever
+
+ioWrite:
+        call    GetByte         ; Get 8-bit I/O address
+        ld      (src),a         ; Save it
+        call    PrintSpace
+        call    GetByte         ; Get 8-bit data
+        ld      (dst),a         ; Save it
+        call    PrintCR
+        ld      a,(src)         ; Get address
+        ld      c,a
+        ld      a,(dst)         ; Get data
+WriteLoop1:
+        out     (c),a           ; Write to I/O port
+        jr      WriteLoop1      ; Repeat forever
 
 
 ; Math command. Add or subtract two 16-bit hex numbers.
@@ -1473,21 +1555,21 @@ strInvalid:
 strHelp:
         db      "\r\n"
         db      "Valid commands:\r\n"
-        db      "C <src> <dest> <size>      Copy memory\r\n"
-        db      "D <address>                Dump memory\r\n"
-        db      "F <start> <end> <data>     Fill memory\r\n"
-        db      "G <address>                Go\r\n"
-        db      "I                          Show info\r\n"
-        db      "K <start> <end>            Checksum\r\n"
-        db      "L                          Clear screen\r\n"
-        db      "P <address>                Scope loop\r\n"
-        db      "R                          Examine registers\r\n"
-        db      "S <start> <end> <data>     Search memory\r\n"
-        db      "T <start> <end>            Test memory\r\n"
-        db      "V <start> <end> <dest>     Verify memory\r\n"
-        db      ": <address> <data>...      Write to memory\r\n"
-        db      "= <address> +/- <address>  Hex math calculation\r\n"
-        db      "?                          Help\r\n",0
+        db      "C <src> <dest> <size>         Copy memory\r\n"
+        db      "D <address>                   Dump memory\r\n"
+        db      "F <start> <end> <data>        Fill memory\r\n"
+        db      "G <address>                   Go\r\n"
+        db      "I                             Show info\r\n"
+        db      "K <start> <end>               Checksum\r\n"
+        db      "L                             Clear screen\r\n"
+        db      "P <A/I> <R/W> <addr> [<data>] Scope loop\r\n"
+        db      "R                             Examine registers\r\n"
+        db      "S <start> <end> <data>        Search memory\r\n"
+        db      "T <start> <end>               Test memory\r\n"
+        db      "V <start> <end> <dest>        Verify memory\r\n"
+        db      ": <address> <data>...         Write to memory\r\n"
+        db      "= <address> +/- <address>     Hex math calculation\r\n"
+        db      "?                             Help\r\n",0
 
 strClearScreen:
         db      $1B,"[2J",$1B,"[H",0       ; VT100/ANSI clear screen, cursor home
