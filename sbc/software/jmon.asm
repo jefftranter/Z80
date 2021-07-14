@@ -60,6 +60,7 @@
 prompt: equ     '?'             ; Prompt character
 CR:             equ '\r'        ; Carriage Return
 NL:             equ '\n'        ; Newline
+ESC:            equ $1B         ; Escape
 stack:          equ $F000       ; Starting address for stack
 
 
@@ -297,7 +298,7 @@ doAscii:
         call    PrintString
         pop     hl              ; Restore HL
 cont:   call    GetChar         ; Get key
-        cp      1BH             ; Escape?
+        cp      ESC             ; Escape?
         jr      nz,trySpace        
         call    PrintCR         ; If so, return
         ret
@@ -804,6 +805,8 @@ LoopCommand:
         call    PrintSpace
 AorI:
         call    GetChar
+        cp      ESC             ; Is it <ESC>
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         call    ToUpper
         cp      'A'             ; Is it 'A'?
         jr      z,Okay1
@@ -815,6 +818,8 @@ Okay1:
         call    PrintChar       ; Echo operation
         call    PrintSpace
 EorW:   call    GetChar         ; Get R or W
+        cp      ESC             ; Is it <ESC>
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         call    ToUpper
         cp      'R'             ; Is it 'R'?
         jr      z,Okay2
@@ -909,6 +914,8 @@ MathCommand:
         call    PrintSpace
 PlusOrMinus:
         call    GetChar
+        cp      ESC             ; Is it <ESC>
+        jr      c,CancelCmd     ; Cancel if <ESC> pressed
         cp      '+'             ; Is it plus?
         jr      z,Okay
         cp      '-'             ; Is it minus?
@@ -1312,7 +1319,7 @@ PrintAddress:
 
 GetHex:
         call    GetChar         ; Get a character
-        cp      1BH             ; Is it <Escape> ?
+        cp      ESC             ; Is it <Escape> ?
         jr      nz,next         ; Branch if not
         sub     a               ; Set A to zero
         scf                     ; Otherwise set carry and return.
@@ -1576,7 +1583,7 @@ strHelp:
         db      "?                             Help\r\n",0
 
 strClearScreen:
-        db      $1B,"[2J",$1B,"[H",0       ; VT100/ANSI clear screen, cursor home
+        db      ESC,"[2J",$1B,"[H",0       ; VT100/ANSI clear screen, cursor home
 
 strCpuType:
         db      "CPU type: ",0
