@@ -146,11 +146,11 @@ MNEMONICS:
 ; Lookup table of opcodes and instruction lengths.
 
 OPCODES:
-        DB      OP_NOP,  1      ; $00
-        DB      OP_LD,   3      ; $01
-        DB      OP_LD,   1      ; $02
-        DB      OP_INC,  1      ; $03
-        DB      OP_INC,  1      ; $04
+        db      OP_NOP,  1      ; $00
+        db      OP_LD,   3      ; $01
+        db      OP_LD,   1      ; $02
+        db      OP_INC,  1      ; $03
+        db      OP_INC,  1      ; $04
         db      OP_DEC,  1      ; $05
         db      OP_LD,   2      ; $06
         db      OP_RLCA, 1      ; $07
@@ -405,7 +405,7 @@ OPCODES:
 
 ; Lookup table of opcodes and instruction lengths for multibyte
 ; instructions: 0xcb, 0xdd, 0xed, 0xfd. We can combine 0xdd and 0xfd
-; since instructions are the same.
+; since instructions are the same (other than addressing mode).
 
 CBOPCODES:
         db      OP_RLC,  2      ; $CB00
@@ -752,13 +752,11 @@ EDOPCODES:
         db      OP_INDR, 2      ; $EDBA
         db      OP_OTDR, 2      ; $EDBB
 
-; Disasemble pseudocode
-
-; Get instruction at current address
-; Read OPCODES table to get instruction and length
-; Get mnemonic string using instruction to index into MNEMONICS table
+; Disassemble:
+; Disassemble instruction at ADDRESS
 ; Print address, length bytes, opcode string
-; Increment instruction address by length
+; Increment ADDRESS by length
+; TODO: Add support for multibyte instructions
 ; e.g.
 ; 0122 01           NOP
 ; 0123 ED 5F        LD
@@ -773,21 +771,24 @@ EDOPCODES:
 ; 0139 7C           LD
 ; 013A 32 0A FF     LD
 
-ADDRESS:  DS    2
-OPCODE:   DS    1
-MNEMONIC: DS    1   
-LEN:      DS    1
+ADDRESS:  DS    2               ; Next address to disassemble
+OPCODE:   DS    1               ; Opcode e.g. OP_ADD
+MNEMONIC: DS    2               ; Pointer to mnemonic string, e.g. "ADD "
+LEN:      DS    1               ; Length of instruction
 
-        ld      hl,$0100        ; Start address to disassemble
-        ld      (ADDRESS),hl
+dtest:  ld      hl,$0100        ; Start address to disassemble
+        ld      (ADDRESS),hl    ; Store it
+dloop:  call    disass          ; Call disassemble routine
+        jr      dloop            ; Repeat
 
-        ld      hl,(ADDRESS)    ; Get address of instruction, e.g. $0100
+disass:
+        ld      hl,(ADDRESS)    ; Get address of instruction
         ld      b,0             ; Clear upper byte of BC
-        ld      c,(hl)          ; Get the opcode, e.g. $00 = NOP
-        sla     c               ; Multiply by 2 because 2 bytes per entry
+        ld      c,(hl)          ; Get the opcode, e.g. $09 = ADD
+        sla     c               ; Multiply by 2 because 2 bytes per table entry
         ld      hl,OPCODES      ; Get start address of opcode table
-        add     hl,bc           ; Add opcode
-        ld      a,(hl)          ; Get the opcode, e.g. OP_NOP
+        add     hl,bc           ; Add opcode*2
+        ld      a,(hl)          ; Get the opcode constant, e.g. OP_ADD = $01
         ld      (OPCODE),a      ; Save it
 
         inc     hl              ; Advance to instruction length entry in table
@@ -795,9 +796,91 @@ LEN:      DS    1
         ld      (LEN),a         ; Save it
 
         ld      hl,MNEMONICS    ; Get start address of mnemonics table
+        ld      a,(OPCODE)      ; Get the mnemonic, e.g. $01 = OP_ADD
+        ld      c,a             ; Put in C
         ld      b,0             ; Clear upper byte of BC
-        ld      c,(hl)          ; Get the mnemonic, e.g. $23 = OP_NOP
         sla     c               ; Multiply by 4 because 4 bytes per entry
         sla     c
         add     hl,bc           ; Add index to address of table
         ld      (MNEMONIC),hl   ; Save address of mnemonic string
+
+        ld      hl,(ADDRESS)    ; Print address
+        call    PrintAddress
+        call    PrintSpace      ; Print space
+
+        ld      a,(LEN)         ; Get instruction length
+        cp      1               ; Is it 1?
+        jr      z,len1
+        cp      2               ; Is it 2?
+        jr      z,len2
+        cp      3               ; Is it 3?
+        jr      z,len3
+        jr      len4            ; Otherwise it must be 4
+
+len1:                           ; If length is 1, print "DD           " (11 spaces)
+        ld      IX,ADDRESS
+        ld      a,(IX+0)        ; Get byte at address
+        call    PrintByte
+        ld      a,11
+        call    PrintSpaces
+        jr      mnem
+
+len2:                           ; If length is 2, print "DD DD        " (8 spaces)
+        ld      IX,ADDRESS
+        ld      a,(IX+0)        ; Get byte at address
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+1)        ; Get byte at address+1
+        call    PrintByte
+        ld      a,8
+        call    PrintSpaces
+        jr      mnem
+
+len3:                           ; if length is 3, print "DD DD DD     " (5 spaces)
+        ld      IX,ADDRESS
+        ld      a,(IX+0)        ; Get byte at address
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+1)        ; Get byte at address+1
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+2)        ; Get byte at address+2
+        call    PrintByte
+        ld      a,5
+        call    PrintSpaces
+        jr      mnem
+
+len4:                           ; if length is 4, print "DD DD DD DD  " (2 spaces)
+        ld      IX,ADDRESS
+        ld      a,(IX+0)        ; Get byte at address
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+1)        ; Get byte at address+1
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+2)        ; Get byte at address+2
+        call    PrintByte
+        call    PrintSpace
+        ld      a,(IX+2)        ; Get byte at address+3
+        call    PrintByte
+        call    PrintSpace
+        ld      a,2
+        call    PrintSpaces
+        jr      mnem
+
+mnem:                           ; Print 4 byte mnemonic string
+        ld      hl,(MNEMONIC)
+        call    PrintString
+        call    PrintCR         ; Print CR
+
+; Increment ADDRESS by instruction length
+
+        ld      a,(LEN)         ; Get the instruction length
+        ld      c,a             ; Put in C
+        ld      b,0             ; Clear upper byte of BC
+
+        ld      hl,(ADDRESS)    ; Get address
+        add     hl,bc           ; Add length to address
+        ld      (ADDRESS),hl    ; Save new address
+
+        ret                     ; Return

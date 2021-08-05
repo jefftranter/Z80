@@ -1268,6 +1268,20 @@ nextch: ld      a,(hl)          ; Get a character
 eos:    pop     af              ; Restore A register
         ret                     ; Return
 
+; PrintSpaces
+; Print number of space characters specified in A.
+; Registers affected: none
+PrintSpaces:
+        push    af              ; Save A reg
+        push    bc              ; Save BC reg
+        ld      b,a             ; Put count in B
+sp1:    call    PrintSpace      ; Print a space
+        dec     b               ; Decrement count
+        jr      nz,sp1
+        pop     bc              ; Restore BC reg
+        pop     af              ; Restore A reg
+        ret                     ; Return
+
 ; PrintSpace
 ; Print space character.
 ; Registers affected: none
