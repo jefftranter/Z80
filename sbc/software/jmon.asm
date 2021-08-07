@@ -53,10 +53,10 @@
 ;                      Enhanced scope loop command.
 ;                      Add support for <ESC> to cancel in more commands.
 ;                      Add memory size in info command.
+; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
 ;
 ; TODO:
 ; Intel or Motorola hex file loader?
-; Disassembler?
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -214,14 +214,19 @@ tryS:
         jr      mainloop
 tryT:
         cp      'T'
-        jr      nz,tryV
+        jr      nz,tryU
         call    TestCommand
+        jr      mainloop
+tryU:
+        cp      'U'
+        jr      nz,tryV
+        call    UnassembleCommand
         jr      mainloop
 tryV:
         cp      'V'
         jr      nz,tryColon
         call    VerifyCommand
-        jr      mainloop
+        jp      mainloop
 tryColon:
         cp      ':'
         jr      nz,tryEquals
@@ -1149,6 +1154,39 @@ fail:
         ret
 
 
+; Unassemble command
+; Format: U <ADDRESS>
+
+UnassembleCommand:
+        call    PrintChar       ; Echo the command back
+        call    PrintSpace
+        call    GetAddress      ; Get start address in HL
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
+        ld      (address),hl    ; Save address
+        call    PrintCR
+startScreen1:
+        ld      b,LINES         ; Number of instructions to disassemble per page
+dloop:  push    bc              ; Save BC
+        call    disass          ; Disassemble one instruction
+        pop     bc              ; Restore BC
+        dec     b               ; Page done?
+        jp      nz,dloop        ; Branch if not
+
+        ld      hl,strContinue  ; Prompt whether to continue
+        call    PrintString
+cont1:  call    GetChar         ; Get key
+        cp      ESC             ; Escape?
+        jr      nz,trySpace1
+        call    PrintCR         ; If so, return
+        ret
+trySpace1:
+        cp      ' '             ; Space?
+        jr      z,startScreen1  ; If so, do next screen
+        jr      cont1           ; Invalid key, try again
+
+        ret
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Utility Routines
@@ -1596,14 +1634,12 @@ CMPER:
         ret
 
 
-        include "disasm.asm"
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.3 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.4 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1622,6 +1658,7 @@ strHelp:
         db      "R                             Examine registers\r\n"
         db      "S <start> <end> <data>        Search memory\r\n"
         db      "T <start> <end>               Test memory\r\n"
+        db      "U <address>                   Unassemble memory\r\n"
         db      "V <start> <end> <dest>        Verify memory\r\n"
         db      ": <address> <data>...         Write to memory\r\n"
         db      "= <address> +/- <address>     Hex math calculation\r\n"
@@ -1657,6 +1694,9 @@ strRamFound1:
 strRamFound2:
         db      " to $FFFF",0
 
+
+        include "disasm.asm"
+
 ;
 ; Fill rest of 8K ROM
 ;
@@ -1664,25 +1704,29 @@ strRamFound2:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; Variables
+; Variables (size in bytes)
 
 vars:   equ     $FF00
-save_a: equ     vars
-save_f: equ     vars+1
-save_b: equ     vars+2
-save_c: equ     vars+3
-save_d: equ     vars+4
-save_e: equ     vars+5
-save_h: equ     vars+6
-save_l: equ     vars+7
-save_i: equ     vars+8
-save_r: equ     vars+9
-save_sp: equ    vars+10
-save_pc: equ    vars+12
-save_ix: equ    vars+14
-save_iy: equ    vars+16
-src:    equ     vars+18        ; Used for commands like Copy
-dst:    equ     vars+20
-size:   equ     vars+22
+save_a: equ     vars           ; Save A reg (1)
+save_f: equ     vars+1         ; Saved flags (1)
+save_b: equ     vars+2         ; Saved B reg (1)
+save_c: equ     vars+3         ; Saved C reg (1)
+save_d: equ     vars+4         ; Saved D reg(1)
+save_e: equ     vars+5         ; Saved E reg (1)
+save_h: equ     vars+6         ; Saved H reg (1)
+save_l: equ     vars+7         ; Saved L ref (1)
+save_i: equ     vars+8         ; Saved I reg (1)
+save_r: equ     vars+9         ; Saved R reg (1)
+save_sp: equ    vars+10        ; Saved SP (2)
+save_pc: equ    vars+12        ; Saved PC (2)
+save_ix: equ    vars+14        ; Saved IX reg (2)
+save_iy: equ    vars+16        ; Saved IY (2)
+src:    equ     vars+18        ; Source address, used for commands like Copy (2)
+dst:    equ     vars+20        ; Destination address (2)
+size:   equ     vars+22        ; Size (2)
+address: equ    vars+24        ; Next address to disassemble (2)
+opcode:  equ    vars+26        ; Opcode e.g. OP_ADD (1)
+mnemonic: equ   vars+27        ; Pointer to mnemonic string, e.g. "ADD " (2)
+len:    equ     vars+29        ; Length of instruction (1)
 
         end
