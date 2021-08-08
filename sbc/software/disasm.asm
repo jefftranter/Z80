@@ -780,22 +780,29 @@ disass:
         ld      hl,(address)    ; Get address of instruction
         ld      b,0             ; Clear upper byte of BC
         ld      c,(hl)          ; Get the opcode, e.g. $09 = ADD
-        sla     c               ; Multiply by 2 because 2 bytes per table entry
+        ld      h,b             ; HL=BC
+        ld      l,c
+        add     hl,hl           ; Multiply by 2 because 2 bytes per table entry
+        ld      b,h             ; BC=HL
+        ld      c,l
         ld      hl,OPCODES      ; Get start address of opcode table
         add     hl,bc           ; Add opcode*2
         ld      a,(hl)          ; Get the opcode constant, e.g. OP_ADD = $01
         ld      (opcode),a      ; Save it
-
         inc     hl              ; Advance to instruction length entry in table
         ld      a,(hl)          ; Get length
         ld      (len),a         ; Save it
 
-        ld      hl,MNEMONICS    ; Get start address of mnemonics table
         ld      a,(opcode)      ; Get the mnemonic, e.g. $01 = OP_ADD
         ld      c,a             ; Put in C
         ld      b,0             ; Clear upper byte of BC
-        sla     c               ; Multiply by 4 because 4 bytes per entry
-        sla     c
+        ld      h,b             ; HL=BC
+        ld      l,c
+        add     hl,hl           ; Multiply by 4 because 4 bytes per table entry
+        add     hl,hl
+        ld      b,h             ; BC=HL
+        ld      c,l
+        ld      hl,MNEMONICS    ; Get start address of mnemonics table
         add     hl,bc           ; Add index to address of table
         ld      (mnemonic),hl   ; Save address of mnemonic string
 
