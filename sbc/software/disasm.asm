@@ -349,7 +349,7 @@ OPCODES:
         db      OP_RET,  1      ; $C8
         db      OP_RET,  1      ; $C9
         db      OP_JP,   3      ; $CA
-        db      OP_INV,  0      ; $CB
+        db      OP_INV,  1      ; $CB
         db      OP_CALL, 3      ; $CC
         db      OP_CALL, 3      ; $CD
         db      OP_ADC,  2      ; $CE
@@ -367,7 +367,7 @@ OPCODES:
         db      OP_JP,   3      ; $DA
         db      OP_IN,   2      ; $DB
         db      OP_CALL, 3      ; $DC
-        db      OP_INV,  0      ; $DD
+        db      OP_INV,  1      ; $DD
         db      OP_SBC,  2      ; $DE
         db      OP_RST,  1      ; $DF
         db      OP_RET,  1      ; $E0
@@ -383,7 +383,7 @@ OPCODES:
         db      OP_JP,   3      ; $EA
         db      OP_EX,   1      ; $EB
         db      OP_CALL, 3      ; $EC
-        db      OP_INV,  0      ; $ED
+        db      OP_INV,  1      ; $ED
         db      OP_XOR,  2      ; $EE
         db      OP_RST,  1      ; $EF
         db      OP_RET,  1      ; $F0
@@ -399,7 +399,7 @@ OPCODES:
         db      OP_JP,   3      ; $FA
         db      OP_EI,   1      ; $FB
         db      OP_CALL, 3      ; $FC
-        db      OP_INV,  0      ; $FD
+        db      OP_INV,  1      ; $FD
         db      OP_CP,   2      ; $FE
         db      OP_RST,  1      ; $FF
 
@@ -813,50 +813,50 @@ disass:
         jr      len4            ; Otherwise it must be 4
 
 len1:                           ; If length is 1, print "DD           " (11 spaces)
-        ld      IX,address
-        ld      a,(IX+0)        ; Get byte at address
+        ld      ix,(address)
+        ld      a,(ix+0)        ; Get byte at address
         call    PrintByte
         ld      a,11
         call    PrintSpaces
         jr      mnem
 
 len2:                           ; If length is 2, print "DD DD        " (8 spaces)
-        ld      IX,address
-        ld      a,(IX+0)        ; Get byte at address
+        ld      ix,(address)
+        ld      a,(ix+0)        ; Get byte at address
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+1)        ; Get byte at address+1
+        ld      a,(ix+1)        ; Get byte at address+1
         call    PrintByte
         ld      a,8
         call    PrintSpaces
         jr      mnem
 
 len3:                           ; if length is 3, print "DD DD DD     " (5 spaces)
-        ld      IX,address
-        ld      a,(IX+0)        ; Get byte at address
+        ld      ix,(address)
+        ld      a,(ix+0)        ; Get byte at address
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+1)        ; Get byte at address+1
+        ld      a,(ix+1)        ; Get byte at address+1
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+2)        ; Get byte at address+2
+        ld      a,(ix+2)        ; Get byte at address+2
         call    PrintByte
         ld      a,5
         call    PrintSpaces
         jr      mnem
 
 len4:                           ; if length is 4, print "DD DD DD DD  " (2 spaces)
-        ld      IX,address
-        ld      a,(IX+0)        ; Get byte at address
+        ld      ix,(address)
+        ld      a,(ix+0)        ; Get byte at address
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+1)        ; Get byte at address+1
+        ld      a,(ix+1)        ; Get byte at address+1
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+2)        ; Get byte at address+2
+        ld      a,(ix+2)        ; Get byte at address+2
         call    PrintByte
         call    PrintSpace
-        ld      a,(IX+2)        ; Get byte at address+3
+        ld      a,(ix+2)        ; Get byte at address+3
         call    PrintByte
         call    PrintSpace
         ld      a,2
@@ -864,8 +864,15 @@ len4:                           ; if length is 4, print "DD DD DD DD  " (2 space
         jr      mnem
 
 mnem:                           ; Print 4 byte mnemonic string
-        ld      hl,(mnemonic)
-        call    PrintString
+        ld      ix,(mnemonic)
+        ld      a,(ix+0)
+        call    PrintChar
+        ld      a,(ix+1)
+        call    PrintChar
+        ld      a,(ix+2)
+        call    PrintChar
+        ld      a,(ix+3)
+        call    PrintChar
         call    PrintCR         ; Print CR
 
 ; Increment address by instruction length
