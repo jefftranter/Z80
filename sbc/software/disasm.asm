@@ -403,7 +403,7 @@ OPCODES:
         db      OP_CP,   2      ; $FE
         db      OP_RST,  1      ; $FF
 
-; Lookup table of opcodes and instruction lengths for multibyte
+; Lookup tables of opcodes and instruction lengths for multibyte
 ; instructions: 0xcb, 0xdd, 0xed, 0xfd. We can combine 0xdd and 0xfd
 ; since instructions are the same (other than addressing mode).
 
@@ -941,7 +941,6 @@ EDOPCODES:
         db      OP_INV,  1      ; $ED0D
         db      OP_INV,  1      ; $ED0E
         db      OP_INV,  1      ; $ED0F
-
         db      OP_INV,  1      ; $ED10
         db      OP_INV,  1      ; $ED11
         db      OP_INV,  1      ; $ED12
@@ -958,7 +957,6 @@ EDOPCODES:
         db      OP_INV,  1      ; $ED1D
         db      OP_INV,  1      ; $ED1E
         db      OP_INV,  1      ; $ED1F
-
         db      OP_INV,  1      ; $ED20
         db      OP_INV,  1      ; $ED21
         db      OP_INV,  1      ; $ED22
@@ -975,7 +973,6 @@ EDOPCODES:
         db      OP_INV,  1      ; $ED2D
         db      OP_INV,  1      ; $ED2E
         db      OP_INV,  1      ; $ED2F
-
         db      OP_INV,  1      ; $ED30
         db      OP_INV,  1      ; $ED31
         db      OP_INV,  1      ; $ED32
@@ -992,7 +989,6 @@ EDOPCODES:
         db      OP_INV,  1      ; $ED3D
         db      OP_INV,  1      ; $ED3E
         db      OP_INV,  1      ; $ED3F
-
         db      OP_IN,   2      ; $ED40
         db      OP_OUT,  2      ; $ED41
         db      OP_SBC,  2      ; $ED42
@@ -1009,7 +1005,6 @@ EDOPCODES:
         db      OP_RETI, 2      ; $ED4D
         db      OP_INV,  1      ; $ED4E
         db      OP_LD,   2      ; $ED4F
-
         db      OP_IN,   2      ; $ED50
         db      OP_OUT,  2      ; $ED51
         db      OP_SBC,  2      ; $ED52
@@ -1026,7 +1021,6 @@ EDOPCODES:
         db      OP_INV,  1      ; $ED5D
         db      OP_IM,   2      ; $ED5E
         db      OP_LD,   2      ; $ED5F
-
         db      OP_IN,   2      ; $ED60
         db      OP_OUT,  2      ; $ED61
         db      OP_SBC,  2      ; $ED62
@@ -1043,7 +1037,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $ED6D
         db      OP_INV,  2      ; $ED6E
         db      OP_RLD,  2      ; $ED6F
-
         db      OP_INV,  2      ; $ED70
         db      OP_INV,  2      ; $ED71
         db      OP_SBC,  2      ; $ED72
@@ -1060,7 +1053,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $ED7D
         db      OP_INV,  2      ; $ED7E
         db      OP_INV,  2      ; $ED7F
-
         db      OP_INV,  2      ; $ED80
         db      OP_INV,  2      ; $ED81
         db      OP_INV,  2      ; $ED82
@@ -1077,7 +1069,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $ED8D
         db      OP_INV,  2      ; $ED8E
         db      OP_INV,  2      ; $ED8F
-
         db      OP_INV,  2      ; $ED90
         db      OP_INV,  2      ; $ED91
         db      OP_INV,  2      ; $ED92
@@ -1094,7 +1085,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $ED9D
         db      OP_INV,  2      ; $ED9E
         db      OP_INV,  2      ; $ED9F
-
         db      OP_LDI,  2      ; $EDA0
         db      OP_CPI,  2      ; $EDA1
         db      OP_INI,  2      ; $EDA2
@@ -1111,7 +1101,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $EDAD
         db      OP_INV,  2      ; $EDA
         db      OP_INV,  2      ; $EDAF
-
         db      OP_LDIR, 2      ; $EDB0
         db      OP_CPIR, 2      ; $EDB1
         db      OP_INIR, 2      ; $EDB2
@@ -1128,7 +1117,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $EDBD
         db      OP_INV,  2      ; $EDBE
         db      OP_INV,  2      ; $EDBF
-
         db      OP_INV,  2      ; $EDC0
         db      OP_INV,  2      ; $EDC1
         db      OP_INV,  2      ; $EDC2
@@ -1145,7 +1133,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $EDCD
         db      OP_INV,  2      ; $EDCE
         db      OP_INV,  2      ; $EDCF
-
         db      OP_INV,  2      ; $EDD0
         db      OP_INV,  2      ; $EDD1
         db      OP_INV,  2      ; $EDD2
@@ -1162,7 +1149,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $EDDD
         db      OP_INV,  2      ; $EDDE
         db      OP_INV,  2      ; $EDDF
-
         db      OP_INV,  2      ; $EDE0
         db      OP_INV,  2      ; $EDE1
         db      OP_INV,  2      ; $EDE2
@@ -1179,7 +1165,6 @@ EDOPCODES:
         db      OP_INV,  2      ; $EDED
         db      OP_INV,  2      ; $EDEE
         db      OP_INV,  2      ; $EDEF
-
         db      OP_INV,  2      ; $EDF0
         db      OP_INV,  2      ; $EDF1
         db      OP_INV,  2      ; $EDF2
@@ -1232,10 +1217,56 @@ disass:
         jr      z,exted
         jr      notext          ; Not an extended opcode
 
-extcb:
+; TODO: Refactor to reduce code duplicated in three places below.
+
+extcb:  inc     hl              ; Advance address to second byte of extended opcode
+        ld      c,(hl)          ; Get second byte
+        ld      h,b             ; HL=BC
+        ld      l,c
+        add     hl,hl           ; Multiply by 2 because 2 bytes per table entry
+        ld      b,h             ; BC=HL
+        ld      c,l
+        ld      hl,CBOPCODES    ; Get start address of opcode table
+        add     hl,bc           ; Add opcode*2
+        ld      a,(hl)          ; Get the opcode constant, e.g. OP_ADD = $01
+        ld      (opcode),a      ; Save it
+        inc     hl              ; Advance to instruction length entry in table
+        ld      a,(hl)          ; Get length
+        ld      (len),a         ; Save it
+        jr      getmnem
+
 extdd:
-extfd:
-exted:
+extfd:  inc     hl              ; Advance address to second byte of extended opcode
+        ld      c,(hl)          ; Get second byte
+        ld      h,b             ; HL=BC
+        ld      l,c
+        add     hl,hl           ; Multiply by 2 because 2 bytes per table entry
+        ld      b,h             ; BC=HL
+        ld      c,l
+        ld      hl,DDOPCODES    ; Get start address of opcode table
+        add     hl,bc           ; Add opcode*2
+        ld      a,(hl)          ; Get the opcode constant, e.g. OP_ADD = $01
+        ld      (opcode),a      ; Save it
+        inc     hl              ; Advance to instruction length entry in table
+        ld      a,(hl)          ; Get length
+        ld      (len),a         ; Save it
+        jr      getmnem
+
+exted:  inc     hl              ; Advance address to second byte of extended opcode
+        ld      c,(hl)          ; Get second byte
+        ld      h,b             ; HL=BC
+        ld      l,c
+        add     hl,hl           ; Multiply by 2 because 2 bytes per table entry
+        ld      b,h             ; BC=HL
+        ld      c,l
+        ld      hl,EDOPCODES    ; Get start address of opcode table
+        add     hl,bc           ; Add opcode*2
+        ld      a,(hl)          ; Get the opcode constant, e.g. OP_ADD = $01
+        ld      (opcode),a      ; Save it
+        inc     hl              ; Advance to instruction length entry in table
+        ld      a,(hl)          ; Get length
+        ld      (len),a         ; Save it
+        jr      getmnem
 
 notext: ld      h,b             ; HL=BC
         ld      l,c
@@ -1249,7 +1280,7 @@ notext: ld      h,b             ; HL=BC
         inc     hl              ; Advance to instruction length entry in table
         ld      a,(hl)          ; Get length
         ld      (len),a         ; Save it
-
+getmnem:
         ld      a,(opcode)      ; Get the mnemonic, e.g. $01 = OP_ADD
         ld      c,a             ; Put in C
         ld      b,0             ; Clear upper byte of BC
