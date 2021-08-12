@@ -1163,8 +1163,8 @@ UnassembleCommand:
         call    GetAddress      ; Get start address in HL
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (address),hl    ; Save address
-        call    PrintCR
 startScreen1:
+        call    PrintCR
         ld      b,LINES         ; Number of instructions to disassemble per page
 dloop:  push    bc              ; Save BC
         call    disass          ; Disassemble one instruction

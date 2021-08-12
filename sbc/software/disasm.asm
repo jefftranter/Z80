@@ -1207,12 +1207,13 @@ disass:
         ld      hl,(address)    ; Get address of instruction
         ld      b,0             ; Clear upper byte of BC
         ld      c,(hl)          ; Get the opcode, e.g. $09 = ADD
+        ld      a,c             ; Put opcode in A so we can compare
         cp      $cb             ; Is it an extended CB opcode?
         jr      z,extcb
         cp      $dd             ; Is it an extended DD opcode?
         jr      z,extdd
         cp      $fd             ; Is it an extended FD opcode?
-        jr      z,extdd         ; Same table as DD
+        jr      z,extfd         ; Same table as DD
         cp      $ed             ; Is it an extended ED opcode?
         jr      z,exted
         jr      notext          ; Not an extended opcode
@@ -1351,9 +1352,8 @@ len4:                           ; if length is 4, print "DD DD DD DD  " (2 space
         ld      a,(ix+2)        ; Get byte at address+2
         call    PrintByte
         call    PrintSpace
-        ld      a,(ix+2)        ; Get byte at address+3
+        ld      a,(ix+3)        ; Get byte at address+3
         call    PrintByte
-        call    PrintSpace
         ld      a,2
         call    PrintSpaces
         jr      mnem
