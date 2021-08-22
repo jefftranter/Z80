@@ -373,7 +373,6 @@ ClearCommand:
 
 
 ; INFO command.
-; TODO: Show amount of RAM detected
 InfoCommand:
         call    PrintChar       ; Echo command back
         call    PrintCR
