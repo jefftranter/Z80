@@ -24,7 +24,7 @@ jmon.bin: jmon.asm disasm.asm
 patb.bin: patb.asm disasm.asm
 	asl -L patb.asm
 	p2bin -r '$$-$$' patb.p
-	p2hex -F Intel patb.p
+	p2hex -r '$$-$$' -F Intel patb.p
 
 clean:
 	$(RM) int32k.bin bas32k.bin sysmon.bin rom.bin hexmon.bin ml.bin jmon.bin
