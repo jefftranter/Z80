@@ -33,7 +33,7 @@
 ; Interrupts are disabled .
 
 ;; START
-L0000:  OUT     (0FDh),A         ; Turn off the NMI generator if this ROM is 
+L0000:  OUT     (0FDh),A        ; Turn off the NMI generator if this ROM is
                                 ; running in ZX81 hardware. This does nothing 
                                 ; if this ROM is running within an upgraded
                                 ; ZX80.
