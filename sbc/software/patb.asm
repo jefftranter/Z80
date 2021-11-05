@@ -162,3 +162,78 @@ ST2     MVI     A,'>'           ; PROMPT '>' AND
         POP     B               ; BC->LINE TO BE DELETED
         LHLD    TXTUNF          ; HL->UNFILLED SAVE AREA
 
+        CALL    MVUP            ; MOVE UP TO DELETE
+        MOV     H,B             ; TXTUNF->UNFILLED AREA
+        MOV     L,C
+        SHLD    TXTUNF          ; UPDATE
+ST3     POP     B               ; GET READY TO INSERT
+        LHLD    TXTUNF          ; BUT FIRST CHECK IF
+        POP     PSW             ; THE LENGTH OF NEW LINE
+        PUSH    H               ; IS 3 (LINE # AND CR)
+        CPI     3               ; THEN DO NOT INSERT
+        JZ      RSTART          ; MUST CLEAR THE STACK
+        ADD     L               ; COMPUTE NEW TXTUNF
+        MOV     E,A
+        MVI     A,0
+        ADC     H
+        MOV     D,A             ; DE->NEW UNFILLED AREA
+        LHLD    TXTLMT          ; CHECK TO SEE IF THERE
+        XCHG
+        CALL    COMP            ; IS ENOUGH SPACE
+        JNC     GSORRY          ; SORRY, NO ROOM FOR IT
+        SHLD    TXTUNF          ; OK, UPDATE TXTUNF
+        POP     D               ; DE->OLD UNFILLED AREA
+        CALL    MVDOWN
+        POP     D               ; DE->BEGIN, HL->END
+        POP     H
+        CALL    MVUP            ; MOVE NEW LINE TO SAVE
+        JMP     ST2             ; AREA
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** DIRECT *** & EXEC
+;
+; THIS SECTION OF THE CODE TESTS A STRING AGAINST A TABLE. WHEN A
+; MATCH IS FOUND, CONTROL IS TRANSFERED TO THE SECTION OF CODE
+; ACCORDING TO THE TABLE.
+;
+; AT 'EXEC', DE SHOULD POINT TO THE STRING AND HL SHOULD POINT TO THE
+; TABLE-1. AT 'DIRECT', DE SHOULD POINT TO THE STRING, HL WILL BE SET
+; UP TO POINT TO TAB1-1, WHICH IS THE TABLE OF ALL DIRECT AND
+; STATEMENT COMMANDS.
+;
+; A '.' IN THE STRING WILL TERMINATE THE TEST AND THE PARTIAL MATCH
+; WILL BE CONSIDERED AS A MATCH, E.G. 'P.', 'PR.', PRI.', 'PRIN.',
+; OR 'PRINT' WILL ALL MATCH 'PRINT'.
+;
+; THE TABLE CONSISTS OF ANY NUMBER OF ITEMS. EACH ITEM IS A STRING OF
+; CHARACTERS WITH BIT 7 SET TO 0 AND A JUMP ADDRESS STORED HI-LOW WITH
+; BIT 7 OF THE HIGH BIT SET TO 1.
+;
+; END OF TABLE IS AN ITEM WITH A JUMP ADDRESS ONLY. IF THE STRING
+; DOES NOT MATCH ANY OF THE OTHER ITEMS, IT WILL MATCH THIS NULL ITEM
+; AS DEFAULT.
+;
+DIRECT  LXI     H,TAB1-1        ; *** DIRECT ***
+;
+EXEC    CALL    IGNBLK          ; *** EXEC **
+        PUSH    D               ; SAVE POINTER
+EX1     LDAX    D               ; IF FOUND '.' IN STRING
+        INX     D               ; BEFORE ANY MISMATCH
+        CPI     '.'             ; WE DECLARE A MATCH
+        JZ      EX3
+        INX     H               ; HL->TABLE
+        CMP     M               ; IF MATCH, TEST NEXT
+        JZ      EX1
+        MVI     A,07FH          ; ELSE, SEE IF BIT 7
+        DCX     D               ; OF TABLE IS SET, WHICH
+        CMP     M               ; IS THE JUMP ADDR, (HI)
+        JC      EX5             ; C:YES, MATCHED
+EX2     INX     H               ; NC:NO, FIND JUMP ADDR.
+        CMP     M
+        JNC     EX2
+        INX     H               ; BUMP TO NEXT TAB. ITEM
+        POP     D               ; RESTORE STRING POINTER
+        JMP     EXEC            ; TEST AGAINST NEXT ITEM
+        MVI     A,7FH           ; PARTIAL MATCH, FIND
+        INX     H               ; JUMP ADDR., WHICH IS
