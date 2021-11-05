@@ -235,5 +235,55 @@ EX2     INX     H               ; NC:NO, FIND JUMP ADDR.
         INX     H               ; BUMP TO NEXT TAB. ITEM
         POP     D               ; RESTORE STRING POINTER
         JMP     EXEC            ; TEST AGAINST NEXT ITEM
-        MVI     A,7FH           ; PARTIAL MATCH, FIND
-        INX     H               ; JUMP ADDR., WHICH IS
+EX3     MVI     A,7FH           ; PARTIAL MATCH, FIND
+EX4     INX     H               ; JUMP ADDR., WHICH IS
+
+        CMP     M               ; FLAGGED BY BIT 7
+        JNC     EX4
+EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
+        INX     H               ; ADDRESS FROM THE TABLE
+        MOV     L,M             ; ****************
+        ANI     0FFH            ; ***** ANI 07FH *****
+        MOV     H,A             ; ****************
+        POP     PSW             ; CLEAN UP THE GARBAGE
+        PCHL                    ; AND WE GO DO IT
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; WHAT FOLLOWS IS THE CODE TO EXECUTE DIRECT AND STATEMENT COMMANDS.
+; CONTROL IS TRANSFERED TO THESE POINTS VIA THE COMMAND TABLE LOOKUP
+; CODE OF 'DIRECT' AND 'EXEC' IN LAST SECTION. AFTER THE COMMAND IS
+; EXECUTED, CONTROL IS TRANSFERED TO OTHER SECTIONS AS FOLLOWS:
+;
+; FOR 'LIST', 'NEW', AND 'STOP': GOT BACK TO 'RSTART'.
+; FOR 'RUN': GO EXECUTE THE FIRST STORED LINE IF ANY; ELSE GO BACK TO
+; 'RSTART'.
+; FOR 'GOTO' AND 'GOSUB': GO EXECUTE THE TARGET LINE.
+; FOR 'RETURN' AND 'NEXT': GOT BACK TO SAVED RETURN LINE.
+; FOR ALL OTHERS: IF 'CURRNT'->0, GO TO 'RSTART', ELSE GO EXECUTE
+; NEXT COMMAND. (THIS IS DONE IN 'FINISH'.)
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;
+; *** NEW *** STOP ** RUN (& FRIENDS) *** & GOTO
+;
+; 'NEW(CR)' RESETS 'TTXTUNF'
+;
+; 'STOP(CR)' GOES BACK TO 'RSTART'
+;
+; 'RUN(CR)' FINDS THE FIRST STORED LINE, STORE ITS ADDRESS (IN
+; 'CURRNT'), AND START EXECUTE IT. NOTE THAT ONLY THOSE
+; COMMANDS IN TAB2 ARE LEGAL FOR STORED PROGRAM.
+;
+; THERE ARE 3 MORE ENTRIES IN 'RUN':
+; 'RUNNXL' FINDS NEXT LINE, STORES ITS ADDR. AND EXECUTES IT.
+; 'RUNTSL' STORES THE ADDRESS OF THIS LINE AND EXECUTES IT.
+; 'RUNSML' CONTINUES THE EXECUTION ON SAME LINE.
+;
+; 'GOTO EXPR(CR)' EVALUATES THE EXPRESSION, FIND THE TARGET
+; LINE, AND JUMP TO 'RUNTSL' TO DO IT.
+;
+NEW     CALL    ENDCHK          ; ** NEW(CR) **
+        JMP     PURGE
+;
