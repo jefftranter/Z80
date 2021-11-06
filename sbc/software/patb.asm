@@ -822,3 +822,73 @@ XP24    TSTC    '/',XPR9        ; DIVIDE?
         ORA     E
         JZ      AHOW            ; SAY "HOW?"
         PUSH    B               ; ELSE SAVE SIGN
+        CALL    DIVIDE          ; USE SUBROUTINE
+        MOV     H,B             ; RESULT IN HL NOW
+        MOV     L,C
+        POP     B               ; GET SIGN BACK
+XP25    POP     D               ; AND TEXT POINTER
+        MOV     A,H             ; HL MUST BE +
+        ORA     A
+        JM      QHOW            ; ELSE IT IS OVERFLOW
+        MOV     A,B
+        ORA     A
+        CM      CHGSGN          ; CHANGE SIGN IF NEEDED
+        JMP     XP21            ; LOOK FOR MORE TERMS
+;
+EXPR3   LXI     H,TAB3-1        ; FIND FUNCTION IN TAB3
+        JMP     EXEC            ; AND GO DO IT
+NOTF    CALL    TSTV            ; NO, NOT A FUNCTION
+        JC      XP32            ; NOR A VARIABLE
+        MOV     A,M             ; VARIABLE
+        INX     H
+        MOV     H,M             ; VALUE IN HL
+        MOV     L,A
+        RET
+XP32    CALL    TSTNUM          ; OR IS IT A NUMBER
+        MOV     A,B             ; # OF DIGIT
+        ORA     A
+        RNZ                     ; OK
+PARN    TSTC    '(',XPR0        ; NO DIGIT, MUST BE
+PARNP   CALL    EXPR            ; "(EXPR)"
+        TSTC    ')',XPR0
+XPR9    RET
+XPR0    JMP     QWHAT           ; ELSE SAY: "WHAT?"
+RND     CALL    PARN            ; *** RND(EXPR) ***
+        MOV     A,H             ; EXPR MUST BE +
+        ORA     A
+        JM      CHOW
+        ORA     L               ; AND NON-ZERO
+        JZ      CHOW
+        PUSH    D               ; SAVE BOTH
+        PUSH    H
+        LHLD    RANPNT          ; GET MEMORY AS RANDOM
+        LXI     D,RANEND
+        CALL    COMP
+        JC      RA1             ; WRAP AROUND IF LAST
+        LXI     H,BOTROM
+RA1     MOV     E,M
+        INX     H
+        MOV     D,M
+        SHLD    RANPNT
+        POP     H
+        XCHG
+        PUSH    B
+        CALL    DIVIDE          ; RND(N)=MOD(M,N)+1
+        POP     B
+        POP     D
+        INX     H
+        RET
+;
+ABS     CALL    PARN            ; *** ABS(EXPR) ***
+        DCX     D
+        CALL    CHKSGN          ; CHECK SIGN
+        INX     D
+        RET
+SIZE    LHLD    TXTUNF          ; *** SIZE ***
+        PUSH    D               ; GET THE NUMBER OF FREE
+        XCHG                    ; BYTES BETWEEN 'TXTUNF'
+        LHLD    TXTLMT          ; AND 'TXTLMT'
+        CALL    SUBDE
+        POP     D
+        RET
+;
