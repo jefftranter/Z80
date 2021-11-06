@@ -23,6 +23,10 @@
 
 CR      EQU     0DH             ; CARRIAGE RETURN
 
+; Macro for character testng used by parser.
+; See comments in routine TSTCH.
+; Source was not shown in original Tiny basic article.
+
 TSTC    MACRO   P1,P2
         CALL    TSTCH
         DB      P1
@@ -86,7 +90,6 @@ TEXT    DS      2
 ;
 ; *** INITIALIZE
 ;
-
         ORG     BOTROM
 INIT    LXI     SP,STACK
         CALL    CRLF
@@ -107,7 +110,6 @@ TELL    LXI     D,MSG           ; TELL USER
         JMP     RSTART          ; ***** JMP USER-INIT ***
 MSG     DB      "TINY "         ; ***********************
         DB      "BASIC"
-
         DB      " V3.0",CR
 OK      DB      "OK",CR
 WHAT    DB      "WHAT?",CR
@@ -177,7 +179,6 @@ ST2     MVI     A,'>'           ; PROMPT '>' AND
         CALL    FNDNXT          ; SET DE->NEXT LINE
         POP     B               ; BC->LINE TO BE DELETED
         LHLD    TXTUNF          ; HL->UNFILLED SAVE AREA
-
         CALL    MVUP            ; MOVE UP TO DELETE
         MOV     H,B             ; TXTUNF->UNFILLED AREA
         MOV     L,C
@@ -253,7 +254,6 @@ EX2     INX     H               ; NC:NO, FIND JUMP ADDR.
         JMP     EXEC            ; TEST AGAINST NEXT ITEM
 EX3     MVI     A,7FH           ; PARTIAL MATCH, FIND
 EX4     INX     H               ; JUMP ADDR., WHICH IS
-
         CMP     M               ; FLAGGED BY BIT 7
         JNC     EX4
 EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
@@ -280,7 +280,6 @@ EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
 ; NEXT COMMAND. (THIS IS DONE IN 'FINISH'.)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;
 ; *** NEW *** STOP ** RUN (& FRIENDS) *** & GOTO
 ;
@@ -330,7 +329,6 @@ GOTO    CALL    EXPR            ; GOTO EXPR ***
         JNZ     AHOW            ; NO SUCH LINE NUMBER
         POP     PSW             ; CLEAR THE "PUSH DE"
         JMP     RUNTSL
-
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -398,7 +396,6 @@ PR3     CALL    EXPR            ; YES, EVALUATE EXPR.
         ANA     L
         ORA     H
         JNZ     QHOW
-
         MOV     C,L             ; AND SAVE IT IN C
         JMP     PR5             ; LOOK FOR MORE TO PRINT
 PR4     CALL    QTSTG           ; OR IS IT A STRING?
@@ -469,3 +466,78 @@ RESTOR  POP     H
 ;
 ; 'FOR' HAS TWO FORMS: 'FOR VAR=EXP1 TO EXP2 STEP EXP3' AND 'FOR
 ; VAR=EXP1 TO EXP2'. THE SECOND FORM MEANS THE SAME THING AS THE FIRST
+; FORK WITH EXP3=1 (I.E., WITH A STEP OF +1). TBI WILL FIND THE
+; VARIABLE VAR. AND SET ITS VALUE TO THE CURRENT VALUE OF EXP1. IT
+; ALSO EVALUATES EXP2 AND EXP3 AND SAVES ALL THESE TOGETHER WITH THE
+; TEXT POINTER ETC. IN THE 'FOR' SAVE AREA, WHICH CONSISTS OF
+; 'LOPVAR', 'LOPINC', 'LOPLMT', 'LOPLN', AND 'LOPPT'. IF THERE IS
+; ALREADY SOMETHING IN THE SAVE AREA (THIS IS INDICATED BY A
+; NON-ZERO 'LOPVAR'), THEN THE OLD SAVE AREA IS SAVED ON THE STACK
+; BEFORE THE NEW ONE OVERWRITES IT. TBI WILL THEN DIG IN THE STACK
+; AND FIND OUT IF THIS SAME VARIABLE WAS USED IN ANOTHER CURRENTLY
+; ACTIVE 'FOR' LOOP. IF THAT IS THE CASE, THEN THE OLD 'FOR' LOOP IS
+; DEACTIVATED (PURGED FROM THE STACK).
+;
+; 'NEXT VAR' SERVES AS THE LOGICAL (NOT NECESSARILY PHYSICAL) END OF
+; THE 'FOR' LOOP. THE CONTROL VARIABLE VAR. IS CHECKED WITH THE
+; 'LOPVAR'. IF THEY ARE NOT THE SAME, TBI DIGS IN THE STACK TO FIND
+; THE RIGHT ONE AND PURGES ALL THOSE THAT DID NOT MATCH. EITHER WAY,
+; TBI THEN ADDS THE 'STEP' TO THAT VARIABLE AND CHECKS THE RESULT WITH
+; THE LIMIT. IF IT IS WITHIN THE LIMIT, CONTROL LOOPS BACK TO THE
+; COMMAND FOLLOWING THE 'FOR'. IF OUTSIDE THE LIMIT, THE SAVE AREA IS
+; PURGED AND EXECUTION CONTINUES.
+;
+FOR     CALL    PUSHA           ; SAVE THE OLD SAVE AREA
+        CALL    SETVAL          ; SET THE CONTROL VAR
+        DCX     H               ; HL IS ITS ADDRESS
+        SHLD    LOPVAR          ; SAVE THAT
+        LXI     H,TAB4-1        ; USE 'EXEC' TO LOOK
+        JMP     EXEC            ; FOR THE WORD 'TO'
+FR1     CALL    EXPR            ; EVALUATE THE LIMIT
+        SHLD    LOPLMT          ; SAVE THAT
+        LXI     H,TAB5-1        ; USE 'EXEC' TO LOOK
+        JMP     EXEC            ; FOR THE WORD 'STEP'
+FR2     CALL    EXPR            ; FOUND IT, GET STEP
+        JMP     FR4
+FR3     LXI     H,1             ; NOT FOUND, SET TO 1
+FR4     SHLD    LOPINC          ; SAVE THAT TOO
+        LHLD    CURRNT          ; SAVE CURRENT LINE #
+        SHLD    LOPLN
+        XCHG                    ; AND TEXT POINTER
+        SHLD    LOPPT
+        LXI     B,10            ; DIG INTO STACK TO
+        LHLD    LOPVAR          ; FIND 'LOPVAR'
+        XCHG
+        MOV     H,B
+        MOV     L,B             ; HL=0 NOW
+        DAD     SP              ; HERE IS THE STACK
+        JMP     FR6
+FR5     DAD     B               ; EACH LEVEL IS 10 DEEP
+FR6     MOV     A,M             ; GET THAT OLD 'LOPVAR'
+        INX     H
+        ORA     M
+        JZ      FR7             ; 0 SAYS NO MORE IN IT
+        MOV     A,M
+        DCX     H
+        CMP     D               ; SAME AS THIS ONE?
+        JNZ     FR5
+        MOV     A,M             ; THE OTHER HALF?
+        CMP     E
+        JNZ     FR5
+        XCHG                    ; YES, FOUND ONE
+        LXI     H,0
+        DAD     SP              ; TRY TO MOVE SP
+        MOV     B,H
+        MOV     C,L
+        LXI     H,10
+        DAD     D
+        CALL    MVDOWN          ; AND PURGE 10 WORDS
+        SPHL                    ; IN THE STACK
+FR7     LHLD    LOPPT           ; JOB DONE, RESTORE DE
+        XCHG
+        JMP     FINISH          ; AND CONTINUE
+;
+NEXT    CALL    TSTV            ; GET ACCESS OF VAR.
+        JC      QWHAT           ; NO VARIABLE, "WHAT?"
+        SHLD    VARNXT          ; YES, SAVE IT
+NX1     PUSH    D               ; SAVE TEXT POINTER
