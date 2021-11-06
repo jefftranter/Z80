@@ -905,7 +905,7 @@ SIZE    LHLD    TXTUNF          ; *** SIZE ***
 ;
 ; 'CHGSGN' CHANGES SIGN OF HL AND B UNCONDITIONALLY.
 ;
-; 'CKHLDE' CHECKS SIGN OF HL AND DE. IF IDFFERENT, HL AND DE ARE
+; 'CKHLDE' CHECKS SIGN OF HL AND DE. IF DIFFERENT, HL AND DE ARE
 ; INTERCHANGED. IF SAME SIGN, NOT INTERCHANGED. EITHER CASE, HL DE
 ; ARE THEN COMPARED TO SET THE FLAGS.
 ;
@@ -982,7 +982,7 @@ COMP    MOV     A,H             ; * COMP ***
 ; CERTAIN COMMANDS (GOTO, RETURN, STOP, ETC.).
 ;
 ; "ERROR" PRINTS THE STRING POINTED TO BY DE (AND ENDS WITH CR). IT THEN
-; PRINTS THE LINE POIINTED BY 'CURRNT' WITH A "?" INSERTED AT WHERE THE
+; PRINTS THE LINE POINTED BY 'CURRNT' WITH A "?" INSERTED AT WHERE THE
 ; OLD TEXT POINTER (SHOULD BE ON TOP OF THE STACK) POINTS TO.
 ; EXECUTION OF TB IS STOPPED AND TBI IS RESTARTED. HOWEVER, F
 ; 'CURRENT'-> ZERO (INDICATING A DIRECT COMMAND), THE DIRECT COMMAND
@@ -1030,5 +1030,79 @@ ENDCHK  CALL    IGNBLK          ; *** ENDCHK ***
 QWHAT   PUSH    D               ; *** QWHAT ***
 AWHAT   LXI     D,WHAT          ; **  AWHAT ***
 ERROR   CALL    CRLF
-        CALL PRTSTG             ; PRINT ERROR MESSAGE
-
+        CALL    PRTSTG          ; PRINT ERROR MESSAGE
+        LHLD    CURRNT          ; GET CURRENT LINE #
+        PUSH    H
+        MOV     A,M             ; CHECK THE VALUE
+        INX     H
+        ORA     M
+        POP     D
+        JZ      TELL            ; IF ZERO, JUST RESTART
+        MOV     A,M             ; IF NEGATIVE
+        ORA     A
+        JM      INPERR          ; REDO INPUT
+        CALL    PRTLN           ; ELSE PRINT THE LINE
+        POP     B
+        MOV     B,C
+        CALL    PRTCHS
+        MVI     A,'?'           ; PRINT A "?"
+        CALL    OUTCH
+        CALL    PRTSTG          ; LINE
+        JMP     TELL            ; THEN RESTART
+QSORRY  PUSH    D               ; *** GSORRY ***
+ASORRY  LXI     D,SORRY         ; *** ASORRY **
+        JMP     ERROR
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** FINDLN (& FRIENDS) ***
+;
+; 'FNDLN' FINDS A LINE WITH A GIVEN LINE # (IN HL) IN THE TEXT SAVE
+; AREA. DE IS USED AS THE TEXT POINTER. IF THE LINE IS FOUND, DE
+; WILL POINT TO THE BEGINNING OF THAT LINE (I.E. THE LOW BYTE OF THE
+; LINE #), AND FLAGS ARE NC AND Z. IF THAT LINE IS NOT THERE AND A LINE
+; WITH A HIGHER LINE # IS FOUND, DE POINTS TO THERE AND FLAGS ARE NC &
+; NZ. IF WE REACHED THE END OF TEXT SAVE AREA AND CANNOT FIND THE
+; LINE, FLAGS ARE C AND NZ. 'FINDLN' WILL INITIALIZE DE TO THE BEGINNING
+; OF THE TEXT SAVE AREA TO START THE SEARCH. SOME OTHER ENTRIES OF
+; THIS ROUTINE WILL NOT INITIALIZE DE AND DO THE SEARCH. 'FINDLP'
+; WILL START WITH DE AND SEARCH FOR THE LINE #. 'FNDNXT' WILL BUMP DE
+; BY 2, FIND A CR AND THEN START SEARCH. 'FNDSKP' USES DE TO FIND A
+; CR, AND THEN START SEARCH.
+;
+FINDLN  MOV     A,H             ; *** FINDLN ***
+        ORA     A               ; CHECK SIGN OF HL
+        JM      QHOW            ; IT CANNOT BE -
+        LXI     D,TEXT          ; INIT. TEXT POINTER
+;
+FNDLP   INX     D               ; IS IT EOR MARK?
+        LDAX    D
+        DCX     D
+        ADD     A
+        RC                      ; C,NZ PASSED END
+        LDAX    D               ; WE DID NOT, GET BYTE 1
+        SUB     L               ; IS THIS THE LINE?
+        MOV     B,A             ; COMPARE LOW ORDER
+        INX     D
+        LDAX    d               ; GET BYTE 2
+        SBB     H               ; COMPARE HIGH ORDER
+        JC      FL1             ; NO, NOT THERE YET
+        DCX     D               ; ELSE WE EITHER FOUND
+        ORA     B               ; IT, OR IT IS NOT THERE
+        RET                     ; NC,Z:FOUND; NC,NZ:NO
+;
+FNDNXT  INX     D               ; FIND NEXT LINE
+FL1     INX     D               ; JUST PASSED BYTE 1 & 2
+;
+FNDSKP  LDAX    D               ; *** FNDSKP ***
+        CPI     CR              ; TRY TO FIND CR
+        JNZ     FL1             ; KEEP LOOKING
+        INX     D               ; FOUND CR, SKIP OVER
+        JMP     FNDLP           ; CHECK IF END OF TEXT
+;
+TSTV    CALL    IGNBLK          ; *** TSTV ***
+        SUI     '@'             ; TEST VARIABLES
+        RC                      ; C:NOT A VARIABLE
+        JNZ     TV1             ; NOT "@" ARRAY
+        INX     D               ; IT IS THE "@" ARRAY
+        CALL    PARN            ; @ SHOULD BE FOLLOWED
