@@ -6,7 +6,10 @@
 ; Port to SBC (RAM or ROM?)
 
 ; Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang.
-; Source taken from "PCC's Reference Book of Personal and Home Computing".
+
+; Source taken from "PCC's Reference Book of Personal and Home
+; Computing" with minor changes to correct some spelling and
+; grammatical errors in comments.
 ; Adapted to ASL assembler and ported to my Z80 SBC.
 ;
 ; Possible enhancements:
@@ -19,6 +22,12 @@
         CPU     8080
 
 CR      EQU     0DH             ; CARRIAGE RETURN
+
+TSTC    MACRO   P1,P2
+        CALL    TSTCH
+        DB      P1
+        DB      P2-$
+        ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -321,4 +330,72 @@ GOTO    CALL    EXPR            ; GOTO EXPR ***
         JNZ     AHOW            ; NO SUCH LINE NUMBER
         POP     PSW             ; CLEAR THE "PUSH DE"
         JMP     RUNTSL
+
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** LIST ** & PRINT ***
+;
+; LIST HAS THREE FORMS:
+; 'LIST(CR)' LISTS ALL SAVED LINES
+; 'LIST N(CR)' STARTS LISTING AT LINE N
+; 'LIST N1,N2(CR)' STARTS LISTING AT LINE N1 FOR N2 LINES. YOU CAN STOP
+; THE LISTING BY CONTROL C KEY.
+;
+; PRINT COMMAND IS 'PRINT ....:' OR 'PRINT ....(CR)'
+; WHERE '....' IS A LIST OF EXPRESSIONS, FORMATS, AND/OR STRINGS.
+; THESE ITEMS ARE SEPARATED BY COMMAS.
+;
+; A FORMAT IS A POUND SIGN FOLLOWED BY A NUMBER. IT CONTROLS THE
+; NUMBER OF SPACES THE VALUE OF AN EXPRESSION IS GOING TO BE PRINTED.
+; IT STAYS EFFECTIVE FOR THE REST OF THE PRINT COMMAND UNLESS CHANGED
+; BY ANOTHER FORMAT. IF NOT FORMAT IS SPECIFIED,  POSITIONS WILL BE
+; USED.
+;
+; A STRING IS QUOTED IN A PAIR OF SINGLE QUOTES OR A PAIR OF DOUBLE
+; QUOTES.
+;
+; CONTROL CHARACTERS AND LOWER CASE LETTERS CAN BE INCLUDED INSIDE THE
+; QUOTES. ANOTHER (BETTER) WAY OF GENERATING CONTROL CHARACTERS IN
+; THE OUTPUT IS TO USE THE UP-ARROW CHARACTER FOLLOWED BY A LETTER. |L
+; MEANS FF, |I MEANS HT, |G MEANS BELL ETC.
+;
+; A (CRLF) IS GENERATED AFTER THE ENTIRE LIST HAS BEEN PRINTED OR IF
+; THE LIST IS A NULL LIST. HOWEVER, IF THE LIST ENDS WITH COMMA, NO
+; (CRLF) IS GENERATED.
+;
+LIST    CALL    TSTNUM          ; TEST IF THERE IS A #
+        PUSH    H
+        LXI     H,0FFFFH
+        TSTC    ',',LS1
+        CALL    TSTNUM
+LS1     XTHL
+        CALL    ENDCHK          ; IF NO # WE GET A 0
+        CALL    FNDLN           ; FINDS THIS OR NEXT LINE
+LS2     JC      RSTART          ; C:PASSED TXTUNF
+        XTHL
+        MOV     A,H
+        ORA     L
+        JZ      RSTART
+        DCX     H
+        XTHL
+        CALL    PRTLN           ; PRINT THE LINE
+        CALL    PRTSTG
+        CALL    CHKIO
+        CALL    FNDLP           ; FIND NEXT LINE
+        JMP     LS2             ; AND LOOP BACK
+;
+PRINT   MVI     C,8             ; C= # OF SPACES
+        TSTC    ';',PR1         ; IF NULL LIST & ";"
+        CALL    CRLF            ; GIVE CR-LF AND
+        JMP     RUNSML          ; CONTINUE SAME LINE
+PR1     TSTC    ATCR,PR6        ; IF NULL LIST (CR)
+        CALL    CRLF            ; ALSO GIVE CR-LF AND
+        JMP     RUNNXL          ; GO TO NEXT LINE
+PR2     TSTC    '#',PR4         ; ELSE IS IT FORMAT?
+PR3     CALL    EXPR            ; YES, EVALUATE EXPR.
+        MVI     A,0C0H
+        ANA     L
+        ORA     H
+        JNZ     QHOW
 
