@@ -758,3 +758,67 @@ XPR8    MOV     A,C             ; SUBROUTINE FOR ALL
         RET
 ;
 EXPR1   TSTC    '-',XP11        ; NEGATIVE SIGN?
+        LXI     H,0             ; YES, FAKE '0-'
+        JMP     XP16            ; TREAT LIKE SUBTRACT
+XP11    TSTC    '+',XP12        ; POSITIVE SIGN? IGNORE
+XP12    CALL    EXPR2           ; 1ST <EXPR2>
+XP13    TSTC    '+',XP15        ; ADD?
+        PUSH    H               ; YES, SAVE VALUE
+        CALL    EXPR2           ; GET 2ND <EXPR2>
+XP14    XCHG                    ; 2ND IN DE
+        XTHL                    ; 1ST IN HL
+        MOV     A,H             ; COMPARE SIGN
+        XRA     D
+        MOV     A,D
+        DAD     D
+        POP     D               ; RESTORE TEXT POINTER
+        JM      XP13            ; 1ST 2ND SIGN DIFFER
+        XRA     H               ; 1ST 2ND SIGN EQUAL
+        JP      XP13            ; SO IS THE RESULT
+        JMP     QHOW            ; ELSE WE HAVE OVERFLOW
+XP15    TSTC    '-',XPR9        ; SUBTRACT?
+XP16    PUSH    H               ; YES, SAVE 1ST <EXPR2>
+        CALL    EXPR2           ; GET 2ND <EXPR2>
+        CALL    CHGSGN          ; NEGATE
+        JMP     XP14            ; AND ADD THEM
+;
+EXPR2   CALL    EXPR3           ; GET 1ST <EXPR3>
+XP21    TSTC    '*',XP24        ; MULTIPLY?
+        PUSH    H               ; YES, SAVE 1ST
+        CALL    EXPR3           ; AND GET 2ND <EXPR3>
+        MVI     B,0             ; CLEAR B FOR SIGN
+        CALL    CHKSGN          ; CHECK SIGN
+        XTHL                    ; 1ST IN HL
+        CALL    CHKSGN          ; CHECK SIGN OF 1ST
+        XCHG
+        XTHL
+        MOV     A,H             ; IS HL > 255 ?
+        ORA     A
+        JZ      XP22            ; NO
+        MOV     A,D             ; YES, HOW ABOUT DE
+        ORA     D
+        XCHG                    ; PUT SMALLER IN HL
+        JNZ     AHOW            ; ALSO >, WILL OVERFLOW
+XP22    MOV     A,L             ; THIS IS DUMB
+        LXI     H,0             ; CLEAR RESULT
+        ORA     A               ; ADD AND COUNT
+        JZ      XP25
+XP23    DAD     D
+        JC      AHOW            ; OVERFLOW
+        DCR     A
+        JNZ     XP23
+        JMP     XP25            ; FINISHED
+XP24    TSTC    '/',XPR9        ; DIVIDE?
+        PUSH    H               ; YES, SAVE 1ST <EXPR3>
+        CALL    EXPR3           ; AND GET 2ND ONE
+        MVI     B,0             ; CLEAR B FOR SIGN
+        CALL    CHKSGN          ; CHECK SIGN OF 2ND
+        XTHL                    ; GET 1ST IN HL
+        CALL    CHKSGN          ; CHECK SIGN OF 1ST
+        XCHG
+        XTHL
+        XCHG
+        MOV     A,D             ; DIVIDE BY 0?
+        ORA     E
+        JZ      AHOW            ; SAY "HOW?"
+        PUSH    B               ; ELSE SAVE SIGN
