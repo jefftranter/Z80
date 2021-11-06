@@ -66,7 +66,7 @@ TXTLMT  DS      1               ; ->LIMIT OF TEXT AREA
 VARBGN  DS      2*26            ; TB VARIABLES A-Z
 CURRNT  DS      2               ; POINTS TO CURRENT LINE
 STKGOS  DS      2               ; SAVES SP IN 'GOSUB'
-VARNXT  DS      0               ; TEMP STORAGE
+VARNXT                          ; TEMP STORAGE
 STKINP  DS      2               ; SAVES SP IN 'INPUT'
 LOPVAR  DS      2               ; 'FOR' LOOP SAVE AREA
 LOPINC  DS      2               ; INCREMENT
@@ -76,11 +76,11 @@ LOPPT   DS      2               ; TEXT POINTER
 RANPNT  DS      2               ; RANDOM NUMBER POINTER
         DS      1               ; EXTRA BYTE FOR BUFFER
 BUFFER  DS      132             ; INPUT BUFFER
-BUFEND  DS      0               ; BUFFER ENDS
+BUFEND                          ; BUFFER ENDS
         DS      4               ; EXTRA BYTES FOR STACK
-STKLMT  DS      0               ; SOFT LIMIT FOR STACK
+STKLMT                          ; SOFT LIMIT FOR STACK
         ORG     TOPSCR
-STACK   DS      0               ; STACK STARTS HERE
+STACK                           ; STACK STARTS HERE
         ORG     BOTRAM
 TXTONF  DS      2
 TEXT    DS      2
@@ -387,7 +387,7 @@ PRINT   MVI     C,8             ; C= # OF SPACES
         TSTC    ';',PR1         ; IF NULL LIST & ";"
         CALL    CRLF            ; GIVE CR-LF AND
         JMP     RUNSML          ; CONTINUE SAME LINE
-PR1     TSTC    ATCR,PR6        ; IF NULL LIST (CR)
+PR1     TSTC    CR,PR6          ; IF NULL LIST (CR)
         CALL    CRLF            ; ALSO GIVE CR-LF AND
         JMP     RUNNXL          ; GO TO NEXT LINE
 PR2     TSTC    '#',PR4         ; ELSE IS IT FORMAT?
@@ -616,3 +616,75 @@ NX6     CALL    POPA            ; PURGE THIS LOOP
 ;'INPERR'.
 ;
 ; 'LET' IS FOLLOWED BY A LIST OF ITEMS SEPARATED BY COMMAS. EACH ITEM
+; CONSISTS OF A VARIABLE, AN EQUAL SIGN, AND AN EXPR. TBI EVALUATES
+; THE EXPR. AND SETS THE VARIABLE TO THAT VALUE. TBI WILL ALSO HANDLE
+; A 'LET' COMMAND WITHOUT THE WORD 'LET'. THIS IS DONE BY 'DEFLT'.
+;
+REM     LXI     H,0             ; *** REM ***
+        JMP     IF1             ; THIS IS LIKE 'IF 0'
+;
+IFF     CALL    EXPR            ; *** IF ***
+IF1     MOV     A,H             ; IS THE EXPR.=0?
+        ORA     L
+        JNZ     RUNSML          ; NO, CONTINUE
+        CALL    FNDSKP          ; YES, SKIP REST OF LINE
+        JNC     RUNTSL          ; IF NC NEXT, RE-START
+;
+INPERR  LHLD    STKINP          ; *** INPERR ***
+        SPHL                    ; RESTORE OLD SP
+        POP     H               ; AND OLD 'CURRNT'
+        SHLD    CURRNT
+        POP     D               ; AND OLD TEXT POINTER
+        POP     D               ; REDO INPUT
+;
+INPUT
+IP1     PUSH    D               ; SAVE IN CASE OF ERROR
+        CALL    QTSTG           ; IS NEXT ITEM A STRING?
+        JMP     IP8             ; NO
+IP2     CALL    TSTV            ; YES. BUT FOLLOWED BY A
+        JC      IP5             ; VARIABLE? NO.
+IP3     CALL    IP12
+        LXI     D,BUFFER        ; POINTS TO BUFFER
+        CALL    EXPR            ; EVALUATE INPUT
+        CALL    ENDCHK
+        POP     D               ; OK, GET OLD HL
+        XCHG
+        MOV     M,E             ; SAVE VALUE IN VAR.
+        INX     H
+        MOV     M,D
+IP4     POP     H               ; GET OLD 'CURRNT'
+        SHLD    CURRNT
+        POP     D               ; AND OLD TEST POINTER
+IP5     POP     PSW             ; PURGE JUNK IN STACK
+IP6     TSTC    ',',IP7         ; IS NEXT CH. ","?
+        JMP     INPUT           ; YES, MORE ITEMS.
+IP7     JMP     FINISH
+IP8     PUSH    D               ; SAVE FOR 'PRTSTG'
+        CALL    TSTV            ; MUST BE VARIABLE NOW
+        JNC     IP11
+IP10    JMP     WHAT            ; "WHAT?" IT IS NOT?
+IP11    MOV     B,E
+        POP     D
+        CALL    PRTCHS          ; PRINT THOSE AS PROMPT
+        JMP     IP3             ; YES.INPUT VARIABLE
+IP12    POP     B               ; RETURN ADDRESS
+        PUSH    D               ; SAVE TEXT POINTER
+        XCHG
+        LHLD    CURRNT          ; ALSO SAVE CURRNT
+        PUSH    H
+        LXI     H,IP1           ; A NEGATIVE NUMBER
+        SHLD    CURRNT          ; AS A FLAG
+        LXI     H,0             ; SAVE SP TOO
+        DAD     SP
+        SHLD    STKINP
+        PUSH    D               ; OLD HL
+        MVI     A,' '           ; PRINT A SPACE
+        PUSH    B
+        JMP     GETLN           ; AND GET A LINE
+;
+DEFLT   LDAX    D               ; *** DEFLT ***
+        CPI     CR              ; EMPTY LINE IS OK
+        JZ      LT4             ; ELSE IT IS 'LET'
+;
+LET                             ; *** LET ***
+LT2     CALL    SETVAL
