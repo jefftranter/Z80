@@ -688,3 +688,73 @@ DEFLT   LDAX    D               ; *** DEFLT ***
 ;
 LET                             ; *** LET ***
 LT2     CALL    SETVAL
+LT3     TSTC    '.',LT4         ; SET VALUE TO VAR.
+        JMP     LET             ; ITEM BY ITEM
+LT4     JMP     FINISH          ; UNTIL FINISH
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** EXPR ***
+;
+; 'EXPR' EVALUATES ARITHMETICAL OR LOGICAL EXPRESSIONS.
+; <EXPR>::=<EXPR1>
+;          <EXPR1><REL.OP.><EXPR1>
+; WHERE >RE.OP.> IS ONE OF THE OPERATORS IN TAB6 AND THE RESULT OF
+; THESE OPERATIONS IS 1 IF TRUE AND 0 IF FALSE.
+; <EXPR1>::=(+ OR -)<EXPR2>(+ OR -<EXPR2>)(....)
+; WHERE () ARE OPTIONAL AND (....) ARE OPTIONAL REPEATS.
+; <EXPR2>::=<EXPR3>(< OR /><EXPR3>)(....)
+; <EXPR3>::=<VARIABLE>
+;           <FUNCTION>
+;           (<EXPR>)
+; <EXPR> IS RECURSIVE SO THAT VARIABLE "@" CAN HAVE AN <EXPR> AS
+; <EXP3) CAN BE AN <EXPR> IN PARENTHESES.
+;
+EXPR    CALL    EXPR1           ; * EXPR ***
+        PUSH    H               ; SAVE <EXPR1> VALUE
+        LXI     H,TAB6-1        ; LOOK UP REL.OP.
+        JMP     EXEC            ; GO DO IT
+XPR1    CALL    XPR8            ; REL.OP.">="
+        RC                      ; NO, RETURN HL=0
+        MOV     L,A             ; YES, RETURN HL=1
+        RET
+XPR2    CALL    XPR8            ; REL.OP."#"
+        RZ                      ; FALSE, RETURN HL=0
+        RET
+XPR3    CALL    XPR8            ; REL.OP.">"
+        RZ                      ; FALSE
+        RC                      ; ALSO FALSE, HL=0
+        MOV     L,A             ; TRUE, HL=1
+        RET
+XPR4    CALL    XPR8            ; REL.OP."<="
+        MOV     L,A             ; SET HL=1
+        RZ                      ; REL. TRUE. RETURN
+        RC
+        MOV     L,H             ; ELSE SET HL=0
+        RET
+XPR5    CALL    XPR8            ; RE.OP."="
+        RNZ                     ; FALSE, RETURN HL=0
+        MOV     L,A             ; ELSE SET HL=1
+        RET
+XPR6    CALL    XPR8            ; REL.OP."<"
+        RNC                     ; FALSE, RETURN HL=0
+        MOV     L,A             ; ELSE SET HL=1
+        RET
+XPR7    POP     H               ; NOT REL.OP.
+        RET                     ; RETURN HL=<EXPR1>
+XPR8    MOV     A,C             ; SUBROUTINE FOR ALL
+        POP     H               ; RE.OP.'S
+        POP     B
+        PUSH    H               ; REVERSE TOP OF STACK
+        PUSH    B
+        MOV     C,A
+        CALL    EXPR1           ; GET 2ND <EXPR1>
+        XCHG                    ; VALUE IN DE NOW
+        XTHL                    ; 1ST <EXPR1> IN HL
+        CALL    CKHLDE          ; COMPARE 1ST WITH 2ND
+        POP     D               ; RESTORE TEXT POINTER
+        LXI     H,0             ; SET HL=0, A=1
+        MVI     A,1
+        RET
+;
+EXPR1   TSTC    '-',XP11        ; NEGATIVE SIGN?
