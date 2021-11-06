@@ -541,3 +541,78 @@ NEXT    CALL    TSTV            ; GET ACCESS OF VAR.
         JC      QWHAT           ; NO VARIABLE, "WHAT?"
         SHLD    VARNXT          ; YES, SAVE IT
 NX1     PUSH    D               ; SAVE TEXT POINTER
+        XCHG
+        LHLD    LOPVAR          ; GET VAR. IN 'FOR'
+        MOV     A,H
+        ORA     L               ; 0 SAYS NEVER HAD ONE
+        JZ      AWHAT           ; SO WE ASK: "WHAT?"
+        CALL    COMP            ; ELSE WE CHECK THEM
+        JZ      NX2             ; OK, THEY AGREE
+        POP     D               ; NO, LET'S SEE
+        CALL    POPA            ; PURGE CURRENT LOOP
+        LHLD    VARNXT          ; AND POP ONE LEVEL
+        JMP     NX1             ; GO CHECK AGAIN
+NX2     MOV     E,M             ; COME HERE WHEN AGREED
+        INX     H
+        MOV     D,M             ; DE=VALUE OF VAR.
+        LHLD    LOPINC
+        PUSH    H
+        MOV     A,H
+        XRA     D               ; S=SIGN DIFFER
+        MOV     A,D             ; A=SIGN OF DE
+        DAD     D               ; ADD ONE STEP
+        JM      NX3             ; CANNOT OVERFLOW
+        XRA     H               ; MAY OVERFLOW
+        JM      NX5             ; AND IT DID
+NX3     XCHG
+        LHLD    LOPVAR          ; PUT IT BACK
+        MOV     M,E
+        INX     H
+        MOV     M,D
+        LHLD    LOPLMT          ; HL=LIMIT
+        POP     PSW             ; OLD HL
+        ORA     A
+        JP      NX4             ; STEP > 0
+        XCHG                    ; STEP < 0
+NX4     CALL    CKHLDE          ; COMPARE WITH LIMIT
+        POP     D               ; RESTORE TEXT POINTER
+        JC      NX6             ; OUTSIDE LIMIT
+        LHLD    LOPLN           ; WITHIN LIMIT, GO
+        SHLD    CURRNT          ; BACK TO THE SAVED
+        LHLD    LOPPT           ; 'CURRNT' AND TEXT
+        XCHG                    ; POINTER
+        JMP     FINISH
+NX5     POP     H               ; OVERFLOW, PURGE
+        POP     D               ; GARBAGE IN STACK
+NX6     CALL    POPA            ; PURGE THIS LOOP
+        JMP     FINISH
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** REM *** IF *** INPUT *** & LET (& DEFLT) ***
+;
+; 'REM' FOLLOWED BY ANYTHING IS IGNORED BY TBI. TBI TREATS
+; IT LIKE AN 'IF' WITH A FALSE CONDITION.
+;
+; 'IF' FOLLOWED BY AN EXPR. AS A CONDITION AND ONE OR MORE COMMANDS
+; (INCLUDING OTHER 'IF'S) SEPARATE BY SEMI-COLONS. NOTE THAT THE
+; WORD 'THEN' IS NOT USED. TBI EVALUATES THE EXPR. IF IT IS NON-ZERO,
+; EXECUTION CONTINUES. IF THE EXPR. IS ZERO, THE COMMANDS THAT
+; FOLLOW ARE IGNORED AND EXECUTION CONTINUES AT THE NEXT LINE.
+;
+; 'INPUT' COMMAND IS LIKE THE 'PRINT' COMMAND, AND IS FOLLOWED BY A
+; LIST OF ITEMS. IF THE ITEM IS A STRING IN SINGLE OR DOUBLE QUOTES,
+; OR IS AN UP-ARROW, IT HAS THE SAME EFFECT AS IN 'PRINT'. IF AN ITEM
+; IS A VARIABLE, THIS VARIABLE NAME IS PRINTED OUT FOLLOWED BY A
+; COLON. THEN TBI WAITS FOR AN EXPR. TO BE TYPED IN. THE VARIABLE IS
+; THEN SET TO THE VALUE OF THIS EXPR. IF THE VARIABLE IS PRECEDED BY
+; A STRING (AGAIN IN SINGLE OR DOUBLE QUOTES), THE STRING WILL BE
+; PRINTED FOLLOWED BY A COLON. TBI THEN WAITS FOR INPUT EXPR. AND
+; SETS THE VARIABLE TO THE VALUE OF THE EXPR.
+;
+; IF THE INPUT EXPR. IS INVALID, TBI WILL PRINT "WHAT?", "HOW?" OR
+; "SORRY" AND REPRINT THE PROMPT AND REDO THE INPUT. THE EXECUTION
+; WILL NOT TERMINATE UNLESS YOU TYPE CONTROL-C. THIS IS HANDLED IN
+;'INPERR'.
+;
+; 'LET' IS FOLLOWED BY A LIST OF ITEMS SEPARATED BY COMMAS. EACH ITEM
