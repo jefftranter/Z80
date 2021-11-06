@@ -965,4 +965,70 @@ COMP    MOV     A,H             ; * COMP ***
         RNZ                     ; RETURN CORRECT C AND
         MOV     A,L             ; Z FLAGS
         CMP     E               ; BUT OLD A IS LOST
+        RET
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** SETVAL *** FIN *** ENDCHK *** & ERROR (& FRIENDS) **
+;
+; "SETVAL" EXPECTS A VARIABLE, FOLLOWED BY AN EQUAL SIGN AND THEN AN
+; EXR. IT EVALUATES THE EXR. AND SETS THE VARIABLE TO THAT VALUE
+;
+; "FIN" CHECKS THE END OF A COMMAND. IF IT ENDED WITH ";", EXECUTION
+; CONTINUES. IF IT ENDED WITH A CR, IT FINDS THE NEXT LINE AD
+; CONTINUES FROM THERE,
+;
+; "ENDCHK" CHECKS IF A COMMAND IS ENDED WITH A CR. THIS IS REQUIRED IN
+; CERTAIN COMMANDS (GOTO, RETURN, STOP, ETC.).
+;
+; "ERROR" PRINTS THE STRING POINTED TO BY DE (AND ENDS WITH CR). IT THEN
+; PRINTS THE LINE POIINTED BY 'CURRNT' WITH A "?" INSERTED AT WHERE THE
+; OLD TEXT POINTER (SHOULD BE ON TOP OF THE STACK) POINTS TO.
+; EXECUTION OF TB IS STOPPED AND TBI IS RESTARTED. HOWEVER, F
+; 'CURRENT'-> ZERO (INDICATING A DIRECT COMMAND), THE DIRECT COMMAND
+; IS NOT PRINTED. AND IF 'CURRNT' -> NEGATIVE # (INDICATING 'INPUT'
+; COMMAND, THE INPUT LINE IS NOT PRINTED AND EXECUTION IS NOT
+; TERMINATED BUT CONTINUED AT 'INPERR'.
+;
+; RELATED TO 'ERROR' ARE THE FOLLOWING: 'QWHAT' SAVES TEXT POINTER ON
+; THE STACK AND GETS THE MESSAGE "WHAT?". 'AWHAT' JUST GETS THE MESSAGE "WHAT?" AND
+; JUMPS TO 'ERROR'. 'QSORRY' AND 'ASORRY" DO THE SAME KIND OF THING.
+; 'QHOW' AND 'AHOW' IN THE ZERO PAGE SECTION ALSO DO THIS.
+;
+SETVAL  CALL    TSTV            ; *** SETVAL ***
+        JC      QWHAT           ; "WHAT?" NO VARIABLE
+        PUSH    H               ; SAVE ADDRESS OF VAR.
+        TSTC    '=',SV1         ; PASS "=" SIGN
+        CALL    EXPR            ; EVALUATE EXPR.
+        MOV     B,H             ; VALUE IN BC NOW
+        MOV     C,L
+        POP     H               ; GET ADDRESS
+        MOV     M,C             ; SAVE VALUE
+        INX     H
+        MOV     M,B
+        RET
+;
+FINISH  CALL    FIN             ; CHECK END OF COMMAND
+SV1     JMP     QHAT            ; PRINT "WHAT?" IF WRONG
+FIN     TSTC    ';',FI1         ; *** FIN ***
+        POP     PSW             ; ";", PURGE RET ADDR.
+        JMP     RUNSML          ; CONTINUE SAME LINE
+FI1     TSTC    CR,FI2          ; NOT ";", IT IS CR?
+        POP     PSW             ; YES, PURGE RET ADDR.
+        JMP     RUNNXL          ; RUN NEXT LINE
+FI2     RET                     ; ELSE RETURN TO CALLER
+IGNBLK  LDAX    D               ; ** IGNBLK ***
+        CPI     ' '             ; IGNORE BLANKS
+        RNZ                     ; IN TEXT (WHERE DE->)
+        INX     D               ; AND RETURN THE FIRST
+        JMP     IGNBLK          ; NON-BLANK CHAR. IN A
+;
+ENDCHK  CALL    IGNBLK          ; *** ENDCHK ***
+        CPI     CR              ; END WITH CR?
+        RZ                      ; OK, ELSE SAY: "WHAT?"
+;
+QWHAT   PUSH    D               ; *** QWHAT ***
+AWHAT   LXI     D,WHAT          ; **  AWHAT ***
+ERROR   CALL    CRLF
+        CALL PRTSTG             ; PRINT ERROR MESSAGE
 
