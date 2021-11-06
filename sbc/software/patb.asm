@@ -1106,3 +1106,78 @@ TSTV    CALL    IGNBLK          ; *** TSTV ***
         JNZ     TV1             ; NOT "@" ARRAY
         INX     D               ; IT IS THE "@" ARRAY
         CALL    PARN            ; @ SHOULD BE FOLLOWED
+        DAD     H               ; BY (EXPR) AS ITS INDEX
+        JC      QHOW            ; IS INDEX TOO BIG?
+TSTB    PUSH    D               ; WILL IT FIT?
+        XCHG
+        CALL    SIZE            ; FIND SIZE OF FREE
+        CALL    COMP            ; AND CHECK THAT
+        JC      ASORRY          ; IF NOT, SAY "SORRY"
+        CALL    LOCR            ; IT FITS, GET ADDRESS
+        DAD     D               ; OF A(EXPR) AND PUT IT
+        POP     D               ; IN HL
+        RET                     ; C FLAG IS CLEARED
+TV1     CPI     27              ; NOT @, IS IT A TO Z?
+        CMC                     ; IF NOT RETURN C FLAG
+        RC
+        INX     D               ; IF A THROUGH Z
+        LXI     H,VARBGN-2
+        RLC                     ; HL->VARIABLE
+        ADD     L               ; RETURN
+        MOV     L,A             ; WITH C FLAG CLEARED
+        MVI     A,0
+        ADC     H
+        MOV     H,A
+        RET
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** TSTCH *** TSTNUM ***
+;
+; TSTCH IS USED TO TEST THE NEXT NON-BLANK CHARACTER IN THE TEXT
+; (POINTED TO BY DE) AGAINST THE CHARACTER THAT FOLLOWS THE CALL. IF
+; THEY DO NOT MATCH, N BYTES OF CODE WILL BE SKIPPED OVER, WHERE N IS
+; BETWEEN 0 AND 255 AND IT IS STORED IN THE SECOND BYTE FOLLOWING THE
+; CALL.
+;
+; TSTNUM IS USED TO CHECK WHETHER THE TEXT (POINTED TO BY DE) IS A
+; NUMBER. IF A NUMBER IS FOUND, B WILL BE NON-ZERO AND HL WILL
+; CONTAIN THE VALUE (IN BINARY) OF THE NUMBER, ELSE B AND HL ARE 0.
+;
+TSTCH   XTHL                    ; *** TSTCH ***
+        CALL    IGNBLK          ; IGNORE LEADNG BLANKS
+        CMP     M               ; AND TEST THE CHARACTER
+        INX     H               ; COMPARE THE BYTE THAT
+        JZ      TC1             ; FOLLOWS THE CALL INST.
+        PUSH    B               ; WITH THE TEXT (DE->)
+        MOV     C,M             ; IF NOT =, ADD THE 2ND
+        MVI     B,0             ; BYTE THAT FOLLOWS THE
+        DAD     B               ; CALL TO THE OLD PC
+        POP     B               ; I.E. DO A RELATIVE
+        DCX     D               ; JUMP IF NOT =
+TC1     INX     D               ; IF =, SKIP THOSE BYTES
+        INX     H               ; AND CONTINUE
+        XTHL
+        RET
+;
+TSTNUM  LXI     H,0             ; *** TSTNUM ***
+        MOV     B,H             ; TEST IF THE TEXT IS
+        CALL    IGNBLK          ; A NUMBER
+TN1     CPI     '0'             ; IF NOTM RETURN 0 IN
+        RC                      ; B AND HL
+        CPI     03AH            ; IF NUMBERS, CONVERT
+        RNC                     ; TO BINARY IN HL AND
+        MVI     A,0F0H          ; SET B TO # OF DIGITS
+        ANA     H               ; IF H>255. THERE IS NO
+        JNZ     GHOW            ; ROOM FOR NEXT DIGIT
+        INR     B               ; B COUNTS # OF DIGITS
+        PUSH    B
+        MOV     B,H             ; HL=10*HL+(NEW DIGIT)
+        MOV     C,L
+        DAD     H               ; WHERE 10* IS DONE BY
+        DAD     H               ; SHIFT AND ADD
+        DAD     B
+        DAD     H
+        LDAX    D               ; AND (DIGIT) IS FROM
+        INX     D               ; STRIPPING THE ASCII
+        ANI     00FH            ; CODE
