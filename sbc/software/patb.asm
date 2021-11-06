@@ -892,3 +892,77 @@ SIZE    LHLD    TXTUNF          ; *** SIZE ***
         POP     D
         RET
 ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** DIVIDE *** SUBDE *** CHKSGN *** CHGSGN *** & CKHLDE ***
+;
+; 'DIVIDE' DIVIDES HL BY DE, RESULT IN BC, REMAINDER IN HL.
+;
+; 'SUBDE' SUBTRACTS DE FROM HL
+;
+; 'CHKSGN' CHECKS SIGN OF HL. IF +, NO CHANGE. IF -, CHANGE SIGN AND
+; FLIP SIGN OF B.
+;
+; 'CHGSGN' CHANGES SIGN OF HL AND B UNCONDITIONALLY.
+;
+; 'CKHLDE' CHECKS SIGN OF HL AND DE. IF IDFFERENT, HL AND DE ARE
+; INTERCHANGED. IF SAME SIGN, NOT INTERCHANGED. EITHER CASE, HL DE
+; ARE THEN COMPARED TO SET THE FLAGS.
+;
+DIVIDE  PUSH    H               ; *** DIVIDE ***
+        MOV     L,H             ; DIVIDE H BY DE
+        MVI     H,0
+        CALL    DV1
+        MOV     B,C             ; SAVE RESULT IN B
+        MOV     A,L             ; (REMAINDER+L)/DE
+        POP     H
+        MOV     H,A
+DV1     MVI     C,-1            ; RESULT IN C
+DV2     INR     C               ; DUMB ROUTINE
+        CALL    SUBDE           ; DIVIDE BY SUBTRACT
+        JNC     DV2             ; AND COUNT
+        DAD     D
+        RET
+SUBDE   MOV     A,L             ; *** SUBDE ***
+        SUB     E               ; SUBTRACT DE FROM
+        MOV     L,A             ; HL
+        MOV     A,H
+        SBB     D
+        MOV     H,A
+        RET
+;
+CHKSGN  MOV     A,H             ; *** CHKSGN **
+        ORA     A               ; CHECK SGN OF HL
+        RP                      ; IF -, CHANGE SIGN
+;
+CHGSGN  MOV     A,H             ; *** CHGSGN ***
+        ORA     L
+        RZ
+        MOV     A,H
+        PUSH    PSW
+        CMA                     ; CHANGE SIGN OF HL
+        MOV     H,A
+        MOV     A,L
+        CMA
+        MOV     L,A
+        INX     H
+        POP     PSW
+        XRA     H
+        JP      QHOW
+        MOV     A,B             ; ALSO FLIP B
+        XRI     080H
+        MOV     B,A
+        RET
+;
+CKHLDE  MOV     A,H
+        XRA     D               ; SAME SIGN?
+        JP      CK1             ; YES, COMPARE
+        XCHG                    ; NO, XCH AND COM
+        RET
+;
+COMP    MOV     A,H             ; * COMP ***
+        CMP     D               ; COMPARE HL WITH DE
+        RNZ                     ; RETURN CORRECT C AND
+        MOV     A,L             ; Z FLAGS
+        CMP     E               ; BUT OLD A IS LOST
+
