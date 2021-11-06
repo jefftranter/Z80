@@ -399,3 +399,73 @@ PR3     CALL    EXPR            ; YES, EVALUATE EXPR.
         ORA     H
         JNZ     QHOW
 
+        MOV     C,L             ; AND SAVE IT IN C
+        JMP     PR5             ; LOOK FOR MORE TO PRINT
+PR4     CALL    QTSTG           ; OR IS IT A STRING?
+        JMP     PR9             ; IF NOT, MUST BE EXPR.
+PR5     TSTC    ',',PR8         ; IF ",", GO FIND NEXT
+PR6     TSTC    '.',PR7
+        MVI     A,' '
+        CALL    OUTCH
+        JMP     PR6
+PR7     CALL    FIN             ; IN THE LIST
+        JMP     PR2             ; LIST CONTINUES
+PR8     CALL    CRLF            ; LIST ENDS
+        JMP     FINISH
+PR9     CALL    EXPR            ; EVALUATE THE EXPR
+        PUSH    B
+        CALL    PRTNUM          ; PRINT THE VALUE
+        POP     B
+        JMP     PR5             ; MORE TO PRINT?
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** GOSUB *** & RETURN ***
+;
+; 'GOSUB EXPR:' OR 'GOSUB EXPR (CR)" IS LIKE THE 'GOTO' COMMAND,
+; EXCEPT THAT THE CURRENT TEXT POINTER, STACK POINTER ETC, ARE SAVED SO
+; THAT EXECUTION CAN BE CONTINUED AFTER THE SUBROUTINE 'RETURN'. IN
+; ORDER THAT 'GOSUB' CAN BE NESTED (AND EVEN RECURSIVE), THE SAVE AREA
+; 'STKGOS' IS SAVED ON THE STACK. IF WE ARE IN THE MAIN ROUTINE,
+; 'STKGOS' IS ZERO (THIS WAS DONE BY THE "MAIN" SECTION OF THE CODE),
+; BUT WE STILL SAVE IT AS A FLAG FOR NO FURTHER 'RETURN'S.
+;
+; 'RETURN(CR)' UNDOES EVERYTHING THAT 'GOSUB' DID, AND THUS RETURNS
+; EXECUTION TO THE COMMAND AFTER THE MOST RECENT 'GOSUB'. IF 'STKGOS'
+; IS ZERO, IT INDICATES THAT WE NEVER HAD A 'GOSUB' AND IS THUS AN
+; ERROR.
+;
+GOSUB   CALL    PUSHA           ; SAVE THE CURRENT "FOR"
+        CALL    EXPR            ; PARAMETERS
+        PUSH    D               ; AND TEXT POINTER
+        CALL    FNDLN           ; FIND THE TARGET LINE
+        JNZ     AHOW            ; NOT THERE. SAY "HOW?"
+        LHLD    CURRNT          ; SAVE OLD
+        PUSH    H               ; 'CURRNT' OLD 'STKGCS'
+        LHLD    STKGOS
+        PUSH    H
+        LXI     H,0             ; AND LOAD NEW ONES
+        SHLD    LOPVAR
+        DAD     SP
+        SHLD    STKGOS
+        JMP     RUNTSL          ; THEN RUN THAT LINE
+RETURN  CALL    ENDCHK          ; THERE MUST BE A CR
+        LHLD    STKGOS          ; OLD STACK POINTER
+        MOV     A,H             ; 0 MEANS NOT EXIST
+        ORA     L
+        JZ      CWHAT           ; SO WE SAY "WHAT?"
+        SPHL                    ; ELSE, RESTORE IT
+RESTOR  POP     H
+        SHLD    STKGOS          ; AND THE OLD 'STKGOS'
+        POP     H
+        SHLD    CURRNT          ; AND THE OLD 'CURRNT'
+        POP     D               ; OLD TEXT POINTER
+        CALL    POPA            ; OLD "FOR" PARAMETERS
+        JMP     FINISH
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** FOR *** & NEXT ***
+;
+; 'FOR' HAS TWO FORMS: 'FOR VAR=EXP1 TO EXP2 STEP EXP3' AND 'FOR
+; VAR=EXP1 TO EXP2'. THE SECOND FORM MEANS THE SAME THING AS THE FIRST
