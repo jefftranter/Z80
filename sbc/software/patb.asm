@@ -1,6 +1,4 @@
 ; To Do:
-; Enter all source code.
-; Get it to assemble.
 ; Spell check.
 ; Get same binary as original article.
 ; Fix any warnings.
@@ -100,7 +98,8 @@ INIT    LXI     SP,STACK
         MVI     A,0C3H          ; PROBABLY NOT C3
         CMP     M
         JZ      TELL            ; IT IS C3, CONTINUE
-        MOV     M,A             ; AND SET DEFAULT VALUE
+        MOV     M,A             ; NO, SET IT TO C3
+        LXI     H,DFTLMT        ; AND SET DEFAULT VALUE
         SHLD    TXTLMT          ; IN 'TXTLMT'
         MVI     A,BOTROM>>8     ; INITIALIZE RANPNT
         STA     RANPNT+1
@@ -631,7 +630,8 @@ IF1     MOV     A,H             ; IS THE EXPR.=0?
         ORA     L
         JNZ     RUNSML          ; NO, CONTINUE
         CALL    FNDSKP          ; YES, SKIP REST OF LINE
-        JNC     RUNTSL          ; IF NC NEXT, RE-START
+        JNC     RUNTSL          ; AND RUN THE NEXT LINE
+        JMP     RSTART          ; IF NC NEXT, RE-START
 ;
 INPERR  LHLD    STKINP          ; *** INPERR ***
         SPHL                    ; RESTORE OLD SP
@@ -723,6 +723,7 @@ XPR1    CALL    XPR8            ; REL.OP.">="
         RET
 XPR2    CALL    XPR8            ; REL.OP."#"
         RZ                      ; FALSE, RETURN HL=0
+        MOV     L,A             ; TRUE, RETURN HL=1
         RET
 XPR3    CALL    XPR8            ; REL.OP.">"
         RZ                      ; FALSE
