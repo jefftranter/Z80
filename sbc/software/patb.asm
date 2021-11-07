@@ -1,6 +1,7 @@
 ; To Do:
 ; Enter all source code.
 ; Get it to assemble.
+; Spell check.
 ; Get same binary as original article.
 ; Fix any warnings.
 ; Port to SBC (RAM or ROM?)
@@ -22,10 +23,12 @@
         CPU     8080
 
 CR      EQU     0DH             ; CARRIAGE RETURN
+LF      EQU     0AH             ; LINE FEE
+BS      EQU     08H             ; BACKSPACE
 
-; Macro for character testng used by parser.
+; Macro for character testing used by parser.
 ; See comments in routine TSTCH.
-; Source was not shown in original Tiny basic article.
+; Source was not shown in original Tiny Basic article.
 
 TSTC    MACRO   P1,P2
         CALL    TSTCH
@@ -1249,7 +1252,7 @@ PUSHA   LXI     H,STKLMT        ; *** PUSHA ***
         DAD     SP              ; IS STACK NEAR THE TOP?
         JNC     QSORRY          ; YES, SORRY FOR THAT.
         LHLD    LOPVAR          ; ELSE SAVE LOOP VAR.S
-        MOV     A,H             ; BUTIF LOPVAR IS 0
+        MOV     A,H             ; BUT IF LOPVAR IS 0
         ORA     L               ; THAT WILL BE ALL
         JZ      PUI
         LHLD    LOPPT           ; ELSE MORE TO SAVE
@@ -1279,13 +1282,13 @@ LOCR    LHLD    TXTUNF
 ; THE CR OR TO THE ZERO.
 ;
 ; 'QTSTG' LOOKS FOR UP-ARROW, SINGLE QUOTE, OR DOUBLE QUOTE. IF NOE
-; OF THESE, RETURNS TO CALLER. IF UP-ARROW, OUTPUT A CONTRL
+; OF THESE, RETURNS TO CALLER. IF UP-ARROW, OUTPUT A CONTROL
 ; CHARACTER. IF SINGLE OR DOUBLE QUOTE, PRINT THE STRING IN THE QUOTE
 ; AND DEMAND A MATCHING UNQUOTE. AFTER THE PRINTING THE NEXT 3 BYTES
 ; OF THE CALLER IS SKIPPED OVER USUALLY A JUMP INSTRUCTION).
 ;
 ; 'PRTNUM' PRINTS THE NUMBER IN HL. LEADING BLANKS ARE ADDED IF
-; NEEDED TO PAD THE NMBER OF SPACES TO THE NUMBER IN C. HOWEVER, IF
+; NEEDED TO PAD THE NUMBER OF SPACES TO THE NUMBER IN C. HOWEVER, IF
 ; THE NUMBER OF DIGITS IS LARGER THAN THE # IN C, ALL DIGITS ARE
 ; PRINTED ANYWAY. NEGATIVE SIGN IS ALSO PRINTED AND COUNTED IN.
 ; POSITIVE SIGN IS NOT.
@@ -1462,7 +1465,6 @@ RANEND  EQU     $
 ; WILL ALSO OUTPUT A LF AND THREE NULLS. FLAGS MAY CHANGE AT RETURN.
 ; OTHER REGISTERS DO NOT.
 ;
-;
 ; *** CHKIO *** GETLN ***
 ;
 ; CHKIO CHECKS TO SEE IF THERE IS ANY INPUT. IF NOT INPUT, IT RETURNS
@@ -1472,5 +1474,69 @@ RANEND  EQU     $
 ; NOT RETURN. ONLY A & FLAGS MAY CHANGE AT RETURN.
 ;
 ; 'GETLN' READS A INPUT LINE INTO 'BUFFER'. IF FIRST PROMPTS THE
-; CHARACTER IN A (GIVEN BY THE CALLER), THEN IF FILL THE BUFFER
-
+; CHARACTER IN A (GIVEN BY THE CALLER), THEN IT FILLS THE BUFFER
+; AND ECHOS. BACKSPACE IS USED TO DELETE THE LAST CHARACTER (IF THERE
+; IS ONE). CR SIGNALS THE END OF THE LINE AND CAUSES 'GETLN' TO
+; RETURN. WHEN BUFFER IS FULL, 'GETLN' WLL ACCEPT BACKSPACE OR CR
+; ONLY AND WILL IGNORE (AND WLL NOT ECHO) OTHER CHARACTERS. AFTER
+; THE INPUT LINE IS STORED IN THE BUFFER, TWO MORE BYTES OF FF ARE
+; ALSO STORED AND DE POINTS TO THE LAST FF. A & FLAGS ARE ALSO
+; CHANGED AT RETURN.
+;
+CRLF    MVI     A,CR            ; CR IN A
+                                ; ***********************
+OUTCH   JMP     OUT             ; *** JMP USER-OUTPUT ***
+                                ; ***********************
+CHKIO   JMP     IN              ; *** JMP USER-INPUT ***
+                                ; ***********************
+GETLN   LXI     D,BUFFER        ; ***** MODIFY THIS *****
+                                ; ***********************
+GL1     CALL    OUTCH           ; PROMPT OR ECHO
+GL2     CALL    CHKIO           ; GET A CHARACTER
+        JZ      GL2             ; WAIT FOR INPUT
+        CPI     LF
+        JZ      GL2
+GL3     STAX    D               ; SAVE CH.
+        CPI     BS              ; IS IT BACKSPACE?
+        JNZ     GL4             ; NO, MORE TESTS
+        MOV     A,E             ; YES, DELETE?
+        CPI     BUFFER>>8
+        JZ      GL2             ; NOTHING TO DELETE
+        LDAX    D               ; DELETE
+        DCX     D
+        JMP     GL1
+GL4     CPI     CR              ; WAS IT CR?
+        JZ      GL5             ; YES, END OF LINE
+        MOV     A,E             ; ELSE, NO MORE FREE ROOM?
+        CPI     BUFEND>>8
+        JZ      GL2             ; NO, WAIT FOR CR/RUB-OUT
+        LDAX    D               ; YES, BUMP POINTER
+        INX     D
+        JMP     GL1
+GL5     INX     D               ; END OF LINE
+        INX     D               ; BUMP POINTER
+        MVI     A,0FFH          ; PUT MARKER AFTER IT
+        STAX    D
+        DCX     D
+        JMP     CRLF
+OUT     PUSH    PWS             ; OUTPUT ROUTINE
+OT1     IN      0               ; PRINT WHAT IS IN A
+        ANI     001H            ; TBE BIT
+        JZ      OT1             ; WAIT UNTIL READY
+        POP     PSW
+        OUT     1
+        CPI     CR              ; WAS IT CR?
+        RNZ                     ; NO RETURN
+        MVI     A,LF            ; YES, GIVE LF
+        CALL    OUT
+        MVI     A,CR
+        RET
+IN      IN      0
+        ANI     002H            ; DAV BIT
+        RZ                      ; NO INPUT, RETURN ZERO
+        IN      1               ; CHECK INPUT
+        ANI     07FH
+        CPI     003H            ; IS IT CONTROL-C?
+        RNZ                     ; NO, RETURN CH.
+        JMP     INIT            ; YES, RESTART
+        END
