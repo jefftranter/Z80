@@ -1181,3 +1181,80 @@ TN1     CPI     '0'             ; IF NOTM RETURN 0 IN
         LDAX    D               ; AND (DIGIT) IS FROM
         INX     D               ; STRIPPING THE ASCII
         ANI     00FH            ; CODE
+        ADD     L
+        MOV     L,A
+        MVI     A,0
+        ADC     H
+        MOV     H,A
+        POP     B
+        LDAX    D               ; DO THIS DIGIT AFTER
+        JP      TN1             ; DIGIT. S SAYS OVERFLOW
+QHOW    PUSH    D               ; * ERROR: "HOW?" ***
+AHOW    LXI     D,HOW
+        JMP ERROR
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** MVUP *** MVDOWN *** POPA ** & PUSH A ***
+;
+; 'MVUP' MOVES A BLOCK UP FROM WHERE DE-> TO WHERE DC-> UNTIL DE = HL
+;
+; 'MVDOWN' MOVES A BLOCK DOWN FROM WHERE DE-> TO WHERE HL-> UNTIL DE =
+; BC
+;
+; 'POPA' RESTORES THE 'FOR' LOOP VARIABLE SAVE AREA FROM THE STACK
+;
+; 'PUSHA' STACKS THE 'FOR' LOOP VARIABLE SAVE AREA INTO THE STACK
+;
+MVUP    CALL    COMP            ; *** MVUP ***
+        RZ                      ; DE = HL, RETURN
+        LDAX    D               ; GET ONE BYE
+        STAX    B               ; MOVE IT
+        INX     D               ; INCREASE BOTH POINTERS
+        INX     B
+        JMP     MVUP            ; UNTIL DONE
+;
+MVDOWN  MOV     A,B             ; *** MVDOWN **
+        SUB     D               ; TEST IF DE = BC
+        JNZ     MD1             ; NO, GO MOVE
+        MOV     A,C             ; MAYBE, OTHER BYTE?
+        SUB     E
+        RZ                      ; YES, RETURN
+MD1     DCX     D               ; ELSE MOVE A BYTE
+        DCX     H               ; BUT FIRST DECREASE
+        LDAX    D               ; BOTH POINTERS AND
+        MOV     M,A             ; THEN DO IT
+        JMP     MVDOWN          ; LOOP BACK
+;
+POPA    POP     B               ; BC = RETURN ADDR.
+        POP     H               ; RESTORE LOPVAR, BUT
+        SHLD    LOPVAR          ; =0 MEANS NO MORE
+        MOV     A,H
+        ORA     L
+        JZ      PP1             ; YEP, GO RETURN
+        POP     H               ; NOPE, RESTORE OTHERS
+        SHLD    LOPINC
+        POP     H
+        SHLD    LOPLMT
+        POP     H
+        SHLD    LOPLN
+        POP     H
+        SHLD    LOPPT
+PP1     PUSH    B               ; BC = RETURN ADDR.
+        RET
+;
+PUSHA   LXI     H,STKLMT        ; *** PUSHA ***
+        CALL    CHGSGN
+        POP     B               ; BC=RETURN ADDRESS
+        DAD     SP              ; IS STACK NEAR THE TOP?
+        JNC     QSORRY          ; YES, SORRY FOR THAT.
+        LHLD    LOPVAR          ; ELSE SAVE LOOP VAR.S
+        MOV     A,H             ; BUTIF LOPVAR IS 0
+        ORA     L               ; THAT WILL BE ALL
+        JZ      PUI
+        LHLD    LOPPT           ; ELSE MORE TO SAVE
+        PUSH    H
+        LHLD    LOPLN
+        PUSH    H
+
+        
