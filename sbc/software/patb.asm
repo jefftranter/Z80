@@ -355,8 +355,8 @@ GOTO    CALL    EXPR            ; GOTO EXPR ***
 ;
 ; CONTROL CHARACTERS AND LOWER CASE LETTERS CAN BE INCLUDED INSIDE THE
 ; QUOTES. ANOTHER (BETTER) WAY OF GENERATING CONTROL CHARACTERS IN
-; THE OUTPUT IS TO USE THE UP-ARROW CHARACTER FOLLOWED BY A LETTER. |L
-; MEANS FF, |I MEANS HT, |G MEANS BELL ETC.
+; THE OUTPUT IS TO USE THE UP-ARROW CHARACTER FOLLOWED BY A LETTER. ^L
+; MEANS FF, ^I MEANS HT, ^G MEANS BELL ETC.
 ;
 ; A (CRLF) IS GENERATED AFTER THE ENTIRE LIST HAS BEEN PRINTED OR IF
 ; THE LIST IS A NULL LIST. HOWEVER, IF THE LIST ENDS WITH COMMA, NO
@@ -1256,5 +1256,72 @@ PUSHA   LXI     H,STKLMT        ; *** PUSHA ***
         PUSH    H
         LHLD    LOPLN
         PUSH    H
-
-        
+        LHLD    LOPLMT
+        PUSH    H
+        LHLD    LOPINC
+        PUSH    H
+        LHLD    LOPVAR
+PU1     PUSH    H
+        PUSH    B               ; BC = RETURN ADDR.
+        RET
+LOCR    LHLD    TXTUNF
+        DCX     H
+        DCX     H
+        RET
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** PRTSTG * QTSTG *** PRTNUM *** & PRTLN ***
+;
+; 'PRTSTG' PRINTS A STRING POINTED TO BY DE. IT STOPS PRINTING AND
+; RETURNS TO THE CALLER WHEN EITHER A CR IS PRINTED OR WHEN THE NEXT BYTE
+; IS ZERO. REG. A AND B ARE CHANGED. REG. DE POINTS TO WHAT FOLLOWS
+; THE CR OR TO THE ZERO.
+;
+; 'QTSTG' LOOKS FOR UP-ARROW, SINGLE QUOTE, OR DOUBLE QUOTE. IF NOE
+; OF THESE, RETURNS TO CALLER. IF UP-ARROW, OUTPUT A CONTRL
+; CHARACTER. IF SINGLE OR DOUBLE QUOTE, PRINT THE STRING IN THE QUOTE
+; AND DEMAND A MATCHING UNQUOTE. AFTER THE PRINTING THE NEXT 3 BYTES
+; OF THE CALLER IS SKIPPED OVER USUALLY A JUMP INSTRUCTION).
+;
+; 'PRTNUM' PRINTS THE NUMBER IN HL. LEADING BLANKS ARE ADDED IF
+; NEEDED TO PAD THE NMBER OF SPACES TO THE NUMBER IN C. HOWEVER, IF
+; THE NUMBER OF DIGITS IS LARGER THAN THE # IN C, ALL DIGITS ARE
+; PRINTED ANYWAY. NEGATIVE SIGN IS ALSO PRINTED AND COUNTED IN.
+; POSITIVE SIGN IS NOT.
+;
+; 'PRTLN' FINDS A SAVED LINE. PRINTS THE LINE # AND A SPACE.
+;
+PRTSTG  SUB     A               ; *** PRTSTG ***
+PS1     MOV     B,A
+PS2     LDAX    D               ; GET A CHARACTER
+        INX     D               ; BUMP POINTER
+        CMP     B               ; SAME AS OLD A?
+        RZ                      ; YES, RETURN
+        CALL    OUTCH           ; ELSE PRINT IT
+        CPI     CR              ; WAS IT A CR?
+        JNZ     PS2             ; NO, NEXT
+        RET                     ; YES, RETURN
+;
+QTSTG   TSTC    '"',QT3         ; *** QTSTG ***
+        MVI     A,'"'           ; IT IS A "
+QT1     CALL    PS1             ; PRINT UNTIL ANOTHER
+QT2     CPI     CR              ; WAS LAST ONE A CR?
+        POP     H               ; RETURN ADDRESS
+        JZ      RUNNXL          ; WAS CR, RUN NEXT LINE
+        INX     H               ; SKIP 3 BYTES ON RETURN
+        INX     H
+        INX     H
+        PCHL                    ; RETURN
+QT3     TSTC    027H,QT4        ; IS IT A '?
+        MVI     A,027H          ; YES, DO SAME
+        JMP     QT1             ; AS IN "
+QT4     TSTC    '^',QT5         ; IS IT AN UP ARROW?
+        LDAX    D               ; YES, CONVERT CHARACTER
+        XRI     040H            ; TO CONTROL-CH.
+        CALL    OUTCH
+        LDAX    D               ; JUST IN CASE IT IS A CR
+        INX     D
+        JMP     QT2
+QT5     RET                     ; NONE OF ABOVE
+PRTCHS  MOV     A,E
