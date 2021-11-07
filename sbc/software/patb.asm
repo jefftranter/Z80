@@ -85,7 +85,7 @@ STKLMT                          ; SOFT LIMIT FOR STACK
         ORG     TOPSCR
 STACK                           ; STACK STARTS HERE
         ORG     BOTRAM
-TXTONF  DS      2
+TXTUNF  DS      2
 TEXT    DS      2
 
 ;
@@ -200,7 +200,7 @@ ST3     POP     B               ; GET READY TO INSERT
         LHLD    TXTLMT          ; CHECK TO SEE IF THERE
         XCHG
         CALL    COMP            ; IS ENOUGH SPACE
-        JNC     GSORRY          ; SORRY, NO ROOM FOR IT
+        JNC     QSORRY          ; SORRY, NO ROOM FOR IT
         SHLD    TXTUNF          ; OK, UPDATE TXTUNF
         POP     D               ; DE->OLD UNFILLED AREA
         CALL    MVDOWN
@@ -453,7 +453,7 @@ RETURN  CALL    ENDCHK          ; THERE MUST BE A CR
         LHLD    STKGOS          ; OLD STACK POINTER
         MOV     A,H             ; 0 MEANS NOT EXIST
         ORA     L
-        JZ      CWHAT           ; SO WE SAY "WHAT?"
+        JZ      QWHAT           ; SO WE SAY "WHAT?"
         SPHL                    ; ELSE, RESTORE IT
 RESTOR  POP     H
         SHLD    STKGOS          ; AND THE OLD 'STKGOS'
@@ -859,9 +859,9 @@ XPR0    JMP     QWHAT           ; ELSE SAY: "WHAT?"
 RND     CALL    PARN            ; *** RND(EXPR) ***
         MOV     A,H             ; EXPR MUST BE +
         ORA     A
-        JM      CHOW
+        JM      QHOW
         ORA     L               ; AND NON-ZERO
-        JZ      CHOW
+        JZ      QHOW
         PUSH    D               ; SAVE BOTH
         PUSH    H
         LHLD    RANPNT          ; GET MEMORY AS RANDOM
@@ -961,6 +961,7 @@ CKHLDE  MOV     A,H
         XRA     D               ; SAME SIGN?
         JP      CK1             ; YES, COMPARE
         XCHG                    ; NO, XCH AND COM
+CK1     CALL    COMP
         RET
 ;
 COMP    MOV     A,H             ; * COMP ***
@@ -1012,7 +1013,7 @@ SETVAL  CALL    TSTV            ; *** SETVAL ***
         RET
 ;
 FINISH  CALL    FIN             ; CHECK END OF COMMAND
-SV1     JMP     QHAT            ; PRINT "WHAT?" IF WRONG
+SV1     JMP     QWHAT           ; PRINT "WHAT?" IF WRONG
 FIN     TSTC    ';',FI1         ; *** FIN ***
         POP     PSW             ; ";", PURGE RET ADDR.
         JMP     RUNSML          ; CONTINUE SAME LINE
@@ -1073,7 +1074,7 @@ ASORRY  LXI     D,SORRY         ; *** ASORRY **
 ; BY 2, FIND A CR AND THEN START SEARCH. 'FNDSKP' USES DE TO FIND A
 ; CR, AND THEN START SEARCH.
 ;
-FINDLN  MOV     A,H             ; *** FINDLN ***
+FNDLN   MOV     A,H             ; *** FINDLN ***
         ORA     A               ; CHECK SIGN OF HL
         JM      QHOW            ; IT CANNOT BE -
         LXI     D,TEXT          ; INIT. TEXT POINTER
@@ -1172,7 +1173,7 @@ TN1     CPI     '0'             ; IF NOTM RETURN 0 IN
         RNC                     ; TO BINARY IN HL AND
         MVI     A,0F0H          ; SET B TO # OF DIGITS
         ANA     H               ; IF H>255. THERE IS NO
-        JNZ     GHOW            ; ROOM FOR NEXT DIGIT
+        JNZ     QHOW            ; ROOM FOR NEXT DIGIT
         INR     B               ; B COUNTS # OF DIGITS
         PUSH    B
         MOV     B,H             ; HL=10*HL+(NEW DIGIT)
@@ -1254,7 +1255,7 @@ PUSHA   LXI     H,STKLMT        ; *** PUSHA ***
         LHLD    LOPVAR          ; ELSE SAVE LOOP VAR.S
         MOV     A,H             ; BUT IF LOPVAR IS 0
         ORA     L               ; THAT WILL BE ALL
-        JZ      PUI
+        JZ      PU1
         LHLD    LOPPT           ; ELSE MORE TO SAVE
         PUSH    H
         LHLD    LOPLN
@@ -1394,12 +1395,12 @@ TAB1    DB      "LIST"          ; DIRECT COMMANDS
         DW      NEW
         DB      "RUN"
         DW      RUN
-        DB      "NEXT"
+TAB2    DB      "NEXT"
         DW      NEXT
         DB      "LET"
         DW      LET
         DB      "IF"
-        DW      IF
+        DW      IFF
         DB      "GOTO"
         DW      GOTO
         DB      "GOSUB"
