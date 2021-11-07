@@ -1399,3 +1399,78 @@ TAB1    DB      "LIST"          ; DIRECT COMMANDS
         DW      IF
         DB      "GOTO"
         DW      GOTO
+        DB      "GOSUB"
+        DW      GOSUB
+        DB      "RETURN"
+        DW      RETURN
+        DB      "REM"
+        DW      REM
+        DB      "FOR"
+        DW      FOR
+        DB      "INPUT"
+        DW      INPUT
+        DB      "PRINT"
+        DW      PRINT
+        DB      "STOP"
+        DW      STOP
+        DW      MOREC           ; ************************
+MOREC   JMP     DEFLT           ; *** JMP USER-COMMAND ***
+                                ; ************************
+TAB3    DB      "RND"           ; FUNCTIONS
+        DW      RND
+        DB      "ABS"
+        DW      ABS
+        DB      "SIZE"
+        DW      SIZE
+        DW      MOREF           ; *************************
+MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
+                                ; *************************
+TAB4    DB      "TO"            ; "FOR" COMMAND
+        DW      FR1
+        DW      QWHAT
+TAB5    DB      "STEP"          ; "FOR" COMMAND
+        DW      FR2
+        DW      FR3
+TAB6    DB      ">="            ; RELATION OPERATORS
+        DW      XPR1
+        DB      "#"
+        DW      XPR2
+        DB      ">"
+        DW      XPR3
+        DB      "="
+        DW      XPR5
+        DB      "<="
+        DW      XPR4
+        DB      "<"
+        DW      XPR6
+        DW      XPR7
+RANEND  EQU     $
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** INPUT OUTPUT ROUTINES **
+;
+; USER MUST VERIFY AND/OR MODIFY THESE ROUTINES
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; *** CRLF *** OUTCH ***
+;
+; CRLF WILL OUTPUT A CR. ONLY A & FLAGS MAY CHANGE AT RETURN.
+;
+; OUTCH WILL OUTPUT THE CHARACTER IN A. IF THE CHARACTER IS CR, IT
+; WILL ALSO OUTPUT A LF AND THREE NULLS. FLAGS MAY CHANGE AT RETURN.
+; OTHER REGISTERS DO NOT.
+;
+;
+; *** CHKIO *** GETLN ***
+;
+; CHKIO CHECKS TO SEE IF THERE IS ANY INPUT. IF NOT INPUT, IT RETURNS
+; WITH Z FLAG. IF THERE IS INPUT, IT FURTHER CHECKS WHETHER INPUT IS
+; CONTROL-C. IF NOT CONTROL-C, IT RETURNS THE CHARACTER IN A WITH
+; FLAG CLEARED. IF INPUT IS CONTROL-C, CHKIO JUMPS TO 'INIT' AND WILL
+; NOT RETURN. ONLY A & FLAGS MAY CHANGE AT RETURN.
+;
+; 'GETLN' READS A INPUT LINE INTO 'BUFFER'. IF FIRST PROMPTS THE
+; CHARACTER IN A (GIVEN BY THE CALLER), THEN IF FILL THE BUFFER
+
