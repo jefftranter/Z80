@@ -25,7 +25,7 @@ BS      EQU     08H             ; BACKSPACE
 TSTC    MACRO   P1,P2
         CALL    TSTCH
         DB      P1
-        DB      P2-$
+        DB      P2-$-1
         ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,7 +48,7 @@ TSTC    MACRO   P1,P2
 
 BOTSCR  EQU     00080H
 TOPSCR  EQU     00200H
-BOTRAM  EQU     02999H
+BOTRAM  EQU     02000H
 DFTLMT  EQU     04000H
 BOTROM  EQU     0F000H
 
@@ -57,7 +57,7 @@ BOTROM  EQU     0F000H
 
         ORG     BOTSCR
 KEYWRD  DS      1               ; WAS INIT DONE?
-TXTLMT  DS      1               ; ->LIMIT OF TEXT AREA
+TXTLMT  DS      2               ; ->LIMIT OF TEXT AREA
 VARBGN  DS      2*26            ; TB VARIABLES A-Z
 CURRNT  DS      2               ; POINTS TO CURRENT LINE
 STKGOS  DS      2               ; SAVES SP IN 'GOSUB'
@@ -659,7 +659,7 @@ IP7     JMP     FINISH
 IP8     PUSH    D               ; SAVE FOR 'PRTSTG'
         CALL    TSTV            ; MUST BE VARIABLE NOW
         JNC     IP11
-IP10    JMP     WHAT            ; "WHAT?" IT IS NOT?
+IP10    JMP     QWHAT           ; "WHAT?" IT IS NOT?
 IP11    MOV     B,E
         POP     D
         CALL    PRTCHS          ; PRINT THOSE AS PROMPT
@@ -685,7 +685,7 @@ DEFLT   LDAX    D               ; *** DEFLT ***
 ;
 LET                             ; *** LET ***
 LT2     CALL    SETVAL
-LT3     TSTC    '.',LT4         ; SET VALUE TO VAR.
+LT3     TSTC    ',',LT4         ; SET VALUE TO VAR.
         JMP     LET             ; ITEM BY ITEM
 LT4     JMP     FINISH          ; UNTIL FINISH
 ;
@@ -1496,7 +1496,7 @@ GL3     STAX    D               ; SAVE CH.
         CPI     BS              ; IS IT BACKSPACE?
         JNZ     GL4             ; NO, MORE TESTS
         MOV     A,E             ; YES, DELETE?
-        CPI     BUFFER>>8
+        CPI     BUFFER
         JZ      GL2             ; NOTHING TO DELETE
         LDAX    D               ; DELETE
         DCX     D
@@ -1504,7 +1504,7 @@ GL3     STAX    D               ; SAVE CH.
 GL4     CPI     CR              ; WAS IT CR?
         JZ      GL5             ; YES, END OF LINE
         MOV     A,E             ; ELSE, NO MORE FREE ROOM?
-        CPI     BUFEND>>8
+        CPI     BUFEND&0FFH
         JZ      GL2             ; NO, WAIT FOR CR/RUB-OUT
         LDAX    D               ; YES, BUMP POINTER
         INX     D
@@ -1515,7 +1515,7 @@ GL5     INX     D               ; END OF LINE
         STAX    D
         DCX     D
         JMP     CRLF
-OUT     PUSH    PWS             ; OUTPUT ROUTINE
+OUT     PUSH    PSW             ; OUTPUT ROUTINE
 OT1     IN      0               ; PRINT WHAT IS IN A
         ANI     001H            ; TBE BIT
         JZ      OT1             ; WAIT UNTIL READY
