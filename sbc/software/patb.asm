@@ -1325,3 +1325,77 @@ QT4     TSTC    '^',QT5         ; IS IT AN UP ARROW?
         JMP     QT2
 QT5     RET                     ; NONE OF ABOVE
 PRTCHS  MOV     A,E
+        CMP     B
+        RZ
+        LDAX    D
+        CALL    OUTCH
+        INX     D
+        JMP     PRTCHS
+;
+PRTNUM                          ; *** PRTNUM ***
+PN3     MVI     B,0             ; B=SIGN
+        CALL    CHKSGN          ; CHECK SIGN
+        JP      PN4             ; NO SIGN
+        MVI     B,'-'           ; B=SIGN
+        DCR     C               ; '-' TAKES SPACE
+PN4     PUSH    D
+        LXI     D,10            ; DECIMAL
+        PUSH    D               ; SAVE AS A FLAG
+        DCR     C               ; C=SPACES
+        PUSH    B               ; SAVE SIGN & SPACE
+PN5     CALL    DIVIDE          ; DIVIDE HL BY 10
+        MOV     A,B             ; RESULT 0?
+        ORA     C
+        JZ      PN6             ; YES, WE GOT ALL
+        XTHL                    ; NO, SAVE REMAINDER
+        DCR     L               ; AND COUNT SPACE
+        PUSH    H               ; HL IS OLD BC
+        MOV     H,B             ; MOVE RESULT TO BC
+        MOV     L,C
+        JMP     PN5             ; AND DIVIDE BY 10
+PN6     POP     B               ; WE GOT ALL DIGITS IN
+PN7     DCR     C               ; THE STACK
+        MOV     A,C             ; LOOK AT SPACE COUNT
+        ORA     A
+        JM      PN8             ; NO LEADING BLANKS
+        MVI     A,' '           ; LEADING BLANKS
+        CALL    OUTCH
+        JMP     PN7             ; MORE?
+PN8     MOV     A,B             ; PRINT SIGN
+        ORA     A
+        CNZ     OUTCH           ; MAYBE - CR NULL
+        MOV     E,L             ; LAST REMAINDER IN E
+PN9     MOV     A,E             ; CHECK DIGIT IN E
+        CPI     10              ; 10 IS FLAG FOR NO MORE
+        POP     D
+        RZ                      ; IF SO, RETURN
+        ADI     '0'             ; ELSE CONVERT TO ASCII
+        CALL    OUTCH           ; AND PRINT THE DIGIT
+        JMP     PN9             ; GO BACK FOR MORE
+;
+PRTLN   LDAX    D               ; *** PRTLN ***
+        MOV     L,A             ; LOW ORDER LINE #
+        INX     D
+        LDAX    D               ; HIGH ORDER
+        MOV     H,A
+        INX     D
+        MVI     C,4             ; PRINT 4 DIGIT LINE #
+        CALL    PRTNUM
+        MVI     A,' '           ; FOLLOWED BY A BLANK
+        CALL    OUTCH
+        RET
+;
+TAB1    DB      "LIST"          ; DIRECT COMMANDS
+        DW      LIST
+        DB      "NEW"
+        DW      NEW
+        DB      "RUN"
+        DW      RUN
+        DB      "NEXT"
+        DW      NEXT
+        DB      "LET"
+        DW      LET
+        DB      "IF"
+        DW      IF
+        DB      "GOTO"
+        DW      GOTO
