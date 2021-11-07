@@ -1,10 +1,5 @@
-; To Do:
-; Get same binary as original article.
-; Fix any warnings.
-; Port to SBC (RAM or ROM?)
-
 ; Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang.
-
+;
 ; Source taken from "PCC's Reference Book of Personal and Home
 ; Computing" with minor changes to correct some spelling and
 ; grammatical errors in comments.
@@ -20,7 +15,7 @@
         CPU     8080
 
 CR      EQU     0DH             ; CARRIAGE RETURN
-LF      EQU     0AH             ; LINE FEE
+LF      EQU     0AH             ; LINE FEED
 BS      EQU     08H             ; BACKSPACE
 
 ; Macro for character testing used by parser.
@@ -234,7 +229,7 @@ ST3     POP     B               ; GET READY TO INSERT
 ;
 DIRECT  LXI     H,TAB1-1        ; *** DIRECT ***
 ;
-EXEC    CALL    IGNBLK          ; *** EXEC **
+EXEC    CALL    IGNBLK          ; *** EXEC ***
         PUSH    D               ; SAVE POINTER
 EX1     LDAX    D               ; IF FOUND '.' IN STRING
         INX     D               ; BEFORE ANY MISMATCH
@@ -282,7 +277,7 @@ EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; *** NEW *** STOP ** RUN (& FRIENDS) *** & GOTO
+; *** NEW *** STOP *** RUN (& FRIENDS) *** & GOTO
 ;
 ; 'NEW(CR)' RESETS 'TXTUNF'
 ;
@@ -300,10 +295,10 @@ EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
 ; 'GOTO EXPR(CR)' EVALUATES THE EXPRESSION, FINDS THE TARGET
 ; LINE, AND JUMPS TO 'RUNTSL' TO DO IT.
 ;
-NEW     CALL    ENDCHK          ; ** NEW(CR) **
+NEW     CALL    ENDCHK          ; *** NEW(CR) ***
         JMP     PURGE
 ;
-STOP    CALL    ENDCHK          ; *** STOP(CR) *
+STOP    CALL    ENDCHK          ; *** STOP(CR) ***
         JMP     RSTART
 ;
 RUN     CALL    ENDCHK          ; *** RUN (CR) ***
@@ -313,17 +308,17 @@ RUNNXL  LXI     H,0             ; *** RUNNXL ***
         CALL    FNDLP           ; FIND WHATEVER LINE #
         JC      RSTART          ; C:PASSED TXTUNF, QUIT
 ;
-RUNTSL  XCHG                    ; *** RUNTSL **
+RUNTSL  XCHG                    ; *** RUNTSL ***
         SHLD    CURRNT          ; SET 'CURRNT'->LINE #
         XCHG
         INX     D               ; BUMP PASS LINE #
         INX     D
 ;
-RUNSML  CALL    CHKIO           ; *** RUNSML **
+RUNSML  CALL    CHKIO           ; *** RUNSML ***
         LXI     H,TAB2-1        ; FIND COMMAND IN TAB2
         JMP     EXEC            ; AND EXECUTE IT
 ;
-GOTO    CALL    EXPR            ; GOTO EXPR ***
+GOTO    CALL    EXPR            ; *** GOTO EXPR ***
         PUSH    D               ; SAVE FOR ERROR ROUTINE
         CALL    ENDCHK          ; MUST FIND A CR
         CALL    FNDLN           ; FIND THE TARGET LINE #
@@ -712,7 +707,7 @@ LT4     JMP     FINISH          ; UNTIL FINISH
 ; <EXPR> IS RECURSIVE SO THAT VARIABLE "@" CAN HAVE AN <EXPR> AS
 ; <EXP3) CAN BE AN <EXPR> IN PARENTHESES.
 ;
-EXPR    CALL    EXPR1           ; * EXPR ***
+EXPR    CALL    EXPR1           ; *** EXPR ***
         PUSH    H               ; SAVE <EXPR1> VALUE
         LXI     H,TAB6-1        ; LOOK UP REL.OP.
         JMP     EXEC            ; GO DO IT
@@ -1193,7 +1188,7 @@ TN1     CPI     '0'             ; IF NOT, RETURN 0 IN
         POP     B
         LDAX    D               ; DO THIS DIGIT AFTER
         JP      TN1             ; DIGIT. S SAYS OVERFLOW
-QHOW    PUSH    D               ; * ERROR: "HOW?" ***
+QHOW    PUSH    D               ; *** ERROR: "HOW?" ***
 AHOW    LXI     D,HOW
         JMP ERROR
 ;
@@ -1275,7 +1270,7 @@ LOCR    LHLD    TXTUNF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; *** PRTSTG * QTSTG *** PRTNUM *** & PRTLN ***
+; *** PRTSTG *** QTSTG *** PRTNUM *** & PRTLN ***
 ;
 ; 'PRTSTG' PRINTS A STRING POINTED TO BY DE. IT STOPS PRINTING AND
 ; RETURNS TO THE CALLER WHEN EITHER A CR IS PRINTED OR WHEN THE NEXT BYTE
