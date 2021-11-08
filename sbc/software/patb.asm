@@ -12,11 +12,23 @@
 ; - Add support for more commands, e.g. PEEK, POKE, USR().
 ; - Convert from 8080 to Z80 mnemonics.
 
+; Define SBC below to get version for my Z80 Single Board Computer.
+; Comment it out to get original code from published article.
+
+SBC EQU 1
+
         CPU     8080
 
 CR      EQU     0DH             ; CARRIAGE RETURN
 LF      EQU     0AH             ; LINE FEED
 BS      EQU     08H             ; BACKSPACE
+
+        IFDEF SBC
+; 6850 UART I/O registers
+SREG    PORT    80H
+CREG    PORT    80H
+DREG    PORT    81H
+        ENDIF
 
 ; Macro for character testing used by parser.
 ; See comments in routine TSTCH.
@@ -26,6 +38,13 @@ TSTC    MACRO   P1,P2
         CALL    TSTCH
         DB      P1
         DB      P2-$-1
+        ENDM
+
+; Macro for keyword tables. Accepts a routine address. Outputs address
+; as high byte with bit 7 set followed by low byte.
+
+ITEM    MACRO   P1
+        DB      (P1>>8)|080H, P1&00FFH
         ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -41,17 +60,29 @@ TSTC    MACRO   P1,P2
 ;
 ;  *** MEMORY USAGE ***
 ;
+; ORIGINAL:
 ;  0080-01FF  ARE FOR VARIABLES, INPUT LINE, AND STACK
 ;  2000-3FFF  ARE FOR TINY BASIC TEXT & ARRAY
 ;  F000-F7FF  ARE FOR TBI CODE
 ;
+; FOR Z80 SBC (ROM from 0000-1FFF, RAM 8000-FFFF):
+;  8080-81FF  ARE FOR VARIABLES, INPUT LINE, AND STACK
+;  A000-FFFF  ARE FOR TINY BASIC TEXT & ARRAY
+;  0000-1FFF  ARE FOR TBI CODE
 
+        IFDEF SBC
+BOTSCR  EQU     08080H
+TOPSCR  EQU     08200H
+BOTRAM  EQU     0A000H
+DFTLMT  EQU     0FFFFH
+BOTROM  EQU     00000H
+    ELSE
 BOTSCR  EQU     00080H
 TOPSCR  EQU     00200H
 BOTRAM  EQU     02000H
 DFTLMT  EQU     04000H
 BOTROM  EQU     0F000H
-
+        ENDIF
 ;
 ;  DEFINE VARIABLES, BUFFER, AND STACK IN RAM
 
@@ -86,7 +117,56 @@ TEXT    DS      2
 ; *** INITIALIZE
 ;
         ORG     BOTROM
-INIT    LXI     SP,STACK
+
+        IFDEF   SBC
+
+; Reset/RST 00 vector: jump to start entry point
+RESET:  JMP     INIT
+
+; RST 08 vector
+        DB      (0008H-$) DUP (0FFH)
+        RET                     ; Simply return
+
+; RST 10 vector
+        DB      (0010H-$) DUP (0FFH)
+        RET                     ; Simply return
+
+; RST 18 vector
+        DB      (0018H-$) DUP 0FFH
+        RET                     ; Simply return
+
+; RST 20 vector
+        DB      (0020H-$) DUP 0FFH
+        RET                     ; Simply return
+
+; RST 28 vector
+        DB      (0028H-$) DUP 0FFH
+        RET                     ; Simply return
+
+; RST 30 vector
+        DB      (0030H-$) DUP 0FFH
+        RET                     ; Simply return
+
+; Mode 1 IRQ/RST 38 vector
+        DB      (0038H-$) DUP 0FFH
+IRQ:    RET                     ; Return from IRQ
+
+; NMI vector
+        DB      (0066H-$) DUP 0FFH
+NMI:    RET                     ; Return from NMI
+
+; Start actual code at $0100
+
+        DB      (0100H-$) DUP 0FFH
+        ENDIF
+INIT
+        IFDEF   SBC
+        DI                      ; Disable interrupts
+        MVI     A,016H          ; Initialize 6850 ACIA
+        OUT     CREG
+        ENDIF
+
+        LXI     SP,STACK
         CALL    CRLF
         LXI     H,KEYWRD        ; AT POWER ON KEYWRD IS
         MVI     A,0C3H          ; PROBABLY NOT C3
@@ -255,8 +335,12 @@ EX4     INX     H               ; JUMP ADDR., WHICH IS
 EX5     MOV     A,M             ; LOAD HL WITH THE JUMP
         INX     H               ; ADDRESS FROM THE TABLE
         MOV     L,M             ; ****************
-        ANI     0FFH            ; ***** ANI 07FH *****
-        MOV     H,A             ; ****************
+        IFDEF   SBC
+        ANI     07FH            ; CLEAR HIGH BIT TO GET REAL JUMP ADDRESS
+        ELSE
+        ANI     0FFH
+        ENDIF
+        MOV     H,A
         POP     PSW             ; CLEAN UP THE GARBAGE
         PCHL                    ; AND WE GO DO IT
 ;
@@ -1385,64 +1469,64 @@ PRTLN   LDAX    D               ; *** PRTLN ***
         RET
 ;
 TAB1    DB      "LIST"          ; DIRECT COMMANDS
-        DW      LIST
+        ITEM    LIST
         DB      "NEW"
-        DW      NEW
+        ITEM    NEW
         DB      "RUN"
-        DW      RUN
+        ITEM    RUN
 TAB2    DB      "NEXT"
-        DW      NEXT
+        ITEM    NEXT
         DB      "LET"
-        DW      LET
+        ITEM    LET
         DB      "IF"
-        DW      IFF
+        ITEM    IFF
         DB      "GOTO"
-        DW      GOTO
+        ITEM    GOTO
         DB      "GOSUB"
-        DW      GOSUB
+        ITEM    GOSUB
         DB      "RETURN"
-        DW      RETURN
+        ITEM    RETURN
         DB      "REM"
-        DW      REM
+        ITEM    REM
         DB      "FOR"
-        DW      FOR
+        ITEM    FOR
         DB      "INPUT"
-        DW      INPUT
+        ITEM    INPUT
         DB      "PRINT"
-        DW      PRINT
+        ITEM    PRINT
         DB      "STOP"
-        DW      STOP
-        DW      MOREC           ; ************************
+        ITEM    STOP
+        ITEM    MOREC           ; ************************
 MOREC   JMP     DEFLT           ; *** JMP USER-COMMAND ***
                                 ; ************************
 TAB3    DB      "RND"           ; FUNCTIONS
-        DW      RND
+        ITEM    RND
         DB      "ABS"
-        DW      ABS
+        ITEM    ABS
         DB      "SIZE"
-        DW      SIZE
-        DW      MOREF           ; *************************
+        ITEM    SIZE
+        ITEM    MOREF           ; *************************
 MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
                                 ; *************************
 TAB4    DB      "TO"            ; "FOR" COMMAND
-        DW      FR1
-        DW      QWHAT
+        ITEM    FR1
+        ITEM    QWHAT
 TAB5    DB      "STEP"          ; "FOR" COMMAND
-        DW      FR2
-        DW      FR3
+        ITEM    FR2
+        ITEM    FR3
 TAB6    DB      ">="            ; RELATION OPERATORS
-        DW      XPR1
+        ITEM    XPR1
         DB      "#"
-        DW      XPR2
+        ITEM    XPR2
         DB      ">"
-        DW      XPR3
+        ITEM    XPR3
         DB      "="
-        DW      XPR5
+        ITEM    XPR5
         DB      "<="
-        DW      XPR4
+        ITEM    XPR4
         DB      "<"
-        DW      XPR6
-        DW      XPR7
+        ITEM    XPR6
+        ITEM    XPR7
 RANEND  EQU     $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1496,7 +1580,7 @@ GL3     STAX    D               ; SAVE CH.
         CPI     BS              ; IS IT BACKSPACE?
         JNZ     GL4             ; NO, MORE TESTS
         MOV     A,E             ; YES, DELETE?
-        CPI     BUFFER
+        CPI     BUFFER&0FFH
         JZ      GL2             ; NOTHING TO DELETE
         LDAX    D               ; DELETE
         DCX     D
@@ -1516,23 +1600,45 @@ GL5     INX     D               ; END OF LINE
         DCX     D
         JMP     CRLF
 OUT     PUSH    PSW             ; OUTPUT ROUTINE
+        IFDEF   SBC
+OT1     IN      SREG            ; PRINT WHAT IS IN A
+        ANI     002H            ; TDRE BIT
+        ELSE
 OT1     IN      0               ; PRINT WHAT IS IN A
         ANI     001H            ; TBE BIT
+        ENDIF
         JZ      OT1             ; WAIT UNTIL READY
         POP     PSW
+        IFDEF   SBC
+        OUT     DREG
+        ELSE
         OUT     1
+        ENDIF
         CPI     CR              ; WAS IT CR?
         RNZ                     ; NO RETURN
         MVI     A,LF            ; YES, GIVE LF
         CALL    OUT
         MVI     A,CR
         RET
+        IFDEF   SBC
+IN      IN      SREG
+        ANI     001H            ; RDRF BIT
+        ELSE
 IN      IN      0
         ANI     002H            ; DAV BIT
+        ENDIF
         RZ                      ; NO INPUT, RETURN ZERO
+        IFDEF   SBC
+        IN      DREG            ; CHECK INPUT
+        ELSE
         IN      1               ; CHECK INPUT
-        ANI     07FH
+        ENDIF
+        ANI     07FH            ; CONVERT TO 7-BIT ASCII
         CPI     003H            ; IS IT CONTROL-C?
         RNZ                     ; NO, RETURN CH.
         JMP     INIT            ; YES, RESTART
+        IFDEF SBC
+; Fill remainder of ROM with FF
+        DB      (02000H-$) DUP (0FFH)
+        ENDIF
         END
