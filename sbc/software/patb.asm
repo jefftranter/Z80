@@ -154,11 +154,15 @@ RESET:  JMP     INIT
 
 ; Mode 1 IRQ/RST 38 vector
         DB      (0038H-$) DUP 0FFH
-IRQ:    RET                     ; Return from IRQ
+        CPU     Z80
+IRQ:    RETI                    ; Return from IRQ
+        CPU     8080
 
 ; NMI vector
         DB      (0066H-$) DUP 0FFH
-NMI:    RET                     ; Return from NMI
+        CPU     Z80
+NMI:    RETN                    ; Return from NMI
+        CPU     8080
 
 ; Start actual code at $0100
 
