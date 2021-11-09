@@ -1,15 +1,20 @@
 ; Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang.
 ;
 ; Source taken from "PCC's Reference Book of Personal and Home
-; Computing" with minor changes to correct some spelling and
-; grammatical errors in comments.
-; Adapted to ASL assembler and ported to my Z80 SBC.
+; Computing". See that document for a description of the language and
+; commands.
+;
+; Jeff Tranter <tranter@poox.com> made the following changes:
+;
+; 1. Minor changes to correct some spelling and grammatical errors in comments.
+; 2. Adapted to build with the ASL assembler.
+; 3. Ported to my Z80 SBC.
+; 4. Use more standard statement separator ":" rather than ";".
+; 5. Use more standard not equals operator "<>" rather than "#".
 ;
 ; Possible enhancements:
-; - Use more standard statement separator ":" rather than ";".
-; - Use more standard operator "<>" rather than "#" for not equal.
 ; - Make error messages longer/more descriptive.
-; - Add support for more commands, e.g. PEEK, POKE, USR().
+; - Add support for more commands, e.g. INP(), OUT, PEEK(), POKE, USR()
 ; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
@@ -114,7 +119,7 @@ TEXT    DS      2
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-; *** INITIALIZE
+; *** INITIALIZE ***
 ;
         ORG     BOTROM
 
@@ -799,7 +804,7 @@ XPR1    CALL    XPR8            ; REL.OP.">="
         RC                      ; NO, RETURN HL=0
         MOV     L,A             ; YES, RETURN HL=1
         RET
-XPR2    CALL    XPR8            ; REL.OP."#"
+XPR2    CALL    XPR8            ; REL.OP."#" or "<>"
         RZ                      ; FALSE, RETURN HL=0
         MOV     L,A             ; TRUE, RETURN HL=1
         RET
@@ -1093,7 +1098,7 @@ SETVAL  CALL    TSTV            ; *** SETVAL ***
 ;
 FINISH  CALL    FIN             ; CHECK END OF COMMAND
 SV1     JMP     QWHAT           ; PRINT "WHAT?" IF WRONG
-FIN     TSTC    ';',FI1         ; *** FIN ***
+FIN     TSTC    ':',FI1         ; *** FIN *** Original Tiny Basic used ";"
         POP     PSW             ; ";", PURGE RET ADDR.
         JMP     RUNSML          ; CONTINUE SAME LINE
 FI1     TSTC    CR,FI2          ; NOT ";", IT IS CR?
@@ -1516,7 +1521,7 @@ TAB5    DB      "STEP"          ; "FOR" COMMAND
         ITEM    FR3
 TAB6    DB      ">="            ; RELATION OPERATORS
         ITEM    XPR1
-        DB      "#"
+        DB      "<>"            ; Original Tiny Basic used "#"
         ITEM    XPR2
         DB      ">"
         ITEM    XPR3
