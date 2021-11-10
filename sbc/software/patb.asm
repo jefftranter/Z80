@@ -4,16 +4,16 @@
 ; Computing". See that document for a description of the language and
 ; commands.
 ;
-; Jeff Tranter <tranter@poox.com> made the following changes:
+; Jeff Tranter <tranter@pobox.com> made the following changes:
 ;
 ; 1. Minor changes to correct some spelling and grammatical errors in comments.
 ; 2. Adapted to build with the ASL assembler.
 ; 3. Ported to my Z80 SBC.
 ; 4. Use more standard statement separator ":" rather than ";".
 ; 5. Use more standard not equals operator "<>" rather than "#".
+; 6. Made error messages longer/more descriptive.
 ;
 ; Possible enhancements:
-; - Make error messages longer/more descriptive.
 ; - Add support for more commands, e.g. INP(), OUT, PEEK(), POKE, USR()
 ; - Convert from 8080 to Z80 mnemonics.
 
@@ -282,7 +282,11 @@ ST3     POP     B               ; GET READY TO INSERT
         LHLD    TXTLMT          ; CHECK TO SEE IF THERE
         XCHG
         CALL    COMP            ; IS ENOUGH SPACE
+        IFDEF   SBC
+        JNC     Q_OM            ; OUT OF MEMORY ERROR
+        ELSE
         JNC     QSORRY          ; SORRY, NO ROOM FOR IT
+        ENDIF
         SHLD    TXTUNF          ; OK, UPDATE TXTUNF
         POP     D               ; DE->OLD UNFILLED AREA
         CALL    MVDOWN
@@ -415,7 +419,11 @@ GOTO    CALL    EXPR            ; *** GOTO EXPR ***
         PUSH    D               ; SAVE FOR ERROR ROUTINE
         CALL    ENDCHK          ; MUST FIND A CR
         CALL    FNDLN           ; FIND THE TARGET LINE #
+        IFDEF   SBC
+        JNZ     A_LF            ; LINE NOT FOUND ERROR
+        ELSE
         JNZ     AHOW            ; NO SUCH LINE NUMBER
+        ENDIF
         POP     PSW             ; CLEAR THE "PUSH DE"
         JMP     RUNTSL
 ;
@@ -484,7 +492,11 @@ PR3     CALL    EXPR            ; YES, EVALUATE EXPR.
         MVI     A,0C0H
         ANA     L
         ORA     H
+        IFDEF   SBC
+        JNZ     Q_SN            ; SYNTAX ERROR
+        ELSE
         JNZ     QHOW
+        ENDIF
         MOV     C,L             ; AND SAVE IT IN C
         JMP     PR5             ; LOOK FOR MORE TO PRINT
 PR4     CALL    QTSTG           ; OR IS IT A STRING?
@@ -525,7 +537,11 @@ GOSUB   CALL    PUSHA           ; SAVE THE CURRENT "FOR"
         CALL    EXPR            ; PARAMETERS
         PUSH    D               ; AND TEXT POINTER
         CALL    FNDLN           ; FIND THE TARGET LINE
+        IFDEF   SBC
+        JNZ     A_LF            ; LINE NOT FOUND ERROR
+        ELSE
         JNZ     AHOW            ; NOT THERE. SAY "HOW?"
+        ENDIF
         LHLD    CURRNT          ; SAVE OLD
         PUSH    H               ; 'CURRNT' OLD 'STKGCS'
         LHLD    STKGOS
@@ -539,7 +555,11 @@ RETURN  CALL    ENDCHK          ; THERE MUST BE A CR
         LHLD    STKGOS          ; OLD STACK POINTER
         MOV     A,H             ; 0 MEANS NOT EXIST
         ORA     L
+        IFDEF   SBC
+        JZ      Q_LF            ; LINE NOT FOUND ERROR
+        ELSE
         JZ      QWHAT           ; SO WE SAY "WHAT?"
+        ENDIF
         SPHL                    ; ELSE, RESTORE IT
 RESTOR  POP     H
         SHLD    STKGOS          ; AND THE OLD 'STKGOS'
@@ -627,14 +647,22 @@ FR7     LHLD    LOPPT           ; JOB DONE, RESTORE DE
         JMP     FINISH          ; AND CONTINUE
 ;
 NEXT    CALL    TSTV            ; GET ACCESS OF VAR.
+        IFDEF   SBC
+        JC      Q_NV            ; NO SUCH VARIABLE ERROR
+        ELSE
         JC      QWHAT           ; NO VARIABLE, "WHAT?"
+        ENDIF
         SHLD    VARNXT          ; YES, SAVE IT
 NX1     PUSH    D               ; SAVE TEXT POINTER
         XCHG
         LHLD    LOPVAR          ; GET VAR. IN 'FOR'
         MOV     A,H
         ORA     L               ; 0 SAYS NEVER HAD ONE
+        IFDEF   SBC
+        JZ      A_NV            ; NO SUCH VARIABLE ERROR
+        ELSE
         JZ      AWHAT           ; SO WE ASK: "WHAT?"
+        ENDIF
         CALL    COMP            ; ELSE WE CHECK THEM
         JZ      NX2             ; OK, THEY AGREE
         POP     D               ; NO, LET'S SEE
@@ -752,7 +780,11 @@ IP7     JMP     FINISH
 IP8     PUSH    D               ; SAVE FOR 'PRTSTG'
         CALL    TSTV            ; MUST BE VARIABLE NOW
         JNC     IP11
-IP10    JMP     QWHAT           ; "WHAT?" IT IS NOT?
+        IFDEF   SBC
+        JMP     Q_SN            ; SYNTAX ERROR
+        ELSE
+        JMP     QWHAT           ; "WHAT?" IT IS NOT?
+        ENDIF
 IP11    MOV     B,E
         POP     D
         CALL    PRTCHS          ; PRINT THOSE AS PROMPT
@@ -866,7 +898,11 @@ XP14    XCHG                    ; 2ND IN DE
         JM      XP13            ; 1ST 2ND SIGN DIFFER
         XRA     H               ; 1ST 2ND SIGN EQUAL
         JP      XP13            ; SO IS THE RESULT
+        IFDEF   SBC
+        JMP     Q_OV            ; OVERFLOW ERROR
+        ELSE
         JMP     QHOW            ; ELSE WE HAVE OVERFLOW
+        ENDIF
 XP15    TSTC    '-',XPR9        ; SUBTRACT?
 XP16    PUSH    H               ; YES, SAVE 1ST <EXPR2>
         CALL    EXPR2           ; GET 2ND <EXPR2>
@@ -889,13 +925,21 @@ XP21    TSTC    '*',XP24        ; MULTIPLY?
         MOV     A,D             ; YES, HOW ABOUT DE
         ORA     D
         XCHG                    ; PUT SMALLER IN HL
+        IFDEF   SBC
+        JNZ     A_OV            ; OVERFLOW ERROR
+        ELSE
         JNZ     AHOW            ; ALSO >, WILL OVERFLOW
+        ENDIF
 XP22    MOV     A,L             ; THIS IS DUMB
         LXI     H,0             ; CLEAR RESULT
         ORA     A               ; ADD AND COUNT
         JZ      XP25
 XP23    DAD     D
+        IFDEF   SBC
+        JC      Q_OV            ; OVERFLOW ERROR
+        ELSE
         JC      AHOW            ; OVERFLOW
+        ENDIF
         DCR     A
         JNZ     XP23
         JMP     XP25            ; FINISHED
@@ -911,7 +955,11 @@ XP24    TSTC    '/',XPR9        ; DIVIDE?
         XCHG
         MOV     A,D             ; DIVIDE BY 0?
         ORA     E
+        IFDEF   SBC
+        JZ      A_DZ            ; DIVIDE BY ZERO ERROR
+        ELSE
         JZ      AHOW            ; SAY "HOW?"
+        ENDIF
         PUSH    B               ; ELSE SAVE SIGN
         CALL    DIVIDE          ; USE SUBROUTINE
         MOV     H,B             ; RESULT IN HL NOW
@@ -920,7 +968,11 @@ XP24    TSTC    '/',XPR9        ; DIVIDE?
 XP25    POP     D               ; AND TEXT POINTER
         MOV     A,H             ; HL MUST BE +
         ORA     A
+        IFDEF   SBC
+        JM      Q_OV            ; OVERFLOW ERROR
+        ELSE
         JM      QHOW            ; ELSE IT IS OVERFLOW
+        ENDIF
         MOV     A,B
         ORA     A
         CM      CHGSGN          ; CHANGE SIGN IF NEEDED
@@ -943,13 +995,26 @@ PARN    TSTC    '(',XPR0        ; NO DIGIT, MUST BE
 PARNP   CALL    EXPR            ; "(EXPR)"
         TSTC    ')',XPR0
 XPR9    RET
-XPR0    JMP     QWHAT           ; ELSE SAY: "WHAT?"
+XPR0
+        IFDEF   SBC
+        JMP     Q_SN            ; SYNTAX ERROR
+        ELSE
+        JMP     QWHAT           ; ELSE SAY: "WHAT?"
+        ENDIF
 RND     CALL    PARN            ; *** RND(EXPR) ***
         MOV     A,H             ; EXPR MUST BE +
         ORA     A
+        IFDEF   SBC
+        JM      Q_IA            ; INVALID ARGUMENT ERROR
+        ELSE
         JM      QHOW
+        ENDIF
         ORA     L               ; AND NON-ZERO
+        IFDEF   SBC
+        JZ      Q_IA            ; INVALID ARGUMENT ERROR
+        ELSE
         JZ      QHOW
+        ENDIF
         PUSH    D               ; SAVE BOTH
         PUSH    H
         LHLD    RANPNT          ; GET MEMORY AS RANDOM
@@ -1039,7 +1104,11 @@ CHGSGN  MOV     A,H             ; *** CHGSGN ***
         INX     H
         POP     PSW
         XRA     H
+        IFDEF   SBC
+        JMP     Q_SN            ; SYNTAX ERROR
+        ELSE
         JP      QHOW
+        ENDIF
         MOV     A,B             ; ALSO FLIP B
         XRI     080H
         MOV     B,A
@@ -1088,7 +1157,11 @@ COMP    MOV     A,H             ; *** COMP ***
 ; 'QHOW' AND 'AHOW' IN THE ZERO PAGE SECTION ALSO DO THIS.
 ;
 SETVAL  CALL    TSTV            ; *** SETVAL ***
+        IFDEF   SBC
+        JC      Q_SN            ; SYNTAX ERROR
+        ELSE
         JC      QWHAT           ; "WHAT?" NO VARIABLE
+        ENDIF
         PUSH    H               ; SAVE ADDRESS OF VAR.
         TSTC    '=',SV1         ; PASS "=" SIGN
         CALL    EXPR            ; EVALUATE EXPR.
@@ -1101,7 +1174,12 @@ SETVAL  CALL    TSTV            ; *** SETVAL ***
         RET
 ;
 FINISH  CALL    FIN             ; CHECK END OF COMMAND
-SV1     JMP     QWHAT           ; PRINT "WHAT?" IF WRONG
+SV1
+        IFDEF   SBC
+        JMP     Q_SN            ; SYNTAX ERROR
+        ELSE
+        JMP     QWHAT           ; PRINT "WHAT?" IF WRONG
+        ENDIF
 FIN     TSTC    ':',FI1         ; *** FIN *** Original Tiny Basic used ";"
         POP     PSW             ; ";", PURGE RET ADDR.
         JMP     RUNSML          ; CONTINUE SAME LINE
@@ -1119,8 +1197,12 @@ ENDCHK  CALL    IGNBLK          ; *** ENDCHK ***
         CPI     CR              ; END WITH CR?
         RZ                      ; OK, ELSE SAY: "WHAT?"
 ;
+        IFDEF   SBC
+        CALL    Q_SN            ; SYNTAX ERROR
+        ELSE
 QWHAT   PUSH    D               ; *** QWHAT ***
 AWHAT   LXI     D,WHAT          ; **  AWHAT ***
+        ENDIF
 ERROR   CALL    CRLF
         CALL    PRTSTG          ; PRINT ERROR MESSAGE
         LHLD    CURRNT          ; GET CURRENT LINE #
@@ -1141,9 +1223,11 @@ ERROR   CALL    CRLF
         CALL    OUTCH
         CALL    PRTSTG          ; LINE
         JMP     TELL            ; THEN RESTART
+        IFNDEF  SBC
 QSORRY  PUSH    D               ; *** GSORRY ***
 ASORRY  LXI     D,SORRY         ; *** ASORRY **
         JMP     ERROR
+        ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -1164,7 +1248,11 @@ ASORRY  LXI     D,SORRY         ; *** ASORRY **
 ;
 FNDLN   MOV     A,H             ; *** FINDLN ***
         ORA     A               ; CHECK SIGN OF HL
+        IFDEF   SBC
+        JM      Q_LF            ; LINE NOT FOUND ERROR
+        ELSE
         JM      QHOW            ; IT CANNOT BE -
+        ENDIF
         LXI     D,TEXT          ; INIT. TEXT POINTER
 ;
 FNDLP   INX     D               ; IS IT EOR MARK?
@@ -1199,12 +1287,20 @@ TSTV    CALL    IGNBLK          ; *** TSTV ***
         INX     D               ; IT IS THE "@" ARRAY
         CALL    PARN            ; @ SHOULD BE FOLLOWED
         DAD     H               ; BY (EXPR) AS ITS INDEX
+        IFDEF   SBC
+        JC      S_IS            ; INVALID ARRAY SUBSCRIPT ERROR
+        ELSE
         JC      QHOW            ; IS INDEX TOO BIG?
+        ENDIF
 TSTB    PUSH    D               ; WILL IT FIT?
         XCHG
         CALL    SIZE            ; FIND SIZE OF FREE
         CALL    COMP            ; AND CHECK THAT
+        IFDEF   SBC
+        JC      A_OM            ; OUT OF MEMORY ERROR
+        ELSE
         JC      ASORRY          ; IF NOT, SAY "SORRY"
+        ENDIF
         CALL    LOCR            ; IT FITS, GET ADDRESS
         DAD     D               ; OF A(EXPR) AND PUT IT
         POP     D               ; IN HL
@@ -1261,7 +1357,11 @@ TN1     CPI     '0'             ; IF NOT, RETURN 0 IN
         RNC                     ; TO BINARY IN HL AND
         MVI     A,0F0H          ; SET B TO # OF DIGITS
         ANA     H               ; IF H>255. THERE IS NO
+        IFDEF   SBC
+        JNZ     Q_SN            ; SYNTAX ERROR
+        ELSE
         JNZ     QHOW            ; ROOM FOR NEXT DIGIT
+        ENDIF
         INR     B               ; B COUNTS # OF DIGITS
         PUSH    B
         MOV     B,H             ; HL=10*HL+(NEW DIGIT)
@@ -1281,9 +1381,11 @@ TN1     CPI     '0'             ; IF NOT, RETURN 0 IN
         POP     B
         LDAX    D               ; DO THIS DIGIT AFTER
         JP      TN1             ; DIGIT. S SAYS OVERFLOW
+        IFNDEF  SBC
 QHOW    PUSH    D               ; *** ERROR: "HOW?" ***
 AHOW    LXI     D,HOW
         JMP ERROR
+        ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -1339,7 +1441,11 @@ PUSHA   LXI     H,STKLMT        ; *** PUSHA ***
         CALL    CHGSGN
         POP     B               ; BC=RETURN ADDRESS
         DAD     SP              ; IS STACK NEAR THE TOP?
+        IFDEF   SBC
+        JNC     Q_OM            ; OUT OF MEMORY ERROR
+        ELSE
         JNC     QSORRY          ; YES, SORRY FOR THAT.
+        ENDIF
         LHLD    LOPVAR          ; ELSE SAVE LOOP VAR.S
         MOV     A,H             ; BUT IF LOPVAR IS 0
         ORA     L               ; THAT WILL BE ALL
@@ -1519,7 +1625,11 @@ MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
                                 ; *************************
 TAB4    DB      "TO"            ; "FOR" COMMAND
         ITEM    FR1
+        IFDEF   SBC
+        ITEM    Q_SN
+        ELSE
         ITEM    QWHAT
+        ENDIF
 TAB5    DB      "STEP"          ; "FOR" COMMAND
         ITEM    FR2
         ITEM    FR3
@@ -1647,6 +1757,51 @@ IN      IN      0
         RNZ                     ; NO, RETURN CH.
         JMP     INIT            ; YES, RESTART
         IFDEF SBC
+
+; Optional detailed error messages. More explanatory than Tiny Basic's
+; defaults of just "SORRY", "HOW?", and "WHAT?"
+
+Q_DZ    PUSH    D
+A_DZ    LXI     D,S_DZ
+        JMP     ERROR
+
+Q_IA    PUSH    D
+A_IA    LXI     D,S_IA
+        JMP     ERROR
+
+Q_IS    PUSH    D
+A_IS    LXI     D,S_IS
+        JMP     ERROR
+
+Q_LF    PUSH    D
+A_LF    LXI     D,S_LF
+        JMP     ERROR
+
+Q_NV    PUSH    D
+A_NV    LXI     D,S_NV
+        JMP     ERROR
+
+Q_OM    PUSH    D
+A_OM    LXI     D,S_OM
+        JMP     ERROR
+
+Q_OV    PUSH    D
+A_OV    LXI     D,S_OV
+        JMP     ERROR
+
+Q_SN    PUSH    D
+A_SN    LXI     D,S_SN
+        JMP     ERROR
+
+S_DZ    DB      "DIVIDE BY ZERO",CR
+S_IA    DB      "INVALID ARGUMENT",CR
+S_IS    DB      "INVALID ARRAY SUBSCRIPT",CR
+S_LF    DB      "LINE NOT FOUND",CR
+S_NV    DB      "NO SUCH VARIABLE",CR
+S_OM    DB      "OUT OF MEMORY",CR
+S_OV    DB      "OVERFLOW ERROR",CR
+S_SN    DB      "SYNTAX ERROR",CR
+
 ; Fill remainder of ROM with FF
         DB      (02000H-$) DUP (0FFH)
         ENDIF
