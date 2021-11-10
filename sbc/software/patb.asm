@@ -1105,7 +1105,7 @@ CHGSGN  MOV     A,H             ; *** CHGSGN ***
         POP     PSW
         XRA     H
         IFDEF   SBC
-        JMP     Q_SN            ; SYNTAX ERROR
+        JP      Q_SN            ; SYNTAX ERROR
         ELSE
         JP      QHOW
         ENDIF
@@ -1198,7 +1198,7 @@ ENDCHK  CALL    IGNBLK          ; *** ENDCHK ***
         RZ                      ; OK, ELSE SAY: "WHAT?"
 ;
         IFDEF   SBC
-        CALL    Q_SN            ; SYNTAX ERROR
+        JMP     Q_SN            ; SYNTAX ERROR
         ELSE
 QWHAT   PUSH    D               ; *** QWHAT ***
 AWHAT   LXI     D,WHAT          ; **  AWHAT ***
