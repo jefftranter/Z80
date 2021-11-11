@@ -12,10 +12,10 @@
 ; 4. Use more standard statement separator ":" rather than ";".
 ; 5. Use more standard not equals operator "<>" rather than "#".
 ; 6. Made error messages longer/more descriptive.
-; 7. Added PEEK().
+; 7. Added PEEK() and USR() functions.
 ;
 ; Possible enhancements:
-; - Add support for more commands and functions, e.g. INP(), OUT, POKE, USR()
+; - Add support for more commands and functions, e.g. INP(), OUT, POKE.
 ; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
@@ -106,6 +106,7 @@ LOPLMT  DS      2               ; LIMIT
 LOPLN   DS      2               ; LINE NUMBER
 LOPPT   DS      2               ; TEXT POINTER
 RANPNT  DS      2               ; RANDOM NUMBER POINTER
+USER    DS      4               ; CALL INSTRUCTION FOLLOWED BY ADDRESS OF USR() FUNCTION AND RET
         DS      1               ; EXTRA BYTE FOR BUFFER
 BUFFER  DS      132             ; INPUT BUFFER
 BUFEND                          ; BUFFER ENDS
@@ -187,6 +188,12 @@ INIT
         SHLD    TXTLMT          ; IN 'TXTLMT'
         MVI     A,BOTROM>>8     ; INITIALIZE RANPNT
         STA     RANPNT+1
+        MVI     A,0CDH          ; STORE CALL INSTRUCTION AT USR() ADDRESS
+        STA     USER
+        LXI     H,RET           ; INITIALIZE DEFAULT USR() ADDRESS
+        SHLD    USER+1
+        MVI     A,0C9H          ; STORE RET INSTRUCTION AFTER USR() FUNCTION
+        STA     USER+3
 PURGE   LXI     H,TEXT+4        ; PURGE TEXT AREA
         SHLD    TXTUNF
         MVI     H,0FFH
@@ -1054,6 +1061,20 @@ PEEK    CALL    PARN            ; *** PEEK(EXPR) ***
         MVI     H,0             ; SET MSB OF RESULT TO 0
         MOV     L,A             ; PUT LSB OF RESULT IN L
         RET                     ; RETURN WITH RESULT IN HL
+
+; The USR() function calls the machine language routine whose address
+; is contained at locations USER+1 and USER+2 (low, high). By default,
+; on cold start of Tiny Basic, this points to the RET instruction
+; below. You need to write to the addresses to set up the address of
+; your own routine.
+;
+; The integer argument is passed in register HL. On return, the value
+; in HL is used as the function return value to Tiny Basic. Any other
+; registers must be preserved by your routine.
+USR                             ; *** USR(EXPR) ***
+        CALL    PARN            ; EVALUATE ARGUMENT, PUT IN HL
+        CALL    USER            ; CALL USER DEFINED ROUTINE
+RET     RET                     ; RETURN. ALSO USED AS DEFAULT USR() ROUTINE ADDRESS
         ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1631,6 +1652,8 @@ TAB3    DB      "RND"           ; FUNCTIONS
         IFDEF   SBC
         DB      "PEEK"
         ITEM    PEEK
+        DB      "USR"
+        ITEM    USR
         ENDIF
         ITEM    MOREF           ; *************************
 MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
@@ -1772,6 +1795,7 @@ IN      IN      0
 
 ; Optional detailed error messages. More explanatory than Tiny Basic's
 ; defaults of just "SORRY", "HOW?", and "WHAT?"
+; TODO: Refactor common code to make it shorter and less repetitive.
 
 Q_DZ    PUSH    D
 A_DZ    LXI     D,S_DZ
