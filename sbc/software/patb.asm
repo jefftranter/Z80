@@ -12,9 +12,10 @@
 ; 4. Use more standard statement separator ":" rather than ";".
 ; 5. Use more standard not equals operator "<>" rather than "#".
 ; 6. Made error messages longer/more descriptive.
+; 7. Added PEEK().
 ;
 ; Possible enhancements:
-; - Add support for more commands, e.g. INP(), OUT, PEEK(), POKE, USR()
+; - Add support for more commands and functions, e.g. INP(), OUT, POKE, USR()
 ; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
@@ -75,7 +76,7 @@ ITEM    MACRO   P1
 ;  A000-FFFF  ARE FOR TINY BASIC TEXT & ARRAY
 ;  0000-1FFF  ARE FOR TBI CODE
 
-        IFDEF SBC
+        IFDEF   SBC
 BOTSCR  EQU     08080H
 TOPSCR  EQU     08200H
 BOTRAM  EQU     0A000H
@@ -1047,6 +1048,13 @@ SIZE    LHLD    TXTUNF          ; *** SIZE ***
         CALL    SUBDE
         POP     D
         RET
+        IFDEF   SBC
+PEEK    CALL    PARN            ; *** PEEK(EXPR) ***
+        LDAX    H               ; READ CONTENTS OF ADDRESS IN HL INTO A
+        MVI     H,0             ; SET MSB OF RESULT TO 0
+        MOV     L,A             ; PUT LSB OF RESULT IN L
+        RET                     ; RETURN WITH RESULT IN HL
+        ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -1620,6 +1628,10 @@ TAB3    DB      "RND"           ; FUNCTIONS
         ITEM    ABS
         DB      "SIZE"
         ITEM    SIZE
+        IFDEF   SBC
+        DB      "PEEK"
+        ITEM    PEEK
+        ENDIF
         ITEM    MOREF           ; *************************
 MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
                                 ; *************************
