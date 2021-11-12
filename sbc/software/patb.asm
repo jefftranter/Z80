@@ -6,17 +6,17 @@
 ;
 ; Jeff Tranter <tranter@pobox.com> made the following changes:
 ;
-; 1. Minor changes to correct some spelling and grammatical errors in comments.
+; 1. Minor changes to correct some spelling and grammatical errors in
+;    comments.
 ; 2. Adapted to build with the ASL assembler.
 ; 3. Ported to my Z80 SBC.
 ; 4. Use more standard statement separator ":" rather than ";".
 ; 5. Use more standard not equals operator "<>" rather than "#".
 ; 6. Made error messages longer/more descriptive.
-; 7. Added PEEK() and USR() functions and POKE command.
+; 7. Added PEEK(), USR(), and INP() functions and POKE and OUT
+;    commands.
 ;
 ; Possible enhancements:
-; - Add support for more commands and functions, e.g. INP(), OUT.
-; - Better (more random) RND() function.
 ; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
@@ -208,7 +208,7 @@ TELL    LXI     D,MSG           ; TELL USER
         JMP     RSTART          ; ***** JMP USER-INIT ***
 MSG     DB      "TINY "         ; ***********************
         DB      "BASIC"
-        DB      " V3.0 11-NOV-2021",CR
+        DB      " V3.0 12-NOV-2021",CR
 OK      DB      "OK",CR
         IFNDEF  SBC
 WHAT    DB      "WHAT?",CR
@@ -442,7 +442,7 @@ GOTO    CALL    EXPR            ; *** GOTO EXPR ***
         POP     PSW             ; CLEAR THE "PUSH DE"
         JMP     RUNTSL
         IFDEF   SBC
-POKE                            ; *** POKE ***
+POKE                            ; *** POKE addr,data ***
         CALL    EXPR            ; GET FIRST PARAMETER (ADDRESS)
         PUSH    H               ; SAVE IT
         TSTC    ',',BAD         ; SHOULD BE FOLLOWED BY A COMMA
@@ -454,7 +454,30 @@ POKE                            ; *** POKE ***
         POP     H               ; GET SAVED ADDRESS
         MOV     M,A             ; WRITE BYTE TO ADDRESS
         JMP     FINISH          ; DONE
-BAD:    JMP     Q_SN            ; SYNTAX ERROR
+BAD:    POP     H               ; CLEAN UP STACK
+        JMP     Q_SN            ; SYNTAX ERROR
+;
+OUTP                            ; *** OUT port,data ***
+        CALL    EXPR            ; GET FIRST PARAMETER (PORT)
+        MOV     A,H             ; GET MSB OF PORT
+        ORA     A               ; MUST BE ZERO
+        JNZ     Q_IA            ; OTHERWISE INVALID ARGUMENT ERROR
+        PUSH    H               ; SAVE IT
+        TSTC    ',',BAD         ; SHOULD BE FOLLOWED BY A COMMA
+        CALL    EXPR            ; GET SECOND PARAMETER (DATA)
+        MOV     A,H             ; GET MSB OF DATA
+        ORA     A               ; MUST BE ZERO
+        JNZ     Q_IA            ; OTHERWISE INVALID ARGUMENT ERROR
+        MOV     A,L             ; GET LSB OF DATA TO POKE
+        POP     H               ; GET SAVED PORT NUMBER
+        MOV     C,L             ; GET PORT NUMBER
+; Use a Z80 instruction to write to the port. Otherwise, with 8080
+; instructions we could only write to a dynamic port number by
+; using self modifying code running out of RAM.
+        CPU     Z80
+        OUT    (C),A
+        CPU    8080
+        JMP     FINISH          ; DONE
         ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1078,12 +1101,15 @@ SIZE    LHLD    TXTUNF          ; *** SIZE ***
         POP     D
         RET
         IFDEF   SBC
+;
+; The PEEK() function reads a memory address and returns the contents.
+;
 PEEK    CALL    PARN            ; *** PEEK(EXPR) ***
         LDAX    H               ; READ CONTENTS OF ADDRESS IN HL INTO A
         MVI     H,0             ; SET MSB OF RESULT TO 0
         MOV     L,A             ; PUT LSB OF RESULT IN L
         RET                     ; RETURN WITH RESULT IN HL
-
+;
 ; The USR() function calls the machine language routine whose address
 ; is contained at locations USER+1 and USER+2 (low, high). By default,
 ; on cold start of Tiny Basic, this points to the RET instruction
@@ -1097,6 +1123,21 @@ USR                             ; *** USR(EXPR) ***
         CALL    PARN            ; EVALUATE ARGUMENT, PUT IN HL
         CALL    USER            ; CALL USER DEFINED ROUTINE
 RET     RET                     ; RETURN. ALSO USED AS DEFAULT USR() ROUTINE ADDRESS
+;
+; The INP() function reads an I/O port and returns the result. The
+; port must be an 8-bit number.
+INP     CALL    PARN            ; *** INP(EXPR) ***
+        MOV     A,H             ; GET MSB OF PORT ARGUMENT
+        ORA     A               ; MUST BE ZERO
+        JNZ     Q_IA            ; OTHERWISE INVALID ARGUMENT ERROR
+        MOV     C,L             ; GET PORT ARGUMENT
+; Use a Z80 instruction to read the port. Otherwise, with 8080
+; instructions we could only read from a dynamic port number by using
+; self modifying code running out of RAM.
+        CPU     Z80
+        IN      L,(C)           ; READ PORT
+        CPU     8080
+        RET                     ; RETURN WITH RESULT IN HL
         ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1665,6 +1706,8 @@ TAB2    DB      "NEXT"
         IFDEF   SBC
         DB      "POKE"
         ITEM    POKE
+        DB      "OUT"
+        ITEM    OUTP
         ENDIF
         ITEM    MOREC           ; ************************
 MOREC   JMP     DEFLT           ; *** JMP USER-COMMAND ***
@@ -1680,6 +1723,8 @@ TAB3    DB      "RND"           ; FUNCTIONS
         ITEM    PEEK
         DB      "USR"
         ITEM    USR
+        DB      "INP"
+        ITEM    INP
         ENDIF
         ITEM    MOREF           ; *************************
 MOREF   JMP     NOTF            ; *** JMP USER-FUNCTION ***
