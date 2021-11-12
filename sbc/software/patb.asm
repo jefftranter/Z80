@@ -208,7 +208,7 @@ TELL    LXI     D,MSG           ; TELL USER
         JMP     RSTART          ; ***** JMP USER-INIT ***
 MSG     DB      "TINY "         ; ***********************
         DB      "BASIC"
-        DB      " V3.0",CR
+        DB      " V3.0 11-NOV-2021",CR
 OK      DB      "OK",CR
         IFNDEF  SBC
 WHAT    DB      "WHAT?",CR
@@ -447,7 +447,8 @@ POKE                            ; *** POKE ***
         PUSH    H               ; SAVE IT
         TSTC    ',',BAD         ; SHOULD BE FOLLOWED BY A COMMA
         CALL    EXPR            ; GET SECOND PARAMETER (DATA)
-        MOV     A,H             ; MSB OF DATA MUST BE ZERO
+        MOV     A,H             ; GET MSB OF DATA
+        ORA     A               ; MUST BE ZERO
         JNZ     Q_IA            ; OTHERWISE INVALID ARGUMENT ERROR
         MOV     A,L             ; GET LSB OF DATA TO POKE
         POP     H               ; GET SAVED ADDRESS
@@ -1231,9 +1232,9 @@ SV1
         JMP     QWHAT           ; PRINT "WHAT?" IF WRONG
         ENDIF
 FIN     TSTC    ':',FI1         ; *** FIN *** Original Tiny Basic used ";"
-        POP     PSW             ; ";", PURGE RET ADDR.
+        POP     PSW             ; ":", PURGE RET ADDR.
         JMP     RUNSML          ; CONTINUE SAME LINE
-FI1     TSTC    CR,FI2          ; NOT ";", IT IS CR?
+FI1     TSTC    CR,FI2          ; NOT ":", IT IS CR?
         POP     PSW             ; YES, PURGE RET ADDR.
         JMP     RUNNXL          ; RUN NEXT LINE
 FI2     RET                     ; ELSE RETURN TO CALLER
