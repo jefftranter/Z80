@@ -12,16 +12,17 @@
 ; 4. Use more standard statement separator ":" rather than ";".
 ; 5. Use more standard not equals operator "<>" rather than "#".
 ; 6. Made error messages longer/more descriptive.
-; 7. Added PEEK() and USR() functions.
+; 7. Added PEEK() and USR() functions and POKE command.
 ;
 ; Possible enhancements:
-; - Add support for more commands and functions, e.g. INP(), OUT, POKE.
+; - Add support for more commands and functions, e.g. INP(), OUT.
+; - Better (more random) RND() function.
 ; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
 ; Comment it out to get original code from published article.
 
-SBC EQU 1
+SBC     EQU     1
 
         CPU     8080
 
@@ -106,7 +107,9 @@ LOPLMT  DS      2               ; LIMIT
 LOPLN   DS      2               ; LINE NUMBER
 LOPPT   DS      2               ; TEXT POINTER
 RANPNT  DS      2               ; RANDOM NUMBER POINTER
+        IFDEF   SBC
 USER    DS      4               ; CALL INSTRUCTION FOLLOWED BY ADDRESS OF USR() FUNCTION AND RET
+        ENDIF
         DS      1               ; EXTRA BYTE FOR BUFFER
 BUFFER  DS      132             ; INPUT BUFFER
 BUFEND                          ; BUFFER ENDS
@@ -188,12 +191,14 @@ INIT
         SHLD    TXTLMT          ; IN 'TXTLMT'
         MVI     A,BOTROM>>8     ; INITIALIZE RANPNT
         STA     RANPNT+1
+        IFDEF   SBC
         MVI     A,0CDH          ; STORE CALL INSTRUCTION AT USR() ADDRESS
         STA     USER
         LXI     H,RET           ; INITIALIZE DEFAULT USR() ADDRESS
         SHLD    USER+1
         MVI     A,0C9H          ; STORE RET INSTRUCTION AFTER USR() FUNCTION
         STA     USER+3
+        ENDIF
 PURGE   LXI     H,TEXT+4        ; PURGE TEXT AREA
         SHLD    TXTUNF
         MVI     H,0FFH
@@ -205,9 +210,11 @@ MSG     DB      "TINY "         ; ***********************
         DB      "BASIC"
         DB      " V3.0",CR
 OK      DB      "OK",CR
+        IFNDEF  SBC
 WHAT    DB      "WHAT?",CR
 HOW     DB      "HOW?",CR
 SORRY   DB      "SORRY",CR
+        ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -434,6 +441,20 @@ GOTO    CALL    EXPR            ; *** GOTO EXPR ***
         ENDIF
         POP     PSW             ; CLEAR THE "PUSH DE"
         JMP     RUNTSL
+        IFDEF   SBC
+POKE                            ; *** POKE ***
+        CALL    EXPR            ; GET FIRST PARAMETER (ADDRESS)
+        PUSH    H               ; SAVE IT
+        TSTC    ',',BAD         ; SHOULD BE FOLLOWED BY A COMMA
+        CALL    EXPR            ; GET SECOND PARAMETER (DATA)
+        MOV     A,H             ; MSB OF DATA MUST BE ZERO
+        JNZ     Q_IA            ; OTHERWISE INVALID ARGUMENT ERROR
+        MOV     A,L             ; GET LSB OF DATA TO POKE
+        POP     H               ; GET SAVED ADDRESS
+        MOV     M,A             ; WRITE BYTE TO ADDRESS
+        JMP     FINISH          ; DONE
+BAD:    JMP     Q_SN            ; SYNTAX ERROR
+        ENDIF
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -1164,11 +1185,11 @@ COMP    MOV     A,H             ; *** COMP ***
 ; "SETVAL" EXPECTS A VARIABLE, FOLLOWED BY AN EQUAL SIGN AND THEN AN
 ; EXR. IT EVALUATES THE EXR. AND SETS THE VARIABLE TO THAT VALUE
 ;
-; "FIN" CHECKS THE END OF A COMMAND. IF IT ENDED WITH ";", EXECUTION
-; CONTINUES. IF IT ENDED WITH A CR, IT FINDS THE NEXT LINE AD
-; CONTINUES FROM THERE,
+; "FIN" CHECKS THE END OF A COMMAND. IF IT ENDED WITH ":", EXECUTION
+; CONTINUES. IF IT ENDED WITH A CR, IT FINDS THE NEXT LINE AND
+; CONTINUES FROM THERE.
 ;
-; "ENDCHK" CHECKS IF A COMMAND IS ENDED WITH A CR. THIS IS REQUIRED IN
+; "ENDCHK" CHECKS IF A COMMAND ENDS WITH A CR. THIS IS REQUIRED IN
 ; CERTAIN COMMANDS (GOTO, RETURN, STOP, ETC.).
 ;
 ; "ERROR" PRINTS THE STRING POINTED TO BY DE (AND ENDS WITH CR). IT THEN
@@ -1640,6 +1661,10 @@ TAB2    DB      "NEXT"
         ITEM    PRINT
         DB      "STOP"
         ITEM    STOP
+        IFDEF   SBC
+        DB      "POKE"
+        ITEM    POKE
+        ENDIF
         ITEM    MOREC           ; ************************
 MOREC   JMP     DEFLT           ; *** JMP USER-COMMAND ***
                                 ; ************************
