@@ -15,9 +15,6 @@
 ; 6. Made error messages longer/more descriptive.
 ; 7. Added PEEK(), USR(), and INP() functions and POKE and OUT
 ;    commands.
-;
-; Possible enhancements:
-; - Convert from 8080 to Z80 mnemonics.
 
 ; Define SBC below to get version for my Z80 Single Board Computer.
 ; Comment it out to get original code from published article.

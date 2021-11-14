@@ -6,11 +6,13 @@ hexmon.asm - Intel hex paper tape and magnetic tape routines from the book "8080
 
 int32k.asm - Grant Searle's i/o routines and startup program to boot into BASIC.
 
-jmon.asm   - Port of my JMON monitor to Z80 (ROM image).
+jmon.asm - Port of my JMON monitor to Z80 (ROM image).
 
 ml.bas, ml.asm - Example of calling machine language from Basic.
 
-patb.asm   - Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang (ROM image).
+patb.asm - Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang (ROM image).
+
+patb-z80.asm - Port of Palo Alto Tiny BASIC Version Three, by Li-Chen Wang (ROM image) - version using Z80 mnemonics.
 
 sysmon.asm - System Monitor from the book "8080/Z80 Assembly Language - Techniques for Improved Programming" by Alan R. Miller.
 
