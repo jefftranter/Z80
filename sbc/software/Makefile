@@ -1,4 +1,4 @@
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin hexmon.bin ml.bin jmon.bin patb.bin patb-z80.bin
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin hexmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -31,10 +31,11 @@ patb-z80.bin: patb-z80.asm
 	p2bin -r '$$-$$' patb-z80.p
 	p2hex -r '$$-$$' -F Intel patb-z80.p
 
+jmon-patb.bin: jmon-patb.asm disasm.asm
+	asl -L jmon-patb.asm
+	p2bin -r '$$-$$' jmon-patb.p
+	p2hex -r '$$-$$' -F Intel jmon-patb.p
+
+
 clean:
-	$(RM) int32k.bin bas32k.bin sysmon.bin rom.bin hexmon.bin ml.bin jmon.bin
-	$(RM) int32k.lst bas32k.lst sysmon.lst hexmon.lst ml.lst jmon.lst
-	$(RM) int32k.map bas32k.map sysmon.map hexmon.map ml.map jmon.map
-	$(RM) int32k.map bas32k.map sysmon.map hexmon.map ml.map jmon.map
-	$(RM) patb.lst patb.p patb.bin patb.hex
-	$(RM) patb-z80.lst patb-z80.p patb-z80.bin patb-z80.hex
+	$(RM) *.bin *.lst *.map *.hex *.p
