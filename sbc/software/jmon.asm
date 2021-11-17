@@ -899,9 +899,9 @@ addrWrite:
         call    PrintCR
         ld      hl,(src)        ; Get address
         ld      a,(dst)         ; Get data
-WriteLoop:
+WriteLoop2:
         ld      (hl),a          ; Write to address
-        jr      WriteLoop       ; Repeat forever
+        jr      WriteLoop2      ; Repeat forever
 
 ioRead:
         call    GetByte         ; Get 8-bit I/O address
@@ -1449,7 +1449,7 @@ GetByte:
         ld      b,a             ; Save result in B register
         call    GetHex          ; Get least significant nybble
         ret     c               ; Exit if <ESC> pressed
-        add     b               ; Add upper nybble to lower
+        add     a,b             ; Add upper nybble to lower
         ret                     ; Return
 
 
