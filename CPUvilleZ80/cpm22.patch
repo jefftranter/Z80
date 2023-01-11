@@ -1,0 +1,135 @@
+--- CPM22.Z80	2023-01-10 10:45:16.030945664 -0500
++++ cpm22.z80	2023-01-10 10:45:16.030945664 -0500
+@@ -8,34 +8,34 @@
+ ;*
+ ;**************************************************************
+ ;
+-;   Set memory limit here. This is the amount of contigeous
++;   Set memory limit here. This is the amount of contiguous
+ ; ram starting from 0000. CP/M will reside at the end of this space.
+ ;
+-MEM	EQU	62		;for a 62k system (TS802 TEST - WORKS OK).
++MEM:	EQU	64		;for a 64k system (TS802 TEST - WORKS OK).
+ ;
+-IOBYTE	EQU	3		;i/o definition byte.
+-TDRIVE	EQU	4		;current drive name and user number.
+-ENTRY	EQU	5		;entry point for the cp/m bdos.
+-TFCB	EQU	5CH		;default file control block.
+-TBUFF	EQU	80H		;i/o buffer and command line storage.
+-TBASE	EQU	100H		;transiant program storage area.
++IOBYTE:	EQU	3		;i/o definition byte.
++TDRIVE:	EQU	4		;current drive name and user number.
++ENTRY:	EQU	5		;entry point for the cp/m bdos.
++TFCB:	EQU	5CH		;default file control block.
++TBUFF:	EQU	80H		;i/o buffer and command line storage.
++TBASE:	EQU	100H		;transiant program storage area.
+ ;
+ ;   Set control character equates.
+ ;
+-CNTRLC	EQU	3		;control-c
+-CNTRLE	EQU	05H		;control-e
+-BS	EQU	08H		;backspace
+-TAB	EQU	09H		;tab
+-LF	EQU	0AH		;line feed
+-FF	EQU	0CH		;form feed
+-CR	EQU	0DH		;carriage return
+-CNTRLP	EQU	10H		;control-p
+-CNTRLR	EQU	12H		;control-r
+-CNTRLS	EQU	13H		;control-s
+-CNTRLU	EQU	15H		;control-u
+-CNTRLX	EQU	18H		;control-x
+-CNTRLZ	EQU	1AH		;control-z (end-of-file mark)
+-DEL	EQU	7FH		;rubout
++CNTRLC:	EQU	3		;control-c
++CNTRLE:	EQU	05H		;control-e
++BS:	EQU	08H		;backspace
++TAB:	EQU	09H		;tab
++LF:	EQU	0AH		;line feed
++FF:	EQU	0CH		;form feed
++CR:	EQU	0DH		;carriage return
++CNTRLP:	EQU	10H		;control-p
++CNTRLR:	EQU	12H		;control-r
++CNTRLS:	EQU	13H		;control-s
++CNTRLU:	EQU	15H		;control-u
++CNTRLX:	EQU	18H		;control-x
++CNTRLZ:	EQU	1AH		;control-z (end-of-file mark)
++DEL:	EQU	7FH		;rubout
+ ;
+ ;   Set origin for CP/M
+ ;
+@@ -547,7 +547,7 @@
+ ;
+ ;   CP/M command table. Note commands can be either 3 or 4 characters long.
+ ;
+-NUMCMDS EQU	6		;number of commands
++NUMCMDS: EQU	6		;number of commands
+ CMDTBL:	DEFB	'DIR '
+ 	DEFB	'ERA '
+ 	DEFB	'TYPE'
+@@ -630,7 +630,7 @@
+ CMMND1:	LD	SP,CCPSTACK	;set stack straight.
+ 	CALL	CRLF		;start a new line on the screen.
+ 	CALL	GETDSK		;get current drive.
+-	ADD	A,'a'
++	ADD	A,'A'
+ 	CALL	PRINT		;print current drive.
+ 	LD	A,'>'
+ 	CALL	PRINT		;and add prompt.
+@@ -1206,7 +1206,7 @@
+ ;   ccp stack area.
+ ;
+ 	DEFB	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+-CCPSTACK EQU	$	;end of ccp stack area.
++CCPSTACK: EQU	$	;end of ccp stack area.
+ ;
+ ;   Batch (or SUBMIT) processing information storage.
+ ;
+@@ -1281,7 +1281,7 @@
+ ;
+ ;   BDOS function jump table.
+ ;
+-NFUNCTS EQU	41		;number of functions in followin table.
++NFUNCTS: EQU	41		;number of functions in followin table.
+ ;
+ FUNCTNS:DEFW	WBOOT,GETCON,OUTCON,GETRDR,PUNCH,LIST,DIRCIO,GETIOB
+ 	DEFW	SETIOB,PRTSTR,RDBUFF,GETCSTS,GETVER,RSTDSK,SETDSK,OPENFIL
+@@ -1693,7 +1693,7 @@
+ ;
+ 	DEFB	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+ 	DEFB	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+-STKAREA EQU	$		;end of stack area.
++STKAREA: EQU	$		;end of stack area.
+ ;
+ USERNO:	DEFB	0		;current user number.
+ ACTIVE:	DEFB	0		;currently active drive.
+@@ -2040,7 +2040,7 @@
+ CHECKSUM: LD	C,128		;length of buffer.
+ 	LD	HL,(DIRBUF)	;get its location.
+ 	XOR	A		;clear summation byte.
+-CHKSUM1:ADD	A,M		;and compute sum ignoring carries.
++CHKSUM1:ADD	A,(HL)		;and compute sum ignoring carries.
+ 	INC	HL
+ 	DEC	C
+ 	JP	NZ,CHKSUM1
+@@ -2165,7 +2165,7 @@
+ 	SUB	(HL)
+ 	INC	HL
+ 	LD	A,D
+-	SBC	A,M		;set carry if no more names.
++	SBC	A,(HL)		;set carry if no more names.
+ 	RET	
+ ;
+ ;   Call this routine to prevent (SCRATCH1) from being greater
+@@ -3337,10 +3337,10 @@
+ 	SUB	(HL)		;in the fcb represent a larger size than
+ 	INC	HL		;this extent does.
+ 	LD	A,B
+-	SBC	A,M
++	SBC	A,(HL)
+ 	INC	HL
+ 	LD	A,E
+-	SBC	A,M
++	SBC	A,(HL)
+ 	JP	C,RANSIZ2
+ 	LD	(HL),E		;we found a larger (in size) extent.
+ 	DEC	HL		;stuff these values into fcb.
