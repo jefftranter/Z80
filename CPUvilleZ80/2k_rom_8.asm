@@ -5,8 +5,24 @@
 ;Output to port 0 will cause memory configuration flip-flop to activate 2K ROM 0000-07FF with 62K RAM 0800-FFFF
 ;Output to port 1 will cause memory configuration flip-flop to activate all RAM 0000-FFFF
 ;
-			org	00000h
-			jp 	monitor_cold_start			
+
+; Set RAM to 1 to build the RAM version of the monitor that can run
+; from CP/M. Set RAM to 0 to build the ROM version.
+RAM:                    equ     0
+
+                        if      RAM
+                        org     0dbf2h
+                        ld      hl,0x010e
+                        ld      bc,0x07cb
+                        ld      de,here
+                        ldir
+                        jp      here
+here:                   jp      monitor_cold_start
+                        else
+                        org     00000h
+                        jp      monitor_cold_start
+                        endif
+
 ;
 ;The following code is for a system with a serial port.
 ;Assumes the UART data port address is 02h and control/status address is 03h
@@ -25,12 +41,16 @@ ROM_monitor_stack:	equ	0xdbff		;upper TPA in RAM, below RAM monitor
 ;Needs to be called only once after computer comes out of reset.
 ;If called while port is active will cause port to fail.
 ;16x = 9600 baud
-initialize_port:	ld 	a,04eh			;1 stop bit, no parity, 8-bit char, 16x baud
+                        if      RAM
+                        else
+initialize_port:
+                        ld 	a,04eh			;1 stop bit, no parity, 8-bit char, 16x baud
 			out 	(3),a			;write to control port
 			ld 	a,037h			;enable receive and transmit
 			out 	(3),a			;write to control port
 			ret
-;
+                        endif
+
 ;Puts a single char (byte value) on serial output
 ;Call with char to send in A register. Uses B register
 write_char:		ld	b,a			;store char
@@ -481,10 +501,14 @@ data_error_msg:		defm	"Error: invalid hex byte.\r\n",0
 decimal_error_msg:	defm	"\r\nError: invalid decimal number, try again: ",0
 ;
 ;Simple monitor program for CPUville Z80 computer with serial interface.
-monitor_cold_start:	ld	sp,ROM_monitor_stack
+monitor_cold_start:
+                        if      RAM
+                        else
+			ld	sp,ROM_monitor_stack
 			call	initialize_port
 			ld	hl,monitor_message
 			call	write_string
+                        endif
 monitor_warm_start:	call	write_newline		;routine program return here to avoid re-initialization of port
 			ld	a,03eh			;cursor symbol
 			call	write_char
@@ -652,11 +676,19 @@ diskwr_jump:		ld	hl,diskwr_message
 			pop	hl
 			call	disk_write
 			jp	monitor_warm_start
-cpm_jump:		ld	hl,0800h
+cpm_jump:
+                        if      RAM
+                        else
+                        ld      hl,0800h
 			ld	bc,0000h
 			ld	e,00h
 			call	disk_read
+                        endif
+                        if      RAM
+			jp	0000h
+                        else
 			jp	0800h
+                        endif
 ;Prints message for no match to entered command
 no_match_jump:		ld	hl,no_match_message
 			call	write_string
