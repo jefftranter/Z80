@@ -1,0 +1,70 @@
+                   CPUville Z80 SBC Quick Reference
+                             15 Jan 2023
+                   Jeff Tranter <tranter@pobox.com>
+
+Hardware Setup:
+
+5V regulated power to DC jack or VCC header or via IDE connector.
+(IDE hard drive may also need +12V power)
+
+Z80 CPU running at 1.8432 MHz
+Serial port: 9600 BPS 8N1 straight-through serial cable to PC.
+Disk appears as four CP/M disk drives of 2MB each.
+
+ROM Monitor Commands:
+
+?
+bdump
+bload
+cpm
+diskrd
+diskwr
+dump
+help
+jump
+load
+run
+
+CP/M Built-in Commands:
+
+A: B: C: D:
+DIR <filespec>
+ERA <filespec>
+REN <newname>=<oldname>
+SAVE <n> <filespec>
+TYPE <filespec>
+USER <n>
+
+Common CP/M Transient Commands (on disk):
+
+ASM
+DDT
+DUMP
+ED
+LOAD
+PIP
+STAT
+SUBMIT
+XSUB
+
+CPUville-Specific Programs (on disk):
+
+MONITOR
+PCGET
+PCPUT
+
+Memory Map:
+
+Configuration 0 (default on reset):
+$0000-$07FF 2K ROM
+$0800-$FFFF 62K RAM
+
+Configuration 1 (when enabled, used for CP/M):
+$0800-$FFFF 64K RAM
+
+I/O Ports:
+0 Write to enable ROM (configuration 0)
+1 Write to disable ROM (configuration 1)
+2 Read/Write 8251A UART data register
+3 Read/Write 8251A UART control register
+8-15 IDE interface

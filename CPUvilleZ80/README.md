@@ -1,6 +1,8 @@
 There are various programs for the CPUVille Z80 board that have been
-ported to the asl assembler. The original source for CP/M must be
-legally downloaded, which the make file can do.
+ported to the asl and z80asm assemblers. The original source for CP/M
+must be legally downloaded, which the make file can do.
+
+Also included is a quick reference document.
 
 See:
 http://cpuville.com/Code/Z80.html
