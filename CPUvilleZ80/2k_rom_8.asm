@@ -529,7 +529,7 @@ parse_start:		ld	a,(bc)			;get pointer to match string from parse table
 			ld	a,(de)			;get first char from match string
 			or	000h			;zero?
 			jp	z,parser_exit		;yes, exit no_match
-			ld	hl,buffer		;no, parse input string 
+			ld	hl,buffer		;no, parse input string
 match_loop:		cp	(hl)			;compare buffer char with match string char
 			jp	nz,no_match		;no match, go to next match string
 			or	000h			;end of strings (zero)?

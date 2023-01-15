@@ -1,4 +1,4 @@
-;Retrieves CP/M image from disk and loads it in memory starting at E400h 
+;Retrieves CP/M image from disk and loads it in memory starting at E400h
 ;Uses calls to ROM routine for disk read.
 ;Reads track 0, sectors 1 to 50
 ;This program is loaded into LBA sector 0 of disk, read to loc. 0800h by ROM and executed.

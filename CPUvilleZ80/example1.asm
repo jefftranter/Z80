@@ -31,7 +31,7 @@
 ;
 ;
         cpu     8080
-        
+
 boot:   equ     0000h           ; system reboot
 bdos:   equ     0005h           ; bdos entry point
 fcb1:   equ     005ch           ; first file name

@@ -1,4 +1,4 @@
-all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com tinybasic2dms.bin hello.com example1.com example2.com chr_echo.bin
+all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com tinybasic2dms.bin hello.com example1.com example2.com chr_echo.bin jmon.bin
 
 cpm2-asm.zip:
 	wget http://www.cpm.z80.de/download/cpm2-asm.zip
@@ -63,6 +63,9 @@ example2.com: example2.asm
 chr_echo.bin: chr_echo.asm
 	asl -L chr_echo.asm
 	p2bin -r '$$-$$' chr_echo.p
+
+jmon.bin: jmon.asm disasm.asm
+	z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
 
 clean:
 	$(RM) *.sys *.bin *.lst *.map *.p *.com

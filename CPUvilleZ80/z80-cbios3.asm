@@ -83,7 +83,7 @@ dpblk:	;disk parameter block for all disks.
 	defm	0		;null mask
 	defw	1023		;disk size-1 = number of blocks in a disk - 1
 	defw	256		;directory max = no. directory entries/disk, arbitrary
-	defm	240		;alloc 0 -- need 4 bits (blocks) for 256 directory entries -- 
+	defm	240		;alloc 0 -- need 4 bits (blocks) for 256 directory entries --
 	defm	0		;alloc 1 -- no. bits = (directory max x 32)/block size	
 	defw	0		;check size -- no checking, so zero
 	defw	1		;track offset -- first track for system

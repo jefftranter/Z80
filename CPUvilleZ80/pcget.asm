@@ -1,7 +1,7 @@
 ;
-;  PCGET - This CP/M program receives a file from a PC via a serial 
+;  PCGET - This CP/M program receives a file from a PC via a serial
 ;  port and writes it to a file on the CP/M system. The file transfer uses
-;  the XMODEM protocol. 
+;  the XMODEM protocol.
 ;
 ;  Note this program is gutted from the Ward Christenson Modem program.
 ;
@@ -311,7 +311,7 @@ abort:	call	ERXIT
 	DS	40	;STACK AREA
 STACK:	DS	2	;STACK POINTER
 RSECTNO:	DS	1	;RECEIVED SECTOR NUMBER
-SECTNO:	DS	1	;CURRENT SECTOR NUMBER 
+SECTNO:	DS	1	;CURRENT SECTOR NUMBER
 
 ;
 ; BDOS EQUATES (VERSION 2)

@@ -1,6 +1,6 @@
 ;
 ;  PCPUT - This CP/M program sends a file from the CP/M machine to a PC using
-;	a serial port. The file transfer uses the XMODEM protocol. 
+;	a serial port. The file transfer uses the XMODEM protocol.
 ;
 ;  Note this program is gutted from the Ward Christenson Modem program.
 ;
@@ -309,7 +309,7 @@ abort	call	ERXIT
 	DB	13,10,10,"Transfer Aborted",13,10,'$'
 
 ;-----------------------------------------------------------------------------
-; calCrc - update the 16-bit CRC with one more byte. 
+; calCrc - update the 16-bit CRC with one more byte.
 ;    (Copied from M. Eberhard)
 ; On Entry:
 ;   a has the new byte
@@ -364,7 +364,7 @@ mHelp	db	CR,LF,"PCPUT 2.0 for CPUVille",CR,LF,LF
 
 	DS	40	;STACK AREA
 STACK	DS	2	;STACK POINTER
-SECTNO	DS	1	;CURRENT SECTOR NUMBER 
+SECTNO	DS	1	;CURRENT SECTOR NUMBER
 ERRCT	DS	1	;ERROR COUNT
 
 crcFlag	ds	1	;non-zero if using CRC

@@ -6,7 +6,7 @@
 ;Changed ORG statements at end of file to match system with 2K RAM
 	CPU	8080
 ;*************************************************************
-; 
+;
 ;                 TINY BASIC FOR INTEL 8080
 ;                       VERSION 2.0
 ;                     BY LI-CHEN WANG
@@ -16,11 +16,11 @@
 ;                      10 OCTOBER,1976
 ;                        @COPYLEFT
 ;                   ALL WRONGS RESERVED
-; 
+;
 ;*************************************************************
-; 
+;
 ; *** ZERO PAGE SUBROUTINES ***
-; 
+;
 ; THE 8080 INSTRUCTION SET LETS YOU HAVE 8 ROUTINES IN LOW
 ; MEMORY THAT MAY BE CALLED BY RST N, N BEING 0 THROUGH 7.
 ; THIS IS A ONE BYTE INSTRUCTION AND HAS THE SAME POWER AS
@@ -29,7 +29,7 @@
 ; THE SEVEN MOST FREQUENTLY USED SUBROUTINES.
 ; TWO OTHER SUBROUTINES (CRLF AND TSTNUM) ARE ALSO IN THIS
 ; SECTION.  THEY CAN BE REACHED ONLY BY 3-BYTE CALLS.
-; 
+;
 DWA     MACRO WHERE
         DB   (WHERE>>8)|080H, WHERE&00FFH
         ENDM
