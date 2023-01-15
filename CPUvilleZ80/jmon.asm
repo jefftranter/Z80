@@ -3,7 +3,7 @@
 ; ------------------------------
 ;
 ; A machine language monitor program for the CPUville Z80 Single Board Computer.
-; Ported from the version for my Z80SBC computer design.
+; Ported from the version for my Z80 SBC computer design.
 ;
 ; Copyright (C) 2014-2023 by Jeff Tranter <tranter@pobox.com>
 ;
@@ -59,6 +59,7 @@
 ; Intel or Motorola hex file loader?
 
         org     0100H           ; Start at address 0100 if running from CP/M
+;       org     1000H           ; Start at address 1000 if running from ROM monitor
 
 ; Constants
 
@@ -1657,7 +1658,7 @@ strRamFound2:
 ;
 ; Variables (size in bytes)
 
-vars:   equ     $2000
+vars:
 save_a: equ     vars           ; Save A reg (1)
 save_f: equ     vars+1         ; Saved flags (1)
 save_b: equ     vars+2         ; Saved B reg (1)
