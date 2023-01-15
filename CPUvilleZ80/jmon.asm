@@ -350,35 +350,10 @@ InfoCommand:
         ld      hl,str8080      ; It is an 8080
 prnt:   call    PrintString     ; Print CPU type
         call    PrintCR
-        jr      mem
+        ret
 z80:
         ld      hl,strZ80       ; It is a Z80
         jr      prnt
-
-; Detect memory size. Assume RAM at FFFF and work backward until we
-; find non-writable memory. Make sure we restore any memory we change.
-
-mem:    ld      hl,$FFFF        ; Start at FFFF
-tst:    ld      a,(hl)          ; Read memory location
-        cpl                     ; Complement it
-        ld      (hl),a          ; Write it back
-        cp      (hl)            ; Did it change?
-        jr      nz,startRam     ; No, found start of RAM
-        cpl                     ; Get back original data
-        ld      (hl),a          ; Put it back
-        dec     hl              ; Point to next location to test
-        jr      tst
-startRam:
-        inc     hl              ; Actual start is previous location tested
-        push    hl              ; Save RAM start
-        ld      hl,strRamFound1 ; String to print
-        call    PrintString     ; Print it
-        pop     hl              ; Restore RAM start
-        call    PrintAddress    ; Display it
-        ld      hl,strRamFound2 ; String to print
-        call    PrintString     ; Print it
-        call    PrintCR
-        ret
 
 ; REGISTERS command.
 ; Displays saved value of registers
