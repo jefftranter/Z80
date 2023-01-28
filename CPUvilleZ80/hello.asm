@@ -1,3 +1,6 @@
+; Simple CP/M "hello, world" program
+; Jeff Tranter <tranter@pobox.com>
+
         cpu     8080
         org     100h
 bdos    equ     0005h           ; BDOS entry point

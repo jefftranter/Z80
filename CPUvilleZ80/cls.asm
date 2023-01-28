@@ -1,4 +1,5 @@
 ; Simple clear screen program. Assumes ANSI terminal.
+; Jeff Tranter <tranter@pobox.com>
 
         cpu     8080
         org     100h

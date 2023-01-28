@@ -1,4 +1,5 @@
 ; Partial Z80 disassembler
+; Jeff Tranter <tranter@pobox.com>
 
 ; Constants for opcodes. In same order as table that follows.
 
