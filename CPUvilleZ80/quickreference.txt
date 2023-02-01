@@ -68,3 +68,18 @@ I/O Ports:
 2 Read/Write 8251A UART data register
 3 Read/Write 8251A UART control register
 8-15 IDE interface
+
+CP/M Memory Usage:
+
+$FFFF +-----------------------------------+
+      | BIOS (Hardware drivers for BDOS)  |
+$FA00 +-----------------------------------+
+      | BDOS (Operating system functions) |
+$EC00 +-----------------------------------+
+      | CCP (Command line interpreter)    |
+$E400 +-----------------------------------+
+      |                                   |
+      | TPA (memory for programs)         |
+$0100 +-----------------------------------+
+      | Low Storage (system parameters)   |
+$0000 +-----------------------------------+
