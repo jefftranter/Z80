@@ -1,4 +1,4 @@
-all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com chr_echo.bin
+all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com chr_echo.bin monitorz80.bin
 
 cpm2-asm.zip:
 	wget http://www.cpm.z80.de/download/cpm2-asm.zip
@@ -44,6 +44,10 @@ z80-cbios3.bin: z80-cbios3.asm
 chr_echo.bin: chr_echo.asm
 	asl -L chr_echo.asm
 	p2bin -r '$$-$$' chr_echo.p
+
+monitorz80.bin: monitorz80.asm
+	asl -L monitorz80.asm
+	p2bin -r '$$-$$' monitorz80.p
 
 clean:
 	$(RM) *.sys *.bin *.lst *.map *.p *.com
