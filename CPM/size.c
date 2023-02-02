@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
     int lines;
     int words;
-    int chars;
+    long chars;
     int inWord;
     int i;
     FILE *f;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        printf("%12s lines: %d words: %d chars: %d\n", filename, lines, words, chars);
+        printf("%14s lines: %d words: %d chars: %ld\n", filename, lines, words, chars);
         fclose(f);
     }
 
