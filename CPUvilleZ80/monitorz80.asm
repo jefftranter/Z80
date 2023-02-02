@@ -8,6 +8,10 @@
 ; ACIA port numbers and top of memory. Load it from the ROM monitor
 ; using the bload command and run it from address F800.
 
+; Try run under CP/M on the CPUville board, use ORG of 0100H below.
+; Then load it using bload from the RAM version of the monitor, return
+; to CP/M, and save to a file with e.g. SAVE 4 MONZ80.COM.
+
 ; TITLE '8080 system monitor, ver 1'
 ;
 ; July 11, 2015
@@ -16,7 +20,8 @@ TOP     EQU     64      ;MEMORY TOP, K BYTES
 ORGIN   EQU     (TOP-2)*1024  ;PROGRAM START
 ;
         CPU     Z80
-        ORG     ORGIN
+        ORG     ORGIN   ;USE WHEN RUNNING UNDER MONITOR
+;       ORG     0100H   ;USE WHEN RUNNING UNDER CP/M
 ;
 ;
 HOME    EQU     ORGIN   ;ABORT ADDRESS
