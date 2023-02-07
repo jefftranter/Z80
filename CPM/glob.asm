@@ -1,10 +1,11 @@
 ; Example of using CP/M Search for First and Search for Next BDOS
 ; calls to match filename patterns.
 ; e.g.
-; A> glob ????????.c
+; A> glob *.c
 ; HELLO.C
 ; SEARCH.C
 ; GLOB.C
+;
 ; Jeff Tranter <tranter@pobox.com>
 
         cpu     8080
@@ -29,8 +30,6 @@ loop:   lxi     d,fcb           ; Address of FCB
         cpi     0ffh            ; Is it FF?
         rz                      ; If so, return
 
-; TODO: Show drive letter (if any)
-
 ; Print the filename from the buffer.
 ; FCB address is DMA address + (reg A * 32)
 
@@ -44,26 +43,46 @@ loop:   lxi     d,fcb           ; Address of FCB
         mvi     d,0             ; Set DE to point to filename
         mov     e,a
 
+; TODO: Print drive letter
+
+; Print filename, less extension
         mov     h,d             ; Put DE in HL
         mov     l,e
-        mvi     a,11            ; Length is 11
-
-; TODO: Show dot between filename and extension
-; TODO: Show drive letter
-
+        mvi     a,8             ; Length is 8
         call    printstring     ; Print filename
 
-        mvi     c,conout        ; BDOS function
-        mvi     e,CR            ; Print CRLF
-        call    bdos
-        mvi     c,conout
+; Print "."
+        mvi     e,'.'
+        call    printchar
+
+; Print file extension
+        lxi     d,8             ; Put 8 in DE
+        dad     d               ; Add 8 to HL
+        mvi     a,3             ; Length is 3
+        call    printstring     ; Print filename
+
+; Print CRLF
+        mvi     e,CR
+        call    printchar
         mvi     e,LF
-        call    bdos
+        call    printchar
 
 ; Now call Search for Next and repeat.
 
         mvi     c,searchnext    ; BDOS function
         jp      loop            ; Go back and repeat
+
+; Print the character stored in E to the console.
+printchar:
+        push    h               ; Save registers
+        push    d
+        push    b
+        mvi     c,conout
+        call    bdos
+        pop     b               ; Restore registers
+        pop     d
+        pop     h
+        ret
 
 ; Print a string to the console given address in HL and length in A.
 ; Based on code from Kathe Spracklen 8080/Z80 book.
