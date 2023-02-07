@@ -12,17 +12,17 @@
 bdos    equ     05h             ; BDOS entry point
 fcb     equ     5ch             ; Default FCB
 dma     equ     0080h           ; Default DMA address
+conout  equ     02h             ; Console out function
 searchfirst equ 11h             ; Search for First function
 searchnext  equ 12h             ; Search for Next function
-printstring equ 09h             ; Print string
 CR      equ     0dh             ; Carriage return
 LF      equ     0ah             ; Line feed
 
 ; On entry, filename pattern is stored in default FCB.
 
 start:  mvi     c,searchfirst   ; BDOS function
-        lxi     d,fcb           ; Address of FCB
-        call    bdos            ; Call Search for First
+loop:   lxi     d,fcb           ; Address of FCB
+        call    bdos            ; Call Search
 
 ; If A is FF, no match found and we exit
 
@@ -46,17 +46,49 @@ start:  mvi     c,searchfirst   ; BDOS function
 
         mov     h,d             ; Put DE in HL
         mov     l,e
+        mvi     a,11            ; Length is 11
 
-        lxi     b,12            ; Add 12 to it to get to end of filename
-        dad     b
+; TODO: Show dot between filename and extension
+; TODO: Show drive letter
 
-        mvi     a,'$'           ; Add terminating '$'
-        mov     m,a
+        call    printstring     ; Print filename
 
-        mvi     c,printstring   ; BDOS function
-        call    bdos            ; Call Print String
+        mvi     c,conout        ; BDOS function
+        mvi     e,CR            ; Print CRLF
+        call    bdos
+        mvi     c,conout
+        mvi     e,LF
+        call    bdos
 
-; TODO: Now call Search for Next until there are no more matchs.
+; Now call Search for Next and repeat.
 
-ret:    ret                     ; Return to CCP
+        mvi     c,searchnext    ; BDOS function
+        jp      loop            ; Go back and repeat
+
+; Print a string to the console given address in HL and length in A.
+; Based on code from Kathe Spracklen 8080/Z80 book.
+printstring:
+        push    psw             ; Save registers
+        push    b
+        push    d
+        push    h
+        mov     b,a             ; Save count
+        mvi     c,conout        ; BDOS function
+outlop: mov     e,m             ; Fetch character
+        push    h               ; Save registers
+        push    d
+        push    b
+        call    bdos
+        pop     b               ; Restore registers
+        pop     d
+        pop     h
+        inx     h               ; Next character
+        dcr     b               ; Decrement count
+        jnz     outlop          ; Repeat until done
+        pop     h               ; Restore registers
+        pop     d
+        pop     b
+        pop     psw
+        ret                     ; Done
+
         end
