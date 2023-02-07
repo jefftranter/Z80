@@ -38,7 +38,7 @@ loop:   lxi     d,fcb           ; Address of FCB
         add     a               ; A times 8
         add     a               ; A times 16
         add     a               ; A times 32
-        aci     80h             ; Add DMA address
+        aci     dma             ; Add DMA address
         mvi     h,0             ; Set HL to point to filename
         mov     l,a
 
