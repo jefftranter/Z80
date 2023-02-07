@@ -1,4 +1,4 @@
-all: hello.com example1.com example2.com jmon.com cls.com tinybas.com go.com list.com echo.com
+all: hello.com example1.com example2.com jmon.com cls.com tinybas.com go.com list.com echo.com glob.com
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -43,6 +43,11 @@ echo.com: echo.asm
 	asl -cpu 8080 -L echo.asm
 	p2bin -r '$$-$$' echo.p
 	mv echo.bin echo.com
+
+glob.com: glob.asm
+	asl -cpu 8080 -L glob.asm
+	p2bin -r '$$-$$' glob.p
+	mv glob.bin glob.com
 
 clean:
 	$(RM) *.sys *.bin *.lst *.map *.p *.com
