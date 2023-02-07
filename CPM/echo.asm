@@ -16,7 +16,7 @@ start:  mvi     c,conout        ; BDOS function
         mov     d,m             ; Get length
         mov     a,d
         cpi     0
-        jz      ret             ; Done if zero
+        rz                      ; Done if zero
         inx     h               ; Advance pointer past length byte
 
 loop:   inx     h               ; Advance pointer to next char
@@ -36,5 +36,5 @@ eos:    mvi     e,CR            ; Print CRLF
         call    bdos
         mvi     e,LF
         call    bdos
-ret:    ret                     ; Return to CCP
+        ret                     ; Return to CCP
         end
