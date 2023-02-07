@@ -33,21 +33,28 @@ loop:   lxi     d,fcb           ; Address of FCB
 ; Print the filename from the buffer.
 ; FCB address is DMA address + (reg A * 32)
 
-        add     a               ; A time 2
+        add     a               ; A times 2
         add     a               ; A times 4
         add     a               ; A times 8
         add     a               ; A times 16
         add     a               ; A times 32
-        aci     81h             ; Add DMA address + 1
+        aci     80h             ; Add DMA address
+        mvi     h,0             ; Set HL to point to filename
+        mov     l,a
 
-        mvi     d,0             ; Set DE to point to filename
-        mov     e,a
-
-; TODO: Print drive letter
+; Print drive letter
+        lda     fcb             ; Get drive code
+        cpi     0               ; Is it 0?
+        jz      default         ; Yes, so default drive
+        adi     'A'-1           ; Convert to drive letter (1=A, 2=B, etc.)
+        mov     e,a             ; Put in E
+        call    printchar       ; And print
+        mvi     e,':'           ; Print colon
+        call    printchar
 
 ; Print filename, less extension
-        mov     h,d             ; Put DE in HL
-        mov     l,e
+default:
+        inx     h               ; Advance HL to point to start of filename
         mvi     a,8             ; Length is 8
         call    printstring     ; Print filename
 
