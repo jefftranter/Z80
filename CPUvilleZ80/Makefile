@@ -1,17 +1,7 @@
 all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com chr_echo.bin monitorz80.bin
 
-cpm2-asm.zip:
-	wget http://www.cpm.z80.de/download/cpm2-asm.zip
-
-cpm22.z80: cpm2-asm.zip
-	unzip cpm2-asm.zip CPM22.Z80
-	dos2unix CPM22.Z80
-	patch <cpm22.patch
-	mv CPM22.Z80 cpm22.z80
-	$(RM) cpm2-asm.zip
-
-cpm22.sys: cpm22.z80
-	z80asm -o cpm22.sys -lcpm22.lst -Lcpm22.map cpm22.z80
+cpm22.sys: cpm22.asm
+	z80asm -o cpm22.sys -lcpm22.lst -Lcpm22.map cpm22.asm
 
 2k_rom_8.bin: 2k_rom_8.asm
 	z80asm -o 2k_rom_8.bin -l2k_rom_8.lst -L2k_rom_8.map 2k_rom_8.asm
@@ -53,4 +43,3 @@ clean:
 	$(RM) *.sys *.bin *.lst *.map *.p *.com
 
 distclean: clean
-	$(RM) cpm22.z80 cpm2-asm.zip
