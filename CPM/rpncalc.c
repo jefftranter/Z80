@@ -329,9 +329,9 @@ int main()
         } else if (!strcmp(command, "rot") || !strcmp(command, "ROT")) {
                 commandRot();
         } else if (base == 10) {
-            push(atol(command));           
+            push(atol(command));
         } else if (base == 16) {
-            push(atol(command));           
+            push(atol(command));
         } else {
             printf("Invalid command: '%s'\n", command);
             printf("type ? for help\n");

@@ -8,7 +8,11 @@ Current User: 0
 Current Disk: C
 Login Vector: A B C D
 Read Only Vector: D
-IOBYTE: 0000
+IOBYTE:
+CON: is CRT:
+RDR: is TTY:
+PUN: is TTY:
+LST: is TTY:
 Allocation Vector: 00E4
 Disk Parameter Block: 0073
 
@@ -65,12 +69,74 @@ int main()
     }
     printf("\n");
 
+    v = bdos(CPMGIOB);
+    printf("IOBYTE:\nCON: is ");
+    switch (v & 3) {
+    case 0:
+        printf("TTY:");
+        break;
+    case 1:
+        printf("CRT:");
+        break;
+    case 2:
+        printf("BAT:");
+        break;
+    case 3:
+        printf("UC1:");
+        break;
+    }
+    printf("\nRDR: is ");
+    switch ((v & 12) >> 2) {
+    case 0:
+        printf("TTY:");
+        break;
+    case 1:
+        printf("PTR:");
+        break;
+    case 2:
+        printf("UR1:");
+        break;
+    case 3:
+        printf("UR2:");
+        break;
+    }
+    printf("\nPUN: is ");
+    switch ((v & 48) >> 4) {
+    case 0:
+        printf("TTY:");
+        break;
+    case 1:
+        printf("PTP:");
+        break;
+    case 2:
+        printf("UP1:");
+        break;
+    case 3:
+        printf("UP2:");
+        break;
+    }
+    printf("\nLST: is ");
+    switch ((v & 192) >> 6) {
+    case 0:
+        printf("TTY:");
+        break;
+    case 1:
+        printf("CRT:");
+        break;
+    case 2:
+        printf("LPT:");
+        break;
+    case 3:
+        printf("UL1:");
+        break;
+    }
+    printf("\n");
+
     /* Note: There appears to be a bug in the Hi-Tech C printf hex
        format output which causes additional incorrect leading digits
        to be displayed (e.g "220073" rather than "0073". I have not
        found any workaround for this. */
 
-    printf("IOBYTE: %2X\n", bdos(CPMGIOB));
     printf("Allocation Vector: %4X\n", bdos(CPMGALL));
     printf("Disk Parameter Block: %4X\n", bdos(CPMDPB));
 }

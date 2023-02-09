@@ -2,7 +2,7 @@
 
 /* Sieve Of Erathosthenes by Denis Sureau */
 
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <stdio.h>
 
 int all[10000];
@@ -17,7 +17,7 @@ void eratosthenes(int top)
 	
     while (prime <= top) {
         for (x = 0; x < top; x++) {
-            if (all[x] == prime) goto skip; 
+            if (all[x] == prime) goto skip;
         }
 
         printf("%d\n", prime);
