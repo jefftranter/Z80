@@ -18,7 +18,7 @@ TDRIVE:	EQU	4		;current drive name and user number.
 ENTRY:	EQU	5		;entry point for the cp/m bdos.
 TFCB:	EQU	5CH		;default file control block.
 TBUFF:	EQU	80H		;i/o buffer and command line storage.
-TBASE:	EQU	100H		;transiant program storage area.
+TBASE:	EQU	100H		;transient program storage area.
 ;
 ;   Set control character equates.
 ;
@@ -137,7 +137,7 @@ OPENFCB:XOR	A		;clear the record number byte at fcb+32
 CLOSE:	LD	C,16
 	JP	ENTRY1
 ;
-;   Routine to search for the first file with ambigueous name
+;   Routine to search for the first file with ambiguous name
 ; (DE).
 ;
 SRCHFST:LD	C,17
@@ -241,7 +241,7 @@ GETINP:	LD	A,(BATCH)	;if =0, then use console input.
 ;
 ;   Use the submit file ($$$.sub) which is prepared by a
 ; SUBMIT run. It must be on drive (A) and it will be deleted
-; if and error occures (like eof).
+; if an error occurs (like eof).
 ;
 	LD	A,(CDRIVE)	;select drive 0 if need be.
 	OR	A
@@ -348,7 +348,7 @@ DELBATCH: LD	HL,BATCH	;is batch active?
 	LD	A,(HL)
 	OR	A
 	RET	Z
-	LD	(HL),0		;yes, de-activate it.
+	LD	(HL),0		;yes, deactivate it.
 	XOR	A
 	CALL	DSKSEL		;select drive 0 for sure.
 	LD	DE,BATCHFCB	;and delete this file.
@@ -439,7 +439,7 @@ ADDHL:	ADD	A,L
 CONVFST:LD	A,0
 ;
 ;   Format a file name (convert * to '?', etc.). On return,
-; (A)=0 is an unambigeous name was specified. Enter with (A) equal to
+; (A)=0 is an unambiguous name was specified. Enter with (A) equal to
 ; the position within the fcb for the name (either 0 or 16).
 ;
 CONVERT:LD	HL,FCB
@@ -530,7 +530,7 @@ GETEXT7:INC	HL
 	LD	(INPOINT),HL	;save input line pointer.
 	POP	HL
 ;
-;   Check to see if this is an ambigeous file name specification.
+;   Check to see if this is an ambiguous file name specification.
 ; Set the (A) register to non zero if it is.
 ;
 	LD	BC,11		;set name length.
@@ -772,7 +772,7 @@ DSELECT:XOR	A		;null out first byte of fcb.
 	JP	DSKSEL		;no. Select it then.
 ;
 ;   Check the drive selection and reset it to the previous
-; drive if it was changed for the preceeding command.
+; drive if it was changed for the preceding command.
 ;
 RESETDR:LD	A,(CHGDRV)	;drive change indicated?
 	OR	A
@@ -832,7 +832,7 @@ DIRECT3:JP	Z,DIRECT9	;terminate if no more names.
 	LD	A,':'
 	CALL	PRINTB
 	JP	DIRECT5
-DIRECT4:CALL	SPACE		;add seperator between file names.
+DIRECT4:CALL	SPACE		;add separator between file names.
 	LD	A,':'
 	CALL	PRINTB
 DIRECT5:CALL	SPACE
@@ -853,13 +853,13 @@ DIRECT6:LD	A,B
 	JP	Z,DIRECT7	;don't print spaces.
 DRECT63:LD	A,' '		;else print them.
 DRECT65:CALL	PRINTB
-	INC	B		;bump to next character psoition.
+	INC	B		;bump to next character position.
 	LD	A,B
 	CP	12		;end of the name?
 	JP	NC,DIRECT7
 	CP	9		;nope, starting extension?
 	JP	NZ,DIRECT6
-	CALL	SPACE		;yes, add seperating space.
+	CALL	SPACE		;yes, add separating space.
 	JP	DIRECT6
 DIRECT7:POP	AF		;get the next file name.
 DIRECT8:CALL	CHKCON		;first check console, quit on anything.
@@ -1016,12 +1016,12 @@ RENAME:	CALL	CONVFST		;convert first file name.
 	LD	HL,(INPOINT)	;get input pointer.
 	EX	DE,HL
 	CALL	NONBLANK	;get next non blank character.
-	CP	'='		;only allow an '=' or '_' seperator.
+	CP	'='		;only allow an '=' or '_' separator.
 	JP	Z,RENAME1
 	CP	'_'
 	JP	NZ,RENAME5
 RENAME1:EX	DE,HL
-	INC	HL		;ok, skip seperator.
+	INC	HL		;ok, skip separator.
 	LD	(INPOINT),HL	;save input line pointer.
 	CALL	CONVFST		;convert this second file name now.
 	JP	NZ,RENAME5	;again, no wild cards.
@@ -1178,11 +1178,11 @@ UNKWN8:	LD	A,B		;now store the character count.
 	LD	SP,BATCH	;set stack first off.
 	CALL	MOVECD		;move current drive into place (TDRIVE).
 	CALL	DSKSEL		;and reselect it.
-	JP	CMMND1		;back to comand mode.
+	JP	CMMND1		;back to command mode.
 ;
 ;   Get here if some error occured.
 ;
-UNKWN9:	CALL	RESETDR		;inproper format.
+UNKWN9:	CALL	RESETDR		;improper format.
 	JP	SYNERR
 UNKWN0:	LD	BC,BADLOAD	;read error or won't fit.
 	CALL	PLINE
@@ -1281,7 +1281,7 @@ FBASE1:	EX	DE,HL		;save the (DE) parameters.
 ;
 ;   BDOS function jump table.
 ;
-NFUNCTS: EQU	41		;number of functions in followin table.
+NFUNCTS: EQU	41		;number of functions in following table.
 ;
 FUNCTNS:DEFW	WBOOT,GETCON,OUTCON,GETRDR,PUNCH,LIST,DIRCIO,GETIOB
 	DEFW	SETIOB,PRTSTR,RDBUFF,GETCSTS,GETVER,RSTDSK,SETDSK,OPENFIL
@@ -1293,7 +1293,7 @@ FUNCTNS:DEFW	WBOOT,GETCON,OUTCON,GETRDR,PUNCH,LIST,DIRCIO,GETIOB
 ;   Bdos error message section.
 ;
 ERROR1:	LD	HL,BADSEC	;bad sector message.
-	CALL	PRTERR		;print it and get a 1 char responce.
+	CALL	PRTERR		;print it and get a 1 char response.
 	CP	CNTRLC		;re-boot request (control-c)?
 	JP	Z,0		;yes.
 	RET			;no, return to retry i/o function.
@@ -1336,7 +1336,7 @@ GETCHAR:LD	HL,CHARBUF	;check character buffer.
 	LD	(HL),0		;...either case clear it.
 	OR	A
 	RET	NZ		;yes, use it.
-	JP	CONIN		;nope, go get a character responce.
+	JP	CONIN		;nope, go get a character response.
 ;
 ;   Input and echo a character.
 ;
@@ -1415,7 +1415,7 @@ OUTCHR1:LD	A,C		;update cursors position.
 	DEC	(HL)		;restore and check for the start of the line.
 	LD	A,(HL)
 	OR	A
-	RET	Z		;ingnore control characters at the start of the line.
+	RET	Z		;ignore control characters at the start of the line.
 	LD	A,C
 	CP	BS		;is it a backspace?
 	JP	NZ,OUTCHR2
@@ -1433,10 +1433,10 @@ SHOWIT:	LD	A,C
 	CALL	CHKCHAR		;check character.
 	JP	NC,OUTCON	;not a control, use normal output.
 	PUSH	AF
-	LD	C,'^'		;for a control character, preceed it with '^'.
+	LD	C,'^'		;for a control character, precede it with '^'.
 	CALL	OUTCHAR
 	POP	AF
-	OR	'@'		;and then use the letter equivelant.
+	OR	'@'		;and then use the letter equivalent.
 	LD	C,A
 ;
 ;   Function to output (C) to the console device and expand tabs
@@ -1453,7 +1453,7 @@ OUTCON1:LD	C,' '		;yes it is, use spaces instead.
 	JP	NZ,OUTCON1
 	RET	
 ;
-;   Echo a backspace character. Erase the prevoius character
+;   Echo a backspace character. Erase the previous character
 ; on the screen.
 ;
 BACKUP:	CALL	BACKUP1		;backup the screen 1 place.
@@ -1528,7 +1528,7 @@ RDBUF3:	CP	DEL		;user typed a rubout?
 	LD	A,B		;ignore at the start of the line.
 	OR	A
 	JP	Z,RDBUF1
-	LD	A,(HL)		;ok, echo the prevoius character.
+	LD	A,(HL)		;ok, echo the previous character.
 	DEC	B		;and reset pointers (counters).
 	DEC	HL
 	JP	RDBUF15
@@ -1542,7 +1542,7 @@ RDBUF4:	CP	CNTRLE		;physical end of line?
 	JP	RDBUF2
 RDBUF5:	CP	CNTRLP		;control-p?
 	JP	NZ,RDBUF6
-	PUSH	HL		;yes, flip the print flag filp-flop byte.
+	PUSH	HL		;yes, flip the print flag flip-flop byte.
 	LD	HL,PRTFLAG
 	LD	A,1		;PRTFLAG=1-PRTFLAG
 	SUB	(HL)
@@ -1559,7 +1559,7 @@ RDBUF7:	LD	A,(STARTING)	;yes, backup the cursor to here.
 	DEC	(HL)		;no, decrement pointer and output back up one space.
 	CALL	BACKUP
 	JP	RDBUF7
-RDBUF8:	CP	CNTRLU		;cntrol-u (cancel line)?
+RDBUF8:	CP	CNTRLU		;control-u (cancel line)?
 	JP	NZ,RDBUF9
 	CALL	NEWLINE		;start a new line.
 	POP	HL
@@ -1666,7 +1666,7 @@ PRTSTR:	EX	DE,HL
 	LD	B,H		;now (BC) points to it.
 	JP	PRTMESG
 ;
-;   Function to interigate the console device.
+;   Function to interogate the console device.
 ;
 GETCSTS:CALL	CKCONSOL
 ;
@@ -1761,7 +1761,7 @@ SELECT:	LD	A,(ACTIVE)	;get active disk.
 	LD	HL,(DSKSIZE)	;check disk size.
 	LD	A,H		;more than 256 blocks on this?
 	LD	HL,BIGDISK
-	LD	(HL),0FFH	;set to samll.
+	LD	(HL),0FFH	;set to small.
 	OR	A
 	JP	Z,SELECT1
 	LD	(HL),0		;wrong, set to large.
@@ -1792,7 +1792,7 @@ DOREAD:	CALL	READ
 ;
 DOWRITE:CALL	WRITE
 IORET:	OR	A
-	RET	Z		;return unless an error occured.
+	RET	Z		;return unless an error occurred.
 	LD	HL,BADSCTR	;bad read/write on this sector.
 	JP	JUMPHL
 ;
@@ -1973,7 +1973,7 @@ LOGICL1:ADD	HL,HL		;compute logical sector number.
 ;   Set (HL) to point to extent byte in fcb.
 ;
 SETEXT:	LD	HL,(PARAMS)
-	LD	DE,12		;it is the twelth byte.
+	LD	DE,12		;it is the twelfth byte.
 	ADD	HL,DE
 	RET	
 ;
@@ -2354,13 +2354,13 @@ CKBMAP1:RLCA			;get correct bit into position 0.
 ;
 ;   Set or clear the bit map such that block number (BC) will be marked
 ; as used. On entry, if (E)=0 then this bit will be cleared, if it equals
-; 1 then it will be set (don't use anyother values).
+; 1 then it will be set (don't use another values).
 ;
 STBITMAP: PUSH	DE
 	CALL	CKBITMAP	;get the byte of interest.
 	AND	0FEH		;clear the affected bit.
 	POP	BC
-	OR	C		;and now set it acording to (C).
+	OR	C		;and now set it according to (C).
 ;
 ;  entry to restore the original bit position and then store
 ; in table. (A) contains the value, (D) contains the bit
@@ -2370,7 +2370,7 @@ STBITMAP: PUSH	DE
 STBMAP1:RRCA			;restore original bit position.
 	DEC	D
 	JP	NZ,STBMAP1
-	LD	(HL),A		;and stor byte in table.
+	LD	(HL),A		;and store byte in table.
 	RET	
 ;
 ;   Set/clear space used bits in allocation map for this file.
@@ -2428,7 +2428,7 @@ BITMAP:	LD	HL,(DSKSIZE)	;compute size of allocation table.
 ;   Initialize the bitmap for this drive. Right now, the first
 ; two bytes are specified by the disk parameter block. However
 ; a patch could be entered here if it were necessary to setup
-; this table in a special mannor. For example, the bios could
+; this table in a special manner. For example, the bios could
 ; determine locations of 'bad blocks' and set them as already
 ; 'used' in the map.
 ;
@@ -2469,7 +2469,7 @@ BITMAP2:LD	C,0FFH		;read next file name in directory
 	LD	A,(HL)		;yes, does name start with a '$'?
 	SUB	'$'
 	JP	NZ,BITMAP3
-	DEC	A		;yes, set atatus to minus one.
+	DEC	A		;yes, set status to minus one.
 	LD	(STATUS),A
 BITMAP3:LD	C,1		;now set this file's space as used in bit map.
 	CALL	SETFILE
@@ -2483,7 +2483,7 @@ STSTATUS: LD	A,(FNDSTAT)
 ;
 ;   Check extents in (A) and (C). Set the zero flag if they
 ; are the same. The number of 16k chunks of disk space that
-; the directory extent covers is expressad is (EXTMASK+1).
+; the directory extent covers is expressed is (EXTMASK+1).
 ; No registers are modified.
 ;
 SAMEXT:	PUSH	BC
@@ -2501,7 +2501,7 @@ SAMEXT:	PUSH	BC
 	POP	BC		;the zero flag is set if they are the same.
 	RET			;restore (BC) and return.
 ;
-;   Search for the first occurence of a file name. On entry,
+;   Search for the first occurrence of a file name. On entry,
 ; register (C) should contain the number of bytes of the fcb
 ; that must match.
 ;
@@ -2514,7 +2514,7 @@ FINDFST:LD	A,0FFH
 	CALL	STFILPOS	;clear initial file position (set to 0ffffh).
 	CALL	HOMEDRV		;home the drive.
 ;
-;   Entry to locate the next occurence of a filename within the
+;   Entry to locate the next occurrence of a filename within the
 ; directory. The disk is not expected to have been changed. If
 ; it was, then it will be write protected.
 ;
@@ -2526,7 +2526,7 @@ FINDNXT:LD	C,0		;write protect the disk if changed.
 	EX	DE,HL
 	LD	A,(DE)
 	CP	0E5H		;empty directory entry?
-	JP	Z,FNDNXT1	;(* are we trying to reserect erased entries? *)
+	JP	Z,FNDNXT1	;(* are we trying to resurrect erased entries? *)
 	PUSH	DE
 	CALL	MOREFLS		;more files in directory?
 	POP	DE
@@ -2716,7 +2716,7 @@ CHGNAM1:CALL	CKFILPOS	;any matching file found?
 	LD	C,16		;start 16 bytes into fcb.
 	LD	E,12		;and update the first 12 bytes of directory.
 	CALL	UPDATE
-	CALL	FINDNXT		;get te next file name.
+	CALL	FINDNXT		;get the next file name.
 	JP	CHGNAM1		;and continue.
 ;
 ;   Update a files attributes. The procedure is to search for
@@ -3036,12 +3036,12 @@ WTSEQ4:	LD	C,A		;compute spot in this 16 bit table.
 	LD	(HL),E		;stuff block number (DE) there.
 	INC	HL
 	LD	(HL),D
-WTSEQ5:	LD	C,2		;set (C) to indicate writing to un-used disk space.
+WTSEQ5:	LD	C,2		;set (C) to indicate writing to unused disk space.
 WTSEQ6:	LD	A,(STATUS)	;are we ok so far?
 	OR	A
 	RET	NZ
 	PUSH	BC		;yes, save write flag for bios (register C).
-	CALL	LOGICAL		;convert (BLKNMBR) over to loical sectors.
+	CALL	LOGICAL		;convert (BLKNMBR) over to logical sectors.
 	LD	A,(MODE)	;get access mode flag (1=sequential,
 	DEC	A		;0=random, 2=special?).
 	DEC	A
@@ -3267,7 +3267,7 @@ WRITERAN: LD	C,0		;set 'writing' flag.
 ; byte, and (A) the 'r2' byte.
 ;
 ;   On return, the zero flag is set if the record is within
-; bounds. Otherwise, an overflow occured.
+; bounds. Otherwise, an overflow occurred.
 ;
 COMPRAND: EX	DE,HL		;save fcb pointer in (DE).
 	ADD	HL,DE		;compute relative position of record #.
@@ -3399,9 +3399,9 @@ SETDSK:	LD	A,(EPARAM)	;get parameter passed and see if this
 	LD	(HL),A		;yes it does, log it in.
 	JP	LOGINDRV
 ;
-;   This is the 'auto disk select' routine. The firsst byte
+;   This is the 'auto disk select' routine. The first byte
 ; of the fcb is examined for a drive specification. If non
-; zero then the drive will be selected and loged in.
+; zero then the drive will be selected and logged in.
 ;
 AUTOSEL:LD	A,0FFH		;say 'auto-select activated'.
 	LD	(AUTO),A
@@ -3453,7 +3453,7 @@ OPENFIL:CALL	CLEARS2		;clear 's2' byte.
 CLOSEFIL: CALL	AUTOSEL		;select proper disk.
 	JP	CLOSEIT		;and close the file.
 ;
-;   Function to return the first occurence of a specified file
+;   Function to return the first occurrence of a specified file
 ; name. If the first byte of the fcb is '?' then the name will
 ; not be checked (get the first entry no matter what).
 ;
@@ -3471,10 +3471,10 @@ GETFST:	LD	C,0		;prepare for special search.
 GETFST1:CALL	FINDFST		;find an entry and then move it into
 	JP	MOVEDIR		;the users dma space.
 ;
-;   Function to return the next occurence of a file name.
+;   Function to return the next occurrence of a file name.
 ;
 GETNXT:	LD	HL,(SAVEFCB)	;restore pointers. note that no
-	LD	(PARAMS),HL	;other dbos calls are allowed.
+	LD	(PARAMS),HL	;other bdos calls are allowed.
 	CALL	AUTOSEL		;no error will be returned, but the
 	CALL	FINDNXT		;results will be wrong.
 	JP	MOVEDIR
@@ -3622,7 +3622,7 @@ GOBACK:	LD	A,(AUTO)	;was auto select activated?
 GOBACK1:LD	HL,(USRSTACK)	;reset the users stack pointer.
 	LD	SP,HL
 	LD	HL,(STATUS)	;get return status.
-	LD	A,L		;force version 1.4 compatability.
+	LD	A,L		;force version 1.4 compatibility.
 	LD	B,H
 	RET			;and go back to user.
 ;
@@ -3735,4 +3735,3 @@ SECTRN:	JP	0
 ;*
 ;******************   E N D   O F   C P / M   *****************
 ;*
-
