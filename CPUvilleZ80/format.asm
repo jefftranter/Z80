@@ -2,6 +2,9 @@
 ;Updated June 2019 to match improved z80_cbios3
 ;Writes E5h to 64 sectors on tracks 1 to 255 of each disk (track 0 for system).
 ;Uses calls to cbios, in memory at FA00h
+
+		include	'defines.asm'
+
 seldsk:		equ	0fb5fh		;pass disk no. in c
 setdma:		equ	0fb89h		;pass address in bc
 settrk:		equ	0fb78h		;pass track in reg C
@@ -64,7 +67,7 @@ skip_1:		ld	a,0
 		jp	track_loop
 next_disk:	ld	a,(disk)
 		inc	a
-		cp	4
+		cp	DRIVES		;Number of disks
 		jp	z,done
 		ld	(disk),a
 		jp	disk_loop

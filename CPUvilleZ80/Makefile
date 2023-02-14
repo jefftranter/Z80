@@ -1,4 +1,4 @@
-all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin z80-cbios4.bin pcget.com pcput.com chr_echo.bin monitorz80.bin
+all: cpm22.sys 2k_rom_8.bin cpm-loader3.bin format.bin memory_test.bin putsys3.bin z80-cbios3.bin pcget.com pcput.com chr_echo.bin monitorz80.bin
 
 cpm22.sys: cpm22.asm
 	z80asm -o cpm22.sys -lcpm22.lst -Lcpm22.map cpm22.asm
@@ -9,7 +9,7 @@ cpm22.sys: cpm22.asm
 cpm-loader3.bin: cpm-loader3.asm
 	z80asm -o cpm-loader3.bin -lcpm-loader3.lst -Lcpm-loader3.map cpm-loader3.asm
 
-format.bin: format.asm
+format.bin: format.asm defines.asm
 	z80asm -o format.bin -lformat.lst -Lformat.map format.asm
 
 memory_test.bin: memory_test.asm
@@ -28,11 +28,8 @@ pcput.com: pcput.asm
 putsys3.bin: putsys3.asm
 	z80asm -o putsys3.bin -lputsys3.lst -Lputsys3.map putsys3.asm
 
-z80-cbios3.bin: z80-cbios3.asm
+z80-cbios3.bin: z80-cbios3.asm defines.asm
 	z80asm -o z80-cbios3.bin -lz80-cbios3.lst -Lz80-cbios3.map z80-cbios3.asm
-
-z80-cbios4.bin: z80-cbios4.asm
-	z80asm -o z80-cbios4.bin -lz80-cbios4.lst -Lz80-cbios4.map z80-cbios4.asm
 
 chr_echo.bin: chr_echo.asm
 	asl -L chr_echo.asm
