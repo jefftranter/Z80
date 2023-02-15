@@ -10,6 +10,13 @@
 ; +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+
 ; |0 0 0 0 0 0 D D|  |T T T T T T T T|  |S S S S S S D D|
 ; +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+
+;
+; Addresses that vary with number of disks:
+;
+; Disks:	4		8		16
+; CCP (CBASE)	E400-EC05	E100-E905	DD00-E505
+; BDOS (FBASE)	EC06-FA00	E906-F700	E506-F2FF
+; BIOS		FA00-FFE8	F700-FF36	F300-FFC2
 
 ;	CP/M CBIOS for CPUville 8-bit computers
 ;	February 2023 by Jeff Tranter
@@ -29,15 +36,19 @@
 	include	'defines.asm'
 
 disks:	equ	DRIVES		;number of disks in the system - set to 4, 8, or 16
-ccp:	equ	0E400h		;base of ccp
-bdos:	equ	0EC06h		;bdos entry ???
 	if	disks == 4
+ccp:	equ	0E400h		;base of ccp
+bdos:	equ	0EC06h		;bdos entry
 bios:	equ	0FA00h		;base of bios
 	endif
 	if	disks == 8
+ccp:	equ	0E100h		;base of ccp
+bdos:	equ	0E906h		;bdos entry
 bios:	equ	0F700h		;base of bios
 	endif
 	if	disks == 16
+ccp:	equ	0DD00h		;base of ccp
+bdos:	equ	0E506h		;bdos entry
 bios:	equ	0F300h		;base of bios
 	endif
 cdisk:	equ	0004h		;address of current disk number 0=a,... 15=p

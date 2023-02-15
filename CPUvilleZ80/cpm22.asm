@@ -45,7 +45,7 @@ DEL:	EQU	7FH		;rubout
 	ORG	(MEM-7)*1024
 	endif
 	if	DRIVES == 8
-	ORG	0E000H
+	ORG	0E100H
 	endif
 	if	DRIVES == 16
 	ORG	0DD00H
