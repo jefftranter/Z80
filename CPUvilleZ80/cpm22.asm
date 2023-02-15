@@ -42,7 +42,7 @@ DEL:	EQU	7FH		;rubout
 ;   Set origin for CP/M
 ;
 	if	DRIVES == 4
-	ORG	(MEM-7)*1024
+	ORG	0E400H
 	endif
 	if	DRIVES == 8
 	ORG	0E100H
