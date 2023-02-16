@@ -39,6 +39,9 @@ monitorz80.bin: monitorz80.asm
 	asl -L monitorz80.asm
 	p2bin -r '$$-$$' monitorz80.p
 
+diff:	all
+	for f in orig/* ; do echo $$f ; diff $$f . ; done
+
 clean:
 	$(RM) *.sys *.bin *.lst *.map *.p *.com
 

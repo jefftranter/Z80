@@ -1,21 +1,40 @@
 ;Retrieves CP/M image from disk and loads it in memory starting at E400h
 ;Uses calls to ROM routine for disk read.
-;Reads track 0, sectors 1 to 50
+;Reads track 0, sectors 1 to 50 (51 for 16-disk version)
 ;This program is loaded into LBA sector 0 of disk, read to loc. 0800h by ROM and executed.
+
+		include	'defines.asm'
+		if	DRIVES == 4
+BIOS:		equ	0FA00H
+CCP:		equ	0E400H
+		endif
+		if	DRIVES == 8
+BIOS:		equ	0F700H
+CCP:		equ	0E100H
+		endif
+		if	DRIVES == 16
+BIOS:		equ	0F300H
+CCP:		equ	0DD00H
+		endif
+
 hstbuf: 	equ	0900h		;will put 256-byte raw sector here
 disk_read:	equ	0294h		;in 2K ROM
-cpm:		equ	0FA00h		;CP/M cold start entry
+cpm:		equ	BIOS		;CP/M cold start entry
 		org	0800h
 ;Read track 0, sectors 1 to 50
 		ld	a,1		;starting sector -- sector 0 has cpm_loader
 		ld	(sector),a
-		ld	hl,0E400h	;memory address to place image
+		ld	hl,CCP		;memory address to place image
 		ld	(dmaad),hl
 		ld	a,0		;CP/M track
 		ld	(track),a
 rd_trk_0_loop:	call	read
 		ld	a,(sector)
-		cp	50
+		if	DRIVES == 16
+		cp	51		;Need 51 sectors
+		else
+		cp	50		;Need 50 sectors
+		endif
 		jp	z,done
 		inc	a
 		ld	(sector),a
@@ -58,6 +77,3 @@ sector:		db	00h
 track:		db	00h
 dmaad:		dw	0000h
 		end
-
-	
-
