@@ -11,7 +11,7 @@
 
 ; Make sure these addresses match those in z80-cbios.asm
 		if	DRIVES == 4
-CCP:		equ	0E400H
+CCP:		equ	0e400h
 seldsk:		equ	0fb5fh		;pass disk no. in c
 setdma:		equ	0fb89h		;pass address in bc
 settrk:		equ	0fb78h		;pass track in reg C
@@ -19,7 +19,7 @@ setsec:		equ	0fb7dh		;pass sector in reg c
 write:		equ	0fbfdh		;write one CP/M sector to disk
 		endif
 		if	DRIVES == 8
-CCP:		eq0u	E100H
+CCP:		equ	0e100h
 seldsk:		equ	0f89fh		;pass disk no. in c
 setdma:		equ	0f8c9h		;pass address in bc
 settrk:		equ	0f8b8h		;pass track in reg C
@@ -27,7 +27,7 @@ setsec:		equ	0f8bdh		;pass sector in reg c
 write:		equ	0f942h		;write one CP/M sector to disk
 		endif
 		if	DRIVES == 16
-CCP:		equ	0DD00H
+CCP:		equ	0dd00h
 seldsk:		equ	0f51fh		;pass disk no. in c
 setdma:		equ	0f549h		;pass address in bc
 settrk:		equ	0f538h		;pass track in reg C
