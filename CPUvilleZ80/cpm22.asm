@@ -8,6 +8,8 @@
 ;*
 ;**************************************************************
 ;
+	include	'defines.asm'
+;
 ;   Set memory limit here. This is the amount of contiguous
 ; ram starting from 0000. CP/M will reside at the end of this space.
 ;
@@ -39,7 +41,15 @@ DEL:	EQU	7FH		;rubout
 ;
 ;   Set origin for CP/M
 ;
-	ORG	(MEM-7)*1024
+	if	DRIVES == 4
+	ORG	0E400H
+	endif
+	if	DRIVES == 8
+	ORG	0E100H
+	endif
+	if	DRIVES == 16
+	ORG	0DD00H
+	endif
 ;
 CBASE:	JP	COMMAND		;execute command processor (ccp).
 	JP	CLEARBUF	;entry to empty input buffer before starting ccp.

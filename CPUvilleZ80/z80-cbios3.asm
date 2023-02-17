@@ -1,4 +1,27 @@
+; BIOS version that supports more drives rather than four. Adds
+; additional data for the drives, adjusts range checks, etc. Can set
+; drives to 4, 8, or 16 at assembly time by setting symbol "disks".
+; In the case of 4 drives, it generates the same code as the original
+; version. I needed to adapt the LBA encoding scheme to support more
+; drives. It uses the following to maintain compatibillity for
+; original 4 drive version:
+;
+; 4, 8, or 16 Drive LBA scheme (D=Disk S=Sector T=Track):
+; +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+
+; |0 0 0 0 0 0 D D|  |T T T T T T T T|  |S S S S S S D D|
+; +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+  +-+-+-+-+-+-+-+-+
+;
+; Addresses that vary with number of disks:
+;
+; Disks:	4		8		16
+; CCP (CBASE)	E400-EC05	E100-E905	DD00-E505
+; BDOS (FBASE)	EC06-FA00	E906-F700	E506-F2FF
+; BIOS		FA00-FFE8	F700-FF36	F300-FFC2
+
 ;	CP/M CBIOS for CPUville 8-bit computers
+;	February 2023 by Jeff Tranter
+;	Add support for 4, 8, or 16 disks
+;
 ;	version 3, June 2019 by Donn Stewart
 ;	Modified from skeletal cbios for first level of CP/M 2.0 alteration
 ;	64-sector tracks, numbering starting at zero (sectors 0 to 63)
@@ -9,13 +32,36 @@
 ;	to create logical block address (LBA) for IDE disk
 ;	Added greeting message to cold boot
 ;
+
+	include	'defines.asm'
+
+disks:	equ	DRIVES		;number of disks in the system - set to 4, 8, or 16
+	if	disks == 4
 ccp:	equ	0E400h		;base of ccp
 bdos:	equ	0EC06h		;bdos entry
 bios:	equ	0FA00h		;base of bios
-cdisk:	equ	0004h		;address of current disk number 0=a,... l5=p
+	endif
+	if	disks == 8
+ccp:	equ	0E100h		;base of ccp
+bdos:	equ	0E906h		;bdos entry
+bios:	equ	0F700h		;base of bios
+	endif
+	if	disks == 16
+ccp:	equ	0DD00h		;base of ccp
+bdos:	equ	0E506h		;bdos entry
+bios:	equ	0F300h		;base of bios
+	endif
+cdisk:	equ	0004h		;address of current disk number 0=a,... 15=p
 iobyte:	equ	0003h		;intel i/o byte
-disks:	equ	04h		;number of disks in the system
 ;
+
+	if	disks < 4
+	error	"Bad number of disks"
+	endif
+	if	disks > 16
+	erro	"Bad number of disks"
+	endif
+
 	org	bios		;origin of this program
 nsects:	equ	($-ccp)/128	;warm start sector count
 ;
@@ -40,7 +86,7 @@ wboote:	JP	wboot	;warm start
 	JP	sectran	;sector translate
 ;
 ;	Data tables for disks
-;	Four disks, 26 sectors/track, disk size = number of 1024 byte blocks
+;	Four, eight, or sixteen disks, 26 sectors/track, disk size = number of 1024 byte blocks
 ;	Number of directory entries (32-bytes each) set to 127 per 500 blocks
 ;	Allocation map bits = number of blocks needed to contain directory entries
 ;	No translations -- translation maps commented out
@@ -65,6 +111,70 @@ dpbase:	defw	0000h, 0000h
 	defw	0000h, 0000h
 	defw	dirbf, dpblk
 	defw	chk03, all03
+	if	disks >= 8
+;	disk parameter header for disk 04
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk04, all04
+;	disk parameter header for disk 05
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk05, all05
+;	disk parameter header for disk 06
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk06, all06
+;	disk parameter header for disk 07
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk07, all07
+	endif
+	if	disks == 16
+;	disk Parameter header for disk 08
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk08, all08
+;	disk parameter header for disk 08
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk09, all09
+;	disk parameter header for disk 10
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk10, all10
+;	disk parameter header for disk 11
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk11, 11
+;	disk parameter header for disk 12
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk12, all12
+;	disk parameter header for disk 13
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk13, all13
+;	disk parameter header for disk 14
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk14, all14
+;	disk parameter header for disk 15
+	defw	0000h, 0000h
+	defw	0000h, 0000h
+	defw	dirbf, dpblk
+	defw	chk15, all15
+	endif
 ;
 ;	sector translate vector
 ;Since no translation will comment out
@@ -247,13 +357,13 @@ seldsk:	;select disk given by register c
 	LD	HL, 0000h	;error return code
 	LD 	a, c
 	LD	(diskno),A
-	CP	disks		;must be between 0 and 3
-	RET	NC		;no carry if 4, 5,...
+	CP	disks		;must be between 0 and # of disks
+	RET	NC		;no carry if greater
 ;	disk number is in the proper range
 ;	defs	10		;space for disk select -- not needed for modern hard disk
 ;	compute proper disk Parameter header address
 	LD	A,(diskno)
-	LD 	l, a		;l=disk number 0, 1, 2, 3
+	LD 	l, a		;l=disk number 0 to # of disks
 	LD 	h, 0		;high order zero
 	ADD	HL,HL		;*2
 	ADD	HL,HL		;*4
@@ -322,12 +432,21 @@ rd_status_loop_2:	in	a,(0fh)			;check	status
 			sla	a			;make room for diskno (0 to 3, 2 bits)
 			sla	a
 			ld	b,a
-			ld	a,(diskno)		;CP/M disk (0 to 3)
+			ld	a,(diskno)		;CP/M disk (0 to 15)
+			if	disks > 8
+			and	03h			;Only want two least signiificant bits here
+			endif
 			add	b			;diskno and sector now in one byte
 			out	(0bh),a			;lba bits 0 - 7
 			ld	a,(track)		;CP/M track (0 to 255, 8 bits)
 			out	(0ch),a			;lba bits 8 - 15
-			ld	a,0			;upper bits zero
+			if	disks == 4
+			ld	a,0			;upper bits zero in the case of 4 disks
+			else				;for 7 or 16 disks we store upper 2 bits
+			ld	a,(diskno)		;Get disk number
+			sra	a			;Only want two upper bits of disk number
+			sra	a
+			endif
 			out	(0dh),a			;lba bits 16 - 23
 			ld	a,11100000b		;LBA mode, select host drive 0
 			out	(0eh),a			;drive/head register
@@ -386,12 +505,21 @@ wr_status_loop_2:	in	a,(0fh)			;check	status
 			sla	a			;make room for diskno
 			sla	a
 			ld	b,a
-			ld	a,(diskno)		;CP/M disk (0 to 3, two bits)
+			ld	a,(diskno)		;CP/M disk (0 to 15)
+			if	disks > 8
+			and	03h			;Only want two least signiificant bits here
+			endif
 			add	b			;diskno and sector in one byte
 			out	(0bh),a			;lba bits 0 - 7
 			ld	a,(track)		;CP/M track (0 to 255, 8 bits)
 			out	(0ch),a			;lba bits 8 - 15
-			ld	a,0			;upper bits zero
+			if	disks == 4
+			ld	a,0			;upper bits zero in the case of  4 disks
+			else				;for 7 or 16 disks we store upper 2 bits
+			ld	a,(diskno)		;Get disk number
+			sra	a			;Only want two upper bits of disk number
+			sra	a
+			endif
 			out	(0dh),a			;lba bits 16 - 23
 			ld	a,11100000b		;LBA mode, select drive 0
 			out	(0eh),a			;drive/head register
@@ -413,10 +541,10 @@ wr_wait_for_BSY_clear:	in	a,(0fh)
 			and	01h			;check for error
 			ret
 
-					
+
 ;
 ;	the remainder of the cbios is reserved uninitialized
-;	data area, and does not need to be a Part of the
+;	data area, and does not need to be a part of the
 ;	system	memory image (the space must be available,
 ;	however, between"begdat" and"enddat").
 ;
@@ -433,11 +561,43 @@ all00:	defs	128	 	;allocation vector 0
 all01:	defs	128	 	;allocation vector 1
 all02:	defs	128	 	;allocation vector 2
 all03:	defs	128	 	;allocation vector 3
+	if	disks >= 8
+all04:	defs	128	 	;allocation vector 4
+all05:	defs	128	 	;allocation vector 5
+all06:	defs	128	 	;allocation vector 6
+all07:	defs	128	 	;allocation vector 7
+	endif
+	if	disks == 16
+all08:	defs	128	 	;allocation vector 8
+all09:	defs	128	 	;allocation vector 9
+all10:	defs	128	 	;allocation vector 10
+all11:	defs	128	 	;allocation vector 11
+all12:	defs	128	 	;allocation vector 12
+all13:	defs	128	 	;allocation vector 13
+all14:	defs	128	 	;allocation vector 14
+all15:	defs	128	 	;allocation vector 15
+	endif
 ;Could probably remove these chk areas, but just made size small
 chk00:	defs	1		;check vector 0
 chk01:	defs	1		;check vector 1
 chk02:	defs	1	 	;check vector 2
 chk03:	defs	1	 	;check vector 3
+	if	disks >= 8
+chk04:	defs	1	 	;check vector 4
+chk05:	defs	1	 	;check vector 5
+chk06:	defs	1	 	;check vector 6
+chk07:	defs	1	 	;check vector 7
+	endif
+	if	disks == 16
+chk08:	defs	1		;check vector 8
+chk09:	defs	1		;check vector 9
+chk10:	defs	1	 	;check vector 10
+chk11:	defs	1	 	;check vector 11
+chk12:	defs	1	 	;check vector 12
+chk13:	defs	1	 	;check vector 13
+chk14:	defs	1	 	;check vector 14
+chk15:	defs	1	 	;check vector 15
+	endif
 ;
 enddat:	equ	$	 	;end of data area
 datsiz:	equ	$-begdat;	;size of data area

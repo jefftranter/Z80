@@ -1,7 +1,12 @@
-;Formats four CP/M disks
+;Formats four, eight, or sixteen CP/M disks
 ;Updated June 2019 to match improved z80_cbios3
 ;Writes E5h to 64 sectors on tracks 1 to 255 of each disk (track 0 for system).
-;Uses calls to cbios, in memory at FA00h
+;Uses calls to cbios, in memory at FA00h (varies depending on number of disk drives)
+
+		include	'defines.asm'
+
+; Make sure these addresses match those in z80-cbios.asm
+		if	DRIVES == 4
 seldsk:		equ	0fb5fh		;pass disk no. in c
 setdma:		equ	0fb89h		;pass address in bc
 settrk:		equ	0fb78h		;pass track in reg C
@@ -9,6 +14,26 @@ setsec:		equ	0fb7dh		;pass sector in reg c
 write:		equ	0fbfdh		;write one CP/M sector to disk
 prmsg:		equ	0fb8fh		;subroutine to write message
 conout:		equ	0fb43h		;print a character
+		endif
+		if	DRIVES == 8
+seldsk:		equ	0f89fh		;pass disk no. in c
+setdma:		equ	0f8c9h		;pass address in bc
+settrk:		equ	0f8b8h		;pass track in reg C
+setsec:		equ	0f8bdh		;pass sector in reg c
+write:		equ	0f942h		;write one CP/M sector to disk
+prmsg:		equ	0f8cfh		;subroutine to write message
+conout:		equ	0f883h		;print a character
+		endif
+		if	DRIVES == 16
+seldsk:		equ	0f51fh		;pass disk no. in c
+setdma:		equ	0f549h		;pass address in bc
+settrk:		equ	0f538h		;pass track in reg C
+setsec:		equ	0f53dh		;pass sector in reg c
+write:		equ	0f5c4h		;write one CP/M sector to disk
+prmsg:		equ	0f54fh		;subroutine to write message
+conout:		equ	0f503h		;print a character
+		endif
+
 monitor_warm_start:	equ	046fh
 		org	0800h
 		ld	sp,format_stack
@@ -64,7 +89,7 @@ skip_1:		ld	a,0
 		jp	track_loop
 next_disk:	ld	a,(disk)
 		inc	a
-		cp	4
+		cp	DRIVES		;Number of disks
 		jp	z,done
 		ld	(disk),a
 		jp	disk_loop
@@ -80,5 +105,3 @@ directory_sector:
 		ds	32		;stack space
 format_stack:
 		end
-	
-
