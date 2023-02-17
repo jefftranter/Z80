@@ -1,5 +1,5 @@
                    CPUville Z80 SBC Quick Reference
-                             15 Jan 2023
+                             17 Feb 2023
                    Jeff Tranter <tranter@pobox.com>
 
 Hardware Setup:
@@ -7,9 +7,9 @@ Hardware Setup:
 5V regulated power to DC jack or VCC header or via IDE connector.
 (IDE hard drive may also need +12V power)
 
-Z80 CPU running at 1.8432 MHz
+Z80 CPU running at 1.8432 MHz.
 Serial port: 9600 BPS 8N1 straight-through serial cable to PC.
-Disk appears as four CP/M disk drives of 2MB each.
+Disk appears as 4, 8, or 16 CP/M disk drives of 2MB each.
 
 ROM Monitor Commands:
 
@@ -27,7 +27,7 @@ run
 
 CP/M Built-in Commands:
 
-A: B: C: D:
+A: B: C: D: etc.
 DIR <filespec>
 ERA <filespec>
 REN <newname>=<oldname>
@@ -69,17 +69,18 @@ I/O Ports:
 3 Read/Write 8251A UART control register
 8-15 IDE interface
 
-CP/M Memory Usage:
-
-$FFFF +-----------------------------------+
-      | BIOS (Hardware drivers for BDOS)  |
-$FA00 +-----------------------------------+
-      | BDOS (Operating system functions) |
-$EC00 +-----------------------------------+
-      | CCP (Command line interpreter)    |
-$E400 +-----------------------------------+
-      |                                   |
-      | TPA (memory for programs)         |
-$0100 +-----------------------------------+
-      | Low Storage (system parameters)   |
-$0000 +-----------------------------------+
+CP/M Memory Map:
+                               Disks:    4     8    16
++-----------------------------------+ $FFFF $FFFF $FFFF
+| BIOS (Hardware drivers for BDOS)  |
++-----------------------------------+ $FA00 $F700 $F300
+| BDOS (Operating system functions) |
++-----------------------------------+ $EC00 $E900 $E500
+| CCP (Command line interpreter)    |
++-----------------------------------+ $E400 $E100 $DD00
+|                                   |
+| TPA (Memory for programs)         |
+|                                   |
++-----------------------------------+ $0100 $0100 $0100
+| Low Storage (System parameters)   |
++-----------------------------------+ $0000 $0000 $0000

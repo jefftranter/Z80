@@ -1,4 +1,4 @@
-;Formats four CP/M disks
+;Formats four, eight, or sixteen CP/M disks
 ;Updated June 2019 to match improved z80_cbios3
 ;Writes E5h to 64 sectors on tracks 1 to 255 of each disk (track 0 for system).
 ;Uses calls to cbios, in memory at FA00h (varies depending on number of disk drives)
