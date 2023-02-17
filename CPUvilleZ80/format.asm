@@ -1,13 +1,12 @@
 ;Formats four CP/M disks
 ;Updated June 2019 to match improved z80_cbios3
 ;Writes E5h to 64 sectors on tracks 1 to 255 of each disk (track 0 for system).
-;Uses calls to cbios, in memory at FA00h
+;Uses calls to cbios, in memory at FA00h (varies depending on number of disk drives)
 
 		include	'defines.asm'
 
 ; Make sure these addresses match those in z80-cbios.asm
 		if	DRIVES == 4
-CCP:		equ	0E400H
 seldsk:		equ	0fb5fh		;pass disk no. in c
 setdma:		equ	0fb89h		;pass address in bc
 settrk:		equ	0fb78h		;pass track in reg C
@@ -17,7 +16,6 @@ prmsg:		equ	0fb8fh		;subroutine to write message
 conout:		equ	0fb43h		;print a character
 		endif
 		if	DRIVES == 8
-CCP:		equ	0E100H
 seldsk:		equ	0f89fh		;pass disk no. in c
 setdma:		equ	0f8c9h		;pass address in bc
 settrk:		equ	0f8b8h		;pass track in reg C
@@ -27,7 +25,6 @@ prmsg:		equ	0f8cfh		;subroutine to write message
 conout:		equ	0f883h		;print a character
 		endif
 		if	DRIVES == 16
-CCP:		equ	0DD00H
 seldsk:		equ	0f51fh		;pass disk no. in c
 setdma:		equ	0f549h		;pass address in bc
 settrk:		equ	0f538h		;pass track in reg C
