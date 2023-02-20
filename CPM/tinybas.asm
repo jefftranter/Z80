@@ -472,7 +472,7 @@ DLOAD  RST  5         ;IGNORE BLANKS
        PUSH H         ;SAVE H
        CALL FCBSET    ;SET UP FILE CONTROL BLOCK
        PUSH D         ;SAVE THE REST
-       PUSH B         
+       PUSH B
        LXI  D,FCB     ;GET FCB ADDRESS
        MVI  C,OPEN    ;PREPARE TO OPEN FILE
        CALL CPM       ;OPEN IT
@@ -512,7 +512,7 @@ DSAVE  RST  5         ;IGNORE BLANKS
        LXI  D,FCB
        MVI  C,DELETE
        CALL CPM       ;ERASE FILE IF IT EXISTS
-       LXI  D,FCB  
+       LXI  D,FCB
        MVI  C,MAKE
        CALL CPM       ;MAKE A NEW ONE
        CPI  0FFH      ;IS THERE SPACE?

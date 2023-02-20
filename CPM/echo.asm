@@ -21,7 +21,7 @@ start:  mvi     c,conout        ; BDOS function
 
 loop:   inx     h               ; Advance pointer to next char
         dcr     d               ; Decrement character count
-        jz      eos             ; Done if reached zero       
+        jz      eos             ; Done if reached zero
         mov     e,m             ; Get next character
         push    h               ; Save registers
         push    d
