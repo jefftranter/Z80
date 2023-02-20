@@ -1,5 +1,7 @@
 ; File copy program. Also includes useful CP/M utility functions. From
 ; the book "CP/M Assembly Language Programming" by Ken Barbier.
+; Will build using the CP/M asm assembler if you change quoted strings
+; in DB directives from double quotes to single quotes.
 
 ; MULTI-WRITE FILE COPY PROGRAM  12 SEPT 82
 
