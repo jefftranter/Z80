@@ -2,6 +2,11 @@
 ; the book "CP/M Assembly Language Programming" by Ken Barbier.
 ; Will build using the CP/M asm assembler if you change quoted strings
 ; in DB directives from double quotes to single quotes.
+;
+; Jeff Tranter <tranter@pobox.com> 20 Feb 2023
+; I fixed two bugs in the original code:
+; - File not found error would show default drive as '@'; now uses space.
+; - Did not handle displaying drive 'P'.
 
 ; MULTI-WRITE FILE COPY PROGRAM  12 SEPT 82
 
@@ -200,9 +205,12 @@ SHOFN:	PUSH	B		; SAVE TEMP STORE
 	STA	FCBEX		; AND FILE TYPE
 	LXI	H,TFCB		; SHOW DISK DRIVE
 	MOV	A,M
-	ANI	0FH		; LIMIT TO 4 BITS
-	ORI	40H		; CONVERT TO ASCII
-	CALL	CO
+	ANI	1FH		; LIMIT TO 5 BITS
+	ADI	40H		; CONVERT TO ASCII
+	CPI	'@'		; DEFAULT DRIVE?
+	JNZ	NOTDFL		; BRANCH IF NOT
+	MVI	A,' '		; SHOW SPACE FOR DEFAULT DRIVE
+NOTDFL:	CALL	CO
 	MVI	A,':'		; SHOW THE COLON
 	CALL	CO
 	INX	H		; AND SHOW THE FILENAME
