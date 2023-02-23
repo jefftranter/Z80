@@ -194,7 +194,7 @@ enum {
 } mnemonic_t;
 
 /* Table of format strings, indexed by addressing mode */
-const char *formatString[] = {
+char *formatString[] = {
     "",
     "A",
     "B",
@@ -394,7 +394,7 @@ int instructionLength[] = {
 };
 
 /* Table of mnemonic strings. */
-const char *mnemonicString[] = {
+char *mnemonicString[] = {
     "???",
     "ACI",
     "ADC",
@@ -511,7 +511,7 @@ int mnemonic[256] = {
     dcr,
     mvi,
     rar,
-    
+
     invalid, /* 20 */
     lxi,
     shld,
@@ -1032,21 +1032,22 @@ int main(int argc, char *argv[])
     FILE *f;
     unsigned long address = 0x100;
 /* Due to bug in Hi-Tech C need to use unsigned long in hex printf statements. */
+    int len;
 #ifdef CPM
-    unsigned long op, am, mnem, len, op1, op2;
+    unsigned long op, am, mnem, op1, op2;
 #else
-    int op, am, mnem, len, op1, op2;
+    int op, am, mnem, op1, op2;
 #endif
 
     if (argc !=2) {
-        printf("usage: disasm <filename>\n");
+        printf("Usage: disasm <filename>\n");
         return 1;
     }
 
     filename = argv[1];
     f = fopen(filename, "rb");
     if (f == NULL) {
-        printf("error: unable to open '%s'\n", filename);
+        printf("Error: unable to open '%s'\n", filename);
         return 1;
     }
 
@@ -1054,6 +1055,10 @@ int main(int argc, char *argv[])
         mnem = mnemonic[op];
         am = addressMode[op];
         len = instructionLength[am];
+
+        if (feof(f)) {
+            break;
+        }
 
         switch (len) {
         case 1:
