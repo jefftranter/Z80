@@ -2,7 +2,19 @@
  * Simple 8080 disasssembler. Reads and disassembles a binary (COM)
  * file passed on the command line.
  *
- * Jeff Tranter <tranter@pobox.com>
+ * Note that this will compile natively under CP/M using the Hi-Tech C
+ * compiler.
+ *
+ * Copyright 2023 Jeff Tranter <tranter@pobox.com>
+ *
+ * Possible future enhancements:
+ * - Reformat code with fewer source lines.
+ * - Handle edge case where EOF reached in the middle of a multi-byte instruction.
+ * - Command line option to specify start address.
+ * - Command line option for source code mode, i.e.
+ *   - Suppress addresses and bytes.
+ *   - Add "org" at start and "end" at end.
+ *   - List invalid instructions as "db" directives (hex or character).
  */
 
 #include <stdio.h>
@@ -194,7 +206,7 @@ enum {
 } mnemonic_t;
 
 /* Table of format strings, indexed by addressing mode */
-char *formatString[] = {
+char *formatString[96] = {
     "",
     "A",
     "B",
@@ -294,7 +306,7 @@ char *formatString[] = {
 };
 
 /* Table of instruction lengths, indexed by addressing mode */
-int instructionLength[] = {
+int instructionLength[96] = {
     1,
     1,
     1,
@@ -369,7 +381,6 @@ int instructionLength[] = {
     1,
     1,
     1,
-    2,
     2,
     2,
     2,
@@ -384,6 +395,7 @@ int instructionLength[] = {
     3,
     3,
     3,
+    1,
     1,
     1,
     1,
