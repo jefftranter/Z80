@@ -8,7 +8,6 @@
  * Copyright 2023 Jeff Tranter <tranter@pobox.com>
  *
  * Possible future enhancements:
- * - Handle edge case where EOF reached in the middle of a multi-byte instruction.
  * - Command line option to specify start address.
  * - Command line option for source code mode, i.e.
  *   - Suppress addresses and bytes.
@@ -222,9 +221,8 @@ int main(int argc, char *argv[])
         am = addressMode[op];
         len = instructionLength[am];
 
-        if (feof(f)) {
+        if (feof(f))
             break;
-        }
 
         switch (len) {
         case 1:
@@ -232,13 +230,19 @@ int main(int argc, char *argv[])
             break;
         case 2:
             op1 = getc(f);
+            if (feof(f))
+                break;
             printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
             printf(formatString[am], op1);
             printf("\n");
             break;
         case 3:
             op1 = getc(f);
+            if (feof(f))
+                break;
             op2 = getc(f);
+            if (feof(f))
+                break;
             printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
             printf(formatString[am], op2, op1);
             printf("\n");
