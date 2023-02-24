@@ -3,7 +3,9 @@
  * file passed on the command line.
  *
  * Note that this will compile natively under CP/M using the Hi-Tech C
- * compiler.
+ * compiler. Some of the source mode feature is disabled when
+ * compiling for CP/M as the compiler ran out of memory when compiling
+ * it.
  *
  * Copyright 2023 Jeff Tranter <tranter@pobox.com>
  *
@@ -226,7 +228,11 @@ int main(int argc, char *argv[])
     }
 
     if (sourceMode) {
+#ifdef CPM
+        printf("                ORG   0%04lXH\n", address);
+#else
         printf("        ORG     0%04lXH\n", address);
+#endif
     }
 
     while ((op = getc(f)) != EOF) {
@@ -239,6 +245,7 @@ int main(int argc, char *argv[])
 
         switch (len) {
         case 1:
+#ifndef CPM
             if (sourceMode) {
                 if (mnem == invalid) {
                     printf("        DB      0%02XH\n", op);
@@ -248,16 +255,23 @@ int main(int argc, char *argv[])
             } else {
                 printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
             }
+#else
+            printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
+#endif
             break;
         case 2:
             op1 = getc(f);
             if (feof(f))
                 break;
+#ifndef CPM
             if (sourceMode) {
                 printf("        %-4s    ", mnemonicString[mnem]);
             } else {
                 printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
             }
+#else
+            printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
+#endif
             printf(formatString[am], op1);
             printf("\n");
             break;
@@ -268,11 +282,15 @@ int main(int argc, char *argv[])
             op2 = getc(f);
             if (feof(f))
                 break;
+#ifndef CPM
             if (sourceMode) {
                 printf("        %-4s    ", mnemonicString[mnem]);
             } else {
                 printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
             }
+#else
+            printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
+#endif
             printf(formatString[am], op2, op1);
             printf("\n");
             break;
@@ -281,7 +299,11 @@ int main(int argc, char *argv[])
     }
 
     if (sourceMode) {
+#ifdef CPM
+        printf("                END\n");
+#else
         printf("        END\n");
+#endif
     }
 
     fclose (f);
