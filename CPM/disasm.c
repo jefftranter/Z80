@@ -7,15 +7,10 @@
  *
  * Copyright 2023 Jeff Tranter <tranter@pobox.com>
  *
- * Possible future enhancements:
- * - Command line option to specify start address.
- * - Command line option for source code mode, i.e.
- *   - Suppress addresses and bytes.
- *   - Add "org" at start and "end" at end.
- *   - List invalid instructions as "db" directives (hex or character).
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Data structures */
@@ -55,9 +50,9 @@ char *formatString[96] = {
     "E,M", "E,A", "H,B", "H,C", "H,D", "H,E", "H,H", "H,L", "H,M", "H,A",
     "L,B", "L,C", "L,D", "L,E", "L,H", "L,L", "L,M", "L,A", "M,B", "M,C",
     "M,D", "M,E", "M,H", "M,L", "M,A", "A,B", "A,C", "A,D", "A,E",  "A,H",
-    "A,L", "A,M", "A,A", "PSW", "%02XH", "A,%02XH", "B,%02XH", "C,%02XH",
-    "D,%02XH", "E,%02XH", "H,%02XH", "L,%02XH", "M,%02XH", "B,%02X%02XH",
-    "D,%02X%02XH", "H,%02X%02XH", "SP,%02X%02XH", "%02X%02XH", "0", "1",
+    "A,L", "A,M", "A,A", "PSW", "0%02XH", "A,0%02XH", "B,0%02XH", "C,0%02XH",
+    "D,0%02XH", "E,0%02XH", "H,0%02XH", "L,0%02XH", "M,0%02XH", "B,0%02X%02XH",
+    "D,0%02X%02XH", "H,0%02X%02XH", "SP,0%02X%02XH", "0%02X%02XH", "0", "1",
     "2", "3", "4", "5", "6", "7"
 };
 
@@ -146,7 +141,7 @@ int addressMode[256]  = {
     implied, regb, regb, regb, regc, regc, immc, implied,
     /* 10 */
     implied, immxd, regd, regd, regd, regd, immd, implied,
-    implied, implied, regd, regd, rege, rege, imme, implied,
+    implied, regd, regd, regd, rege, rege, imme, implied,
     /* 20 */
     implied, immxh, direct, regh, regh, regh, immh, implied,
     implied, regh, direct, regh, regl, regl, imml, implied,
@@ -196,7 +191,8 @@ int main(int argc, char *argv[])
     char *filename;
     FILE *f;
     unsigned long address = 0x100;
-    int len;
+    int i, len;
+    int sourceMode = 0;
     /* Due to bug in Hi-Tech C need to use unsigned long in hex printf statements. */
 #ifdef CPM
     unsigned long op, am, mnem, op1, op2;
@@ -204,16 +200,33 @@ int main(int argc, char *argv[])
     int op, am, mnem, op1, op2;
 #endif
 
-    if (argc !=2) {
-        printf("Usage: disasm <filename>\n");
+    if (argc < 2 || argc > 4) {
+        printf("Usage: disasm [-a<address>] [-s] <filename>\n");
         return 1;
     }
 
-    filename = argv[1];
+    /* Parse any command line options. */
+    for (i = 1; i < argc; i++) {
+#ifdef CPM
+        if (!strcasecmp(argv[i], "-s")) {
+#else
+        if (!strcmp(argv[i], "-s")) {
+#endif
+            sourceMode = 1;
+        } else if (argv[i][0] == '-' && (argv[i][1] == 'a' || argv[i][1] == 'A')) {
+            address = atoi(argv[i]+2);
+        }
+    }
+
+    filename = argv[argc - 1];
     f = fopen(filename, "rb");
     if (f == NULL) {
         printf("Error: unable to open '%s'\n", filename);
         return 1;
+    }
+
+    if (sourceMode) {
+        printf("        ORG     0%04lXH\n", address);
     }
 
     while ((op = getc(f)) != EOF) {
@@ -226,13 +239,25 @@ int main(int argc, char *argv[])
 
         switch (len) {
         case 1:
-            printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
+            if (sourceMode) {
+                if (mnem == invalid) {
+                    printf("        DB      0%02XH\n", op);
+                } else {
+                    printf("        %-4s    %s\n", mnemonicString[mnem], formatString[am]);
+                }
+            } else {
+                printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
+            }
             break;
         case 2:
             op1 = getc(f);
             if (feof(f))
                 break;
-            printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
+            if (sourceMode) {
+                printf("        %-4s    ", mnemonicString[mnem]);
+            } else {
+                printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
+            }
             printf(formatString[am], op1);
             printf("\n");
             break;
@@ -243,12 +268,20 @@ int main(int argc, char *argv[])
             op2 = getc(f);
             if (feof(f))
                 break;
-            printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
+            if (sourceMode) {
+                printf("        %-4s    ", mnemonicString[mnem]);
+            } else {
+                printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
+            }
             printf(formatString[am], op2, op1);
             printf("\n");
             break;
         }
         address += len;
+    }
+
+    if (sourceMode) {
+        printf("        END\n");
     }
 
     fclose (f);
