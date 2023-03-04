@@ -851,8 +851,8 @@ VERM3:  CALL    TSTOP           ;DONE?
         INC     BC              ;2ND POINTER
         JR      VERM2
 ;
-; Fill rest of 8K ROM
+; Fill until address $1000
 ;
-        DS      $2000-$,$FF
+        DS      $1000-$,$FF
 
         END

@@ -2,7 +2,7 @@ Firmware and software for Z80 Single Board Computer
 
 bas32k.asm - Grant Searle's port of Microsoft BASIC 4.7.
 
-hexmon.asm - Intel hex paper tape and magnetic tape routines from the book "8080/Z80 Assembly Language - Techniques for Improved Programming" by Alan R. Miller (untested).
+hexmon.asm - Intel hex paper tape and magnetic tape routines from the book "8080/Z80 Assembly Language - Techniques for Improved Programming" by Alan R. Miller.
 
 int32k.asm - Grant Searle's i/o routines and startup program to boot into BASIC.
 

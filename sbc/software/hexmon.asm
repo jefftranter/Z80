@@ -5,6 +5,14 @@
 ; It was modified by Jeff Tranter <tranter@pobox.com> to assemble with
 ; the z80asm cross-assembler and to run on my Z80-based Single Board
 ; Computer and converted from 8080 to Z80 mnemonics.
+;
+; Commands:
+;
+; E                             Load and execute
+; G<addr>                       Go to address given
+; R[<offset>]                   Read tape into memory (with optional offset)
+; V                             Verify tape against memory
+; W<start>,<end>[,<autostart>]  Write and label paper tape (with optional autostart address)
 
 ; HEXMON: A MONITOR TO DUMP, LOAD, AND
 ;      VERIFY INTEL HEX CHECKSUM TAPES
@@ -12,7 +20,7 @@
 ;
 ;       TITLE   'hexmon with tlabel'
 ;
- ORG 100H
+        ORG 1000H
 ;
 ;
 ;
@@ -20,14 +28,14 @@
 ;
 RLEN:   EQU     16              ;RECORD LENGTH
 ;
-CSTAT:  EQU     10H             ;CONSOLE STATUS
+CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
 CIMSK:  EQU     1               ;IN MASK
 COMSK:  EQU     2               ;OUT MASK
-PSTAT:  EQU     6               ;PUNCH STATUS
+PSTAT:  EQU     80H             ;PUNCH STATUS
 PDATA:  EQU     PSTAT+1         ;PUNCH DATA
 PIMSK:  EQU     1               ;PUNCH IN MASK
-POMSK:  EQU     80H             ;PUNCH OUT MASK
+POMSK:  EQU     2               ;PUNCH OUT MASK
 ;
 CR:     EQU     13              ;CARRIAGE RETURN
 LF:     EQU     10              ;LINE FEED
@@ -370,7 +378,7 @@ HEX:    CALL    PIN
 POUT:   PUSH    AF
 PUTW:   IN      A,(PSTAT)
         AND     POMSK
-        JP      NZ,PUTW
+        JP      Z,PUTW
         POP     AF
         OUT     (PDATA),A
         RET
@@ -379,7 +387,7 @@ PUTW:   IN      A,(PSTAT)
 ;
 PIN:    IN      A,(PSTAT)
         AND     PIMSK
-        JP      NZ,PIN
+        JP      Z,PIN
         IN      A,(PDATA)
         AND     7FH             ;STRIP PARITY
         RET
@@ -627,12 +635,23 @@ TABL:   DB      0,  0,  0,  0,  0       ; SPACE
         DB      129,129,129,255,0       ; [
         DB      12, 2,  1,  2,  12      ; ^
 ;
-TASK:   DS      1               ;SAVE IT
-OFSET:  DW      0               ;LOAD OFFSET
-        DS      30              ;STACK SPACE
-STACK:
-IBUFP:  DS      2               ;BUFFER POINTER
-IBUFC:  DS      1               ;BUFFER COUNT
-IBUFF:  DS      20              ;INPUT BUFFER
+; Fill rest of 8K ROM
+;
+        DS      $2000-$,$FF
+;
+; Variables in RAM
+;
+        ORG     $8000
+TASK:   EQU     $               ;SAVE IT
+        ORG     $+1
+OFSET:  EQU     $               ;LOAD OFFSET
+        ORG     $+32
+STACK:  EQU     $               ;STACK SPACE
+IBUFP:  EQU     $               ;BUFFER POINTER
+        ORG     $+2
+IBUFC:  EQU     $               ;BUFFER COUNT
+        ORG     $+1
+IBUFF:  EQU     $               ;INPUT BUFFER
+
 ;
         END

@@ -1,4 +1,4 @@
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin hexmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -9,11 +9,11 @@ int32k.bin: int32k.asm
 bas32k.bin: bas32k.asm
 	z80asm -o bas32k.bin -lbas32k.lst -Lbas32k.map bas32k.asm
 
-sysmon.bin: sysmon.asm
-	z80asm -o sysmon.bin -lsysmon.lst -Lsysmon.map sysmon.asm
-
-hexmon.bin: hexmon.asm
-	z80asm -o hexmon.bin -lhexmon.lst -Lhexmon.map hexmon.asm
+sysmon.bin: sysmon.asm hexmon.asm
+	z80asm -o part1.bin -lsysmon.lst -Lsysmon.map sysmon.asm
+	z80asm -o part2.bin -lhexmon.lst -Lhexmon.map hexmon.asm
+	cat part1.bin part2.bin >sysmon.bin
+	$(RM) part1.bin part2.bin
 
 ml.bin: ml.asm
 	z80asm -o ml.bin -lml.lst -Lml.map ml.asm
