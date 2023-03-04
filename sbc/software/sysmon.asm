@@ -5,6 +5,13 @@
 ; It was modified by Jeff Tranter <tranter@pobox.com> to assemble with
 ; the z80asm cross-assembler and to run on my Z80-based Single Board
 ; Computer.
+;
+; Revision History
+; 04 Mar 2023
+; - Modified to include hexmon Intel hex load/save code.
+; - Added T command to call tape routines (above).
+; - Added P (help) command to show command summary.
+; - Bumped version to 2.
 
 ; Commands:
 ;
@@ -18,9 +25,11 @@
 ; Search:      S<start> <byte [<byte>]
 ; Input port:  I<addr>
 ; Output port: O<port> <data>
+; Help         P
 ; Hex math:    H<value1> <value2>
 ; Memory test: J<start> <end>
 ; Replace:     R<start> <stop> <orig> <new>
+; Tape:        T
 ; Verify:      V<start> <end> <compare>
 
 ;TITLE   Z-80 SYSTEM MONITOR
@@ -33,7 +42,7 @@ ORGIN:  EQU     $0000           ;PROGRAM START (WHEN RUNNING FROM ROM)
 
         ORG     ORGIN
 ;
-VERS:   EQU     '1'             ;VERSION NUMBER
+VERS:   EQU     '2'             ;VERSION NUMBER
 STACK:  EQU     $FF00           ;INITIALIZE ADDRESS OF TOP OF STACK
 CSTAT:  EQU     80H             ;CONSOLE STATUS
 CDATA:  EQU     CSTAT+1         ;CONSOLE DATA
@@ -193,6 +202,8 @@ SIGNON: DB      CR,LF
         DB      'Z80 System Monitor Version '
         DB      VERS
         DB      CR,LF
+        DB      'Type P for help.'
+        DB      CR,LF
         DB      0
 ;
 ; CONTINUATION OF COLD START
@@ -276,11 +287,11 @@ TABLE:  DW      ASCII           ;A, DUMP,LOAD
         DW      MOVE            ;M, MEMORY
         DW      ERROR           ;N
         DW      OPORT           ;O, PORT OUTPUT
-        DW      ERROR           ;P
+        DW      HELP            ;P, HELP
         DW      ERROR           ;Q
         DW      REPL            ;R, REPLACE
         DW      SEARCH          ;S, MEMORY
-        DW      ERROR           ;T
+        DW      TAPE            ;T, TAPE
         DW      ERROR           ;U
         DW      VERM            ;V, VERIFY MEM
         DW      ERROR           ;W
@@ -850,6 +861,34 @@ VERM2:  LD      A,(BC)          ;FETCH BYTE
 VERM3:  CALL    TSTOP           ;DONE?
         INC     BC              ;2ND POINTER
         JR      VERM2
+
+; Display command usage
+HELP:   LD      DE,HELPMSG      ;MESSAGE
+        CALL    SENDM           ;SEND IT
+        RET
+HELPMSG:
+        DB      CR,LF
+        DB      'Call:        C<address>',CR,LF
+        DB      'Dump:        D<start> <end>',CR,LF
+        DB      'Fill:        F<start> <end> <value>',CR,LF
+        DB      'Go:          G<address>',CR,LF
+        DB      'Hex math:    H<value1> <value2>',CR,LF
+        DB      'Input port:  I<addr>',CR,LF
+        DB      'Memory test: J<start> <end>',CR,LF
+        DB      'Load:        L<address>',CR,LF
+        DB      'Move:        M<start> <end> <dest>',CR,LF
+        DB      'Output port: O<port> <data>',CR,LF
+        DB      'Help         P',CR,LF
+        DB      'Replace:     R<start> <stop> <orig> <new>',CR,LF
+        DB      'Search:      S<start> <byte [<byte>]',CR,LF
+        DB      'Tape:        T',CR,LF
+        DB      'Verify:      V<start> <end> <compare>',CR,LF
+        DB      'Stack:       X<address>',CR,LF
+        DB      0
+
+; Call Intel hex tape load/save program
+TAPE:  JP       1000H
+
 ;
 ; Fill until address $1000
 ;
