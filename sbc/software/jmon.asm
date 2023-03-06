@@ -6,7 +6,7 @@
 ; Inspired by JMON for the Apple Replica 1 and 6502 processor.
 ; I wrote this mostly as an exercise to learn Z80 assembly language.
 ; 
-; Copyright (C) 2014-2021 by Jeff Tranter <tranter@pobox.com>
+; Copyright (C) 2014-2022 by Jeff Tranter <tranter@pobox.com>
 ; 
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 ;   DUMP: D <START>
 ;   FILL: F <START> <END> <DATA>
 ;   GO: G <ADDRESS>
+;   HEX LOAD/SAVE: H
 ;   INFO: I
 ;   CHECKSUM: K <START> <END>
 ;   CLR SCREEN: L
@@ -55,9 +56,8 @@
 ;                      Add support for <ESC> to cancel in more commands.
 ;                      Add memory size in info command.
 ; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
+; 0.5     07-May-2023  Added support for Intel hex file load/save.
 ;
-; TODO:
-; Intel or Motorola hex file loader?
 
         org     0000H           ; Start at address 0 if running from ROM
 
@@ -68,6 +68,7 @@ CR:             equ '\r'        ; Carriage Return
 NL:             equ '\n'        ; Newline
 ESC:            equ $1B         ; Escape
 stack:          equ $F000       ; Starting address for stack
+HexCommand:     equ $1900       ; Start address of Intel Hex tape load/save program
 
 
 ; Reset/RST 00 vector: jump to start entry point
@@ -180,8 +181,13 @@ tryF:
         jr      mainloop
 tryG:
         cp      'G'
-        jr      nz,tryI
+        jr      nz,tryH
         call    GoCommand
+        jr      mainloop
+tryH:
+        cp      'H'
+        jr      nz,tryI
+        call    HexCommand
         jr      mainloop
 tryI:
         cp      'I'
@@ -222,7 +228,7 @@ tryU:
         cp      'U'
         jr      nz,tryV
         call    UnassembleCommand
-        jr      mainloop
+        jp      mainloop
 tryV:
         cp      'V'
         jr      nz,tryColon
@@ -310,7 +316,7 @@ doAscii:
         pop     hl              ; Restore HL
 cont:   call    GetChar         ; Get key
         cp      ESC             ; Escape?
-        jr      nz,trySpace        
+        jr      nz,trySpace
         call    PrintCR         ; If so, return
         ret
 trySpace:
@@ -394,7 +400,7 @@ InfoCommand:
 prnt:   call    PrintString     ; Print CPU type
         call    PrintCR
         jr      mem
-z80:    
+z80:
         ld      hl,strZ80       ; It is a Z80
         jr      prnt
 
@@ -1227,7 +1233,7 @@ GetChar:
 PrintCR:
         push    af              ; Save A reg
         ld      a,CR            ; Carriage Return character
-        call    PrintChar       
+        call    PrintChar
         ld      a,NL            ; Newline character
         call    PrintChar
         pop     af              ; Restore A reg
@@ -1240,7 +1246,7 @@ PrintCR:
 PrintEquals:
         push    af              ; Save A reg
         ld      a,'='           ; Equals character
-        call    PrintChar       
+        call    PrintChar
         pop     af              ; Restore A reg
         ret
 
@@ -1326,7 +1332,7 @@ sp1:    call    PrintSpace      ; Print a space
 PrintSpace:
         push    af              ; Save A reg
         ld      a,' '           ; Space character
-        call    PrintChar       
+        call    PrintChar
         pop     af              ; Restore A reg
         ret
 
@@ -1639,7 +1645,7 @@ CMPER:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.4 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.5 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1651,6 +1657,7 @@ strHelp:
         db      "D <address>                   Dump memory\r\n"
         db      "F <start> <end> <data>        Fill memory\r\n"
         db      "G <address>                   Go\r\n"
+        db      "H                             Hex file load/save\r\n"
         db      "I                             Show info\r\n"
         db      "K <start> <end>               Checksum\r\n"
         db      "L                             Clear screen\r\n"
@@ -1698,9 +1705,9 @@ strRamFound2:
         include "disasm.asm"
 
 ;
-; Fill rest of 8K ROM
+; Fill rest of ROM space
 ;
-        ds      $2000-$,$FF
+        ds      $1900-$,$FF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;

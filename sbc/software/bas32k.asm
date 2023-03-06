@@ -512,7 +512,7 @@ INITAB: JP      WARMST          ; Warm start jump
         DW      STLOOK          ; Temp string space
         DW      -2              ; Current line number (cold)
         DW      PROGST+1        ; Start of program text
-INITBE:                         
+INITBE:
 
 ; END OF INITIALISATION TABLE ---------------------------------------------------
 
@@ -2656,7 +2656,7 @@ ARRLP:  EX      DE,HL
         CALL    CPDEHL          ; All string arrays done?
         JP      Z,SCNEND        ; Yes - Move string if found
         CALL    LOADFP          ; Get array name to BCDE
-        LD      A,E             ; Get type of array     
+        LD      A,E             ; Get type of array
         PUSH    HL              ; Save address of num of dim'ns
         ADD     HL,BC           ; Start of next array
         OR      A               ; Test type of array
@@ -4257,7 +4257,7 @@ ZEROSUP:                        ; Suppress leading zeros
         RL      D
         JR      NC,ZEROSUP
         JR      BITOUT2
-BITOUT:      
+BITOUT:
         RL      E
         RL      D               ; Top bit now in carry
 BITOUT2:

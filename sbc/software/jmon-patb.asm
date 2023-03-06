@@ -323,7 +323,7 @@ doAscii:
         pop     hl              ; Restore HL
 cont:   call    GetChar         ; Get key
         cp      ESC             ; Escape?
-        jr      nz,trySpace        
+        jr      nz,trySpace
         call    PrintCR         ; If so, return
         ret
 trySpace:
@@ -407,7 +407,7 @@ InfoCommand:
 prnt:   call    PrintString     ; Print CPU type
         call    PrintCR
         jr      mem
-z80:    
+z80:
         ld      hl,strZ80       ; It is a Z80
         jr      prnt
 
@@ -1240,7 +1240,7 @@ GetChar:
 PrintCR:
         push    af              ; Save A reg
         ld      a,CR            ; Carriage Return character
-        call    PrintChar       
+        call    PrintChar
         ld      a,NL            ; Newline character
         call    PrintChar
         pop     af              ; Restore A reg
@@ -1253,7 +1253,7 @@ PrintCR:
 PrintEquals:
         push    af              ; Save A reg
         ld      a,'='           ; Equals character
-        call    PrintChar       
+        call    PrintChar
         pop     af              ; Restore A reg
         ret
 
@@ -1339,7 +1339,7 @@ sp1:    call    PrintSpace      ; Print a space
 PrintSpace:
         push    af              ; Save A reg
         ld      a,' '           ; Space character
-        call    PrintChar       
+        call    PrintChar
         pop     af              ; Restore A reg
         ret
 

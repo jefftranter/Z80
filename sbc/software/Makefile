@@ -18,8 +18,11 @@ sysmon.bin: sysmon.asm hexmon.asm
 ml.bin: ml.asm
 	z80asm -o ml.bin -lml.lst -Lml.map ml.asm
 
-jmon.bin: jmon.asm disasm.asm
-	z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
+jmon.bin: jmon.asm disasm.asm hexmon2.asm
+	z80asm -o part1.bin -ljmon.lst -Ljmon.map jmon.asm
+	z80asm -o part2.bin -lhexmon2.lst -Lhexmon2.map hexmon2.asm
+	cat part1.bin part2.bin >jmon.bin
+	$(RM) part1.bin part2.bin
 
 patb.bin: patb.asm
 	asl -L patb.asm

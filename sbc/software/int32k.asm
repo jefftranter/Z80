@@ -70,7 +70,7 @@ RST18:           JP      CKINCHAR
 
 ;                ORG     0038H
                  ds      38H-$,$FF
-RST38:           JR      serialInt       
+RST38:           JR      serialInt
 
 ;------------------------------------------------------------------------------
 serialInt:      PUSH     AF
@@ -138,8 +138,8 @@ rts1:
 
 ;------------------------------------------------------------------------------
 TXA:            PUSH     AF              ; Store character
-conout1:        IN       A,($80)         ; Status byte       
-                BIT      1,A             ; Set Zero flag if still transmitting character       
+conout1:        IN       A,($80)         ; Status byte
+                BIT      1,A             ; Set Zero flag if still transmitting character
                 JR       Z,conout1       ; Loop until flag signals ready
                 POP      AF              ; Retrieve character
                 OUT      ($81),A         ; Output the character
