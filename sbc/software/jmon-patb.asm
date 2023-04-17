@@ -3604,7 +3604,7 @@ PR3     CALL    EXPR            ; YES, EVALUATE EXPR.
         LD      C,L             ; AND SAVE IT IN C
         JR      PR5             ; LOOK FOR MORE TO PRINT
 PR4     CALL    QTSTG           ; OR IS IT A STRING?
-        JR      PR9             ; IF NOT, MUST BE EXPR.
+        JP      PR9             ; IF NOT, MUST BE EXPR.
 PR5     TSTC    ',',PR8         ; IF ",", GO FIND NEXT
 PR6     TSTC    '.',PR7
         LD      A,' '
