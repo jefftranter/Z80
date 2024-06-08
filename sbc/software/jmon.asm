@@ -6,7 +6,7 @@
 ; Inspired by JMON for the Apple Replica 1 and 6502 processor.
 ; I wrote this mostly as an exercise to learn Z80 assembly language.
 ; 
-; Copyright (C) 2014-2022 by Jeff Tranter <tranter@pobox.com>
+; Copyright (C) 2014-2024 by Jeff Tranter <tranter@pobox.com>
 ; 
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -709,6 +709,7 @@ FillCommand:
         call    GetByte         ; Prompt for fill byte
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      b,a             ; Store fill byte in B
+        call    PrintCR
 fill:
         ld      (hl),b          ; Fill address with byte
         inc     hl              ; Increment current address in HL
@@ -719,6 +720,7 @@ fill:
         cp      e               ; Compare to E
         jr      nz,fill         ; If no match, continue filling
         ld      (hl),b          ; We are at last address, write byte to it
+        ret
 
 
 ; Copy Command

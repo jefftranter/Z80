@@ -5,7 +5,10 @@
 ; A machine language monitor program for the CPUville Z80 Single Board Computer.
 ; Ported from the version for my Z80 SBC computer design.
 ;
-; Copyright (C) 2014-2023 by Jeff Tranter <tranter@pobox.com>
+; It should also run on any CP/M system when built using CP/M BDOS
+; calls for input output (if the hardware has a Z80 processor).
+;
+; Copyright (C) 2014-2024 by Jeff Tranter <tranter@pobox.com>
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -54,9 +57,17 @@
 ;                      Add support for <ESC> to cancel in more commands.
 ;                      Add memory size in info command.
 ; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
+; 0.5     07-Jun-2024  Add support for using CP/M BDOS calls for input/output.
 ;
 ; TODO:
 ; Intel or Motorola hex file loader?
+
+
+; Set either CPUVILLE or CPM to 1 to control whether input/output
+; uses the CPUVille board hardware or CP/M BDOS calls.
+
+CPUVILLE: equ   0
+CPM:    equ     1
 
         org     0100H           ; Start at address 0100 if running from CP/M
 ;       org     1000H           ; Start at address 1000 if running from ROM monitor
@@ -635,6 +646,7 @@ FillCommand:
         call    GetByte         ; Prompt for fill byte
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      b,a             ; Store fill byte in B
+        call    PrintCR
 fill:
         ld      (hl),b          ; Fill address with byte
         inc     hl              ; Increment current address in HL
@@ -645,7 +657,7 @@ fill:
         cp      e               ; Compare to E
         jr      nz,fill         ; If no match, continue filling
         ld      (hl),b          ; We are at last address, write byte to it
-
+        ret
 
 ; Copy Command
 ; Copy a block of memory from one location to another.
@@ -1123,14 +1135,22 @@ trySpace1:
 ;
 ; Utility Routines
 
+if      CPUVILLE
 SREG:   equ     03h
 CREG:   equ     03h
 DREG:   equ     02h
+endif
+
+if      CPM
+BDOS:   equ     0005H           ; CP/M BDOS call
+DIO:    equ     06H             ; BDOS call for Direct Console i/o
+endif
 
 ; PrintChar
 ; Output character in A register to console.
 ; Registers affected: none.
 
+if      CPUVILLE
 PrintChar:
         push    af              ; Save A register
 loop1:  in      a,(SREG)        ; Read status register
@@ -1139,18 +1159,53 @@ loop1:  in      a,(SREG)        ; Read status register
         pop     af              ; Restore A
         out     (DREG),a        ; Output it to data register
         ret                     ; And return
+endif
+
+if      CPM
+PrintChar:
+        push    af              ; Save registers
+        push    bc
+        push    de
+        push    hl
+        ld      c,DIO           ; BDOS call
+        ld      e,a             ; Char is passed in e
+        call    BDOS            ; Call BDOS to output char
+        pop     hl              ; Restore registers
+        pop     de
+        pop     bc
+        pop     af
+        ret                     ; And return
+endif
 
 ; GetChar
 ; Read character from console and return in A register. The character
 ; is not echoed. Waits for character to be entered.
 ; Registers affected: A.
 
+if      CPUVILLE
 GetChar:
         in      a,(SREG)        ; Read status register
         bit     1,A             ; Test RxRDY bit
         jr      z,GetChar       ; Repeat until RDRF is set
         in      a,(DREG)        ; Read character from data register
         ret                     ; And return
+endif
+
+if      CPM
+GetChar:
+        push    bc              ; Save registers
+        push    de
+        push    hl
+l1:     ld      c,DIO           ; BDOS call
+        ld      e,0FFH          ; Indicates to read
+        call    BDOS            ; Call BDOS to input char
+        cp      0               ; Char returned?
+        jr      z,l1            ; If not, try again
+        pop     hl              ; Restore registers
+        pop     de
+        pop     bc
+        ret                     ; And return
+endif
 
 ; PrintCR
 ; Print carriage return/newline.
@@ -1571,7 +1626,7 @@ CMPER:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.4 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.5 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
