@@ -31,6 +31,7 @@
 ;   CHECKSUM: K <START> <END>
 ;   CLR SCREEN: L
 ;   SCOPE LOOP: P <A/I> <R/W> <addr> [<data>]
+;   QUIT: Q
 ;   REGISTERS: R
 ;   SEARCH: S <START> <END> <DATA>
 ;   TEST: T <START> <END>
@@ -58,6 +59,7 @@
 ;                      Add memory size in info command.
 ; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
 ; 0.5     07-Jun-2024  Add support for using CP/M BDOS calls for input/output.
+; 0.6     10-Jun-2024  Add Quit command and new option to scope loop.
 ;
 ; TODO:
 ; Intel or Motorola hex file loader?
@@ -68,6 +70,20 @@
 
 CPUVILLE: equ   0
 CPM:    equ     1
+
+; Defines
+
+if      CPUVILLE
+SREG:   equ     03h             ; UART status register
+CREG:   equ     03h             ; UART control register
+DREG:   equ     02h             ; UART data register
+endif
+
+if      CPM
+BOOT:   equ     0000H           ; Return to CP/M
+BDOS:   equ     0005H           ; CP/M BDOS call
+DIO:    equ     06H             ; BDOS call for Direct Console i/o
+endif
 
         org     0100H           ; Start at address 0100 if running from CP/M
 ;       org     1000H           ; Start at address 1000 if running from ROM monitor
@@ -168,8 +184,13 @@ tryL:
         jr      mainloop
 tryP:
         cp      'P'
-        jr      nz,tryR
+        jr      nz,tryQ
         call    LoopCommand
+        jr      mainloop
+tryQ:
+        cp      'Q'
+        jr      nz,tryR
+        call    QuitCommand
         jr      mainloop
 tryR:
         cp      'R'
@@ -190,7 +211,7 @@ tryU:
         cp      'U'
         jr      nz,tryV
         call    UnassembleCommand
-        jr      mainloop
+        jp      mainloop
 tryV:
         cp      'V'
         jr      nz,tryColon
@@ -771,12 +792,15 @@ writeLoop:
         jr      writeLoop       ; Input more data
 
 ; Scope loop command. For hardware debugging, loops on reading or
-; writing a memory or i/o address. Continuously loops until reset.
+; writing a memory or i/o address. When third parameter is "Y",
+; continuously loops until reset. When parameter is "N" , does one
+; read or write (data is displayed on a read) and returns.
+
 ; FORMAT:
-; P A R <address>
-; P A W <address> <data>
-; P I R <ioaddress>
-; P I W <ioaddress> <data>
+; P A R <Y/N> <address>
+; P A W <Y/N> <address> <data>
+; P I R <Y/N> <io port>
+; P I W <Y/N> <io port> <data>
 
 LoopCommand:
         call    PrintChar       ; Echo command
@@ -809,6 +833,19 @@ Okay2:
         call    PrintChar       ; Echo operation
         call    PrintSpace
 
+YorN:   call    GetChar         ; Get Y or N
+        cp      ESC             ; Is it <ESC>
+        jp      z,CancelCmd     ; Cancel if <ESC> pressed
+        call    ToUpper
+        cp      'Y'             ; Is it 'Y'?
+        jr      z,Okay3
+        cp      'N'             ; Is it 'N'?
+        jr      z,Okay3
+        jr      YorN            ; If not, try again
+Okay3:
+        ld      (address),a     ; Save loop (Y or N)
+        call    PrintChar       ; Echo operation
+        call    PrintSpace
         ld      a,(size)        ; Get operation (A or I)
         cp      'A'             ; Address?
         jr      z,loopA         ; if so, branch
@@ -824,14 +861,21 @@ loopA:
 
 addrRead:
         call    GetAddress      ; Get 16-bit address
-        jr      c,CancelCmd     ; Cancel if <ESC> pressed
+        jp      c,CancelCmd     ; Cancel if <ESC> pressed
         ld      (src),hl        ; Save it
         call    PrintCR
         ld      hl,(src)        ; Get address
+        ld      a,(address)     ; Get loop option
+        cp      'N'             ; Was it 'N'?
+        jr      z,addrRead1     ; Branch if yes
 ReadLoop:
         ld      a,(hl)          ; Read from address
         jr      ReadLoop        ; Repeat forever
-
+addrRead1:
+        ld      a,(hl)          ; Read from address
+        call    PrintByte       ; Display value read
+        call    PrintCR         ; Newline
+        ret                     ; Return
 addrWrite:
         call    GetAddress      ; Get 16-bit address
         jr      c,CancelCmd     ; Cancel if <ESC> pressed
@@ -842,11 +886,17 @@ addrWrite:
         ld      (dst),a         ; Save it
         call    PrintCR
         ld      hl,(src)        ; Get address
+        ld      a,(address)     ; Get loop option
+        cp      'N'             ; Was it 'N'?
+        jr      z,addrWrite1    ; Branch if yes
         ld      a,(dst)         ; Get data
 WriteLoop2:
         ld      (hl),a          ; Write to address
         jr      WriteLoop2      ; Repeat forever
-
+addrWrite1:
+        ld      a,(dst)         ; Get data
+        ld      (hl),a          ; Write to address
+        ret                     ; Return
 ioRead:
         call    GetByte         ; Get 8-bit I/O address
         jr      c,CancelCmd     ; Cancel if <ESC> pressed
@@ -854,10 +904,17 @@ ioRead:
         call    PrintCR
         ld      a,(src)         ; Get  address
         ld      c,a
+        ld      a,(address)     ; Get loop option
+        cp      'N'             ; Was it 'N'?
+        jr      z,ioRead1       ; Branch if yes
 ReadLoop1:
         in      a,(c)           ; Read from I/O port
         jr      ReadLoop1       ; Repeat forever
-
+ioRead1:
+        in      a,(c)           ; Read from I/O port
+        call    PrintByte       ; Display value read
+        call    PrintCR         ; Newline
+        ret                     ; Return
 ioWrite:
         call    GetByte         ; Get 8-bit I/O address
         jr      c,CancelCmd     ; Cancel if <ESC> pressed
@@ -869,10 +926,17 @@ ioWrite:
         call    PrintCR
         ld      a,(src)         ; Get address
         ld      c,a
+        ld      a,(address)     ; Get loop option
+        cp      'N'             ; Was it 'N'?
+        jr      z,ioWrite1      ; Branch if yes
         ld      a,(dst)         ; Get data
 WriteLoop1:
         out     (c),a           ; Write to I/O port
         jr      WriteLoop1      ; Repeat forever
+ioWrite1:
+        ld      a,(dst)         ; Get data
+        out     (c),a           ; Write to I/O port
+        ret                     ; Return
 
 CancelCmd:
         call    PrintCR
@@ -1130,21 +1194,20 @@ trySpace1:
 
         ret
 
+; Quit command
+; Format: Q
+
+QuitCommand:
+        call    PrintChar       ; Echo the command back
+        call    PrintCR         ; Print newline
+if      CPM                     ; If running under CP/M
+        jp      BOOT            ;   jump to CP/M
+endif
+        ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Utility Routines
-
-if      CPUVILLE
-SREG:   equ     03h
-CREG:   equ     03h
-DREG:   equ     02h
-endif
-
-if      CPM
-BDOS:   equ     0005H           ; CP/M BDOS call
-DIO:    equ     06H             ; BDOS call for Direct Console i/o
-endif
 
 ; PrintChar
 ; Output character in A register to console.
@@ -1626,7 +1689,7 @@ CMPER:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.5 by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.6 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1634,25 +1697,28 @@ strInvalid:
 strHelp:
         db      "\r\n"
         db      "Valid commands:\r\n"
-        db      "C <src> <dest> <size>         Copy memory\r\n"
-        db      "D <address>                   Dump memory\r\n"
-        db      "F <start> <end> <data>        Fill memory\r\n"
-        db      "G <address>                   Go\r\n"
-        db      "I                             Show info\r\n"
-        db      "K <start> <end>               Checksum\r\n"
-        db      "L                             Clear screen\r\n"
-        db      "P <A/I> <R/W> <addr> [<data>] Scope loop\r\n"
-        db      "R                             Examine registers\r\n"
-        db      "S <start> <end> <data>        Search memory\r\n"
-        db      "T <start> <end>               Test memory\r\n"
-        db      "U <address>                   Unassemble memory\r\n"
-        db      "V <start> <end> <dest>        Verify memory\r\n"
-        db      ": <address> <data>...         Write to memory\r\n"
-        db      "= <address> +/- <address>     Hex math calculation\r\n"
-        db      "?                             Help\r\n",0
+        db      "C <src> <dest> <size>               Copy memory\r\n"
+        db      "D <address>                         Dump memory\r\n"
+        db      "F <start> <end> <data>              Fill memory\r\n"
+        db      "G <address>                         Go\r\n"
+        db      "I                                   Show info\r\n"
+        db      "K <start> <end>                     Checksum\r\n"
+        db      "L                                   Clear screen\r\n"
+        db      "P <A/I> <R/W> <Y/N> <addr> [<data>] Scope loop\r\n"
+        db      "Q                                   Quit\r\n"
+        db      "R                                   Examine registers\r\n"
+        db      "S <start> <end> <data>              Search memory\r\n"
+        db      "T <start> <end>                     Test memory\r\n"
+        db      "U <address>                         Unassemble memory\r\n"
+        db      "V <start> <end> <dest>              Verify memory\r\n"
+        db      ": <address> <data>...               Write to memory\r\n"
+        db      "= <address> +/- <address>           Hex math calculation\r\n"
+        db      "?                                   Help\r\n",0
 
 strClearScreen:
-        db      ESC,"[2J",$1B,"[H",0       ; VT100/ANSI clear screen, cursor home
+        db      ESC,"[2J",ESC,"[H",0       ; VT100/ANSI clear screen, cursor home
+;       db      ESC,"H",ESC,"J",0          ; DEC VT52 clear screen, cursor home
+;       db      ESC,"E",0                  ; Heathkit H19/H88/H89 clear display
 
 strCpuType:
         db      "CPU type: ",0
@@ -1676,11 +1742,6 @@ strRead:
         db      " Read: ",0
 strPassed:
         db      "Passed",0
-strRamFound1:
-        db      "RAM found from $",0
-strRamFound2:
-        db      " to $FFFF",0
-
 
         include "disasm.asm"
 

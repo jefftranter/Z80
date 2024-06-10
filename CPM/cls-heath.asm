@@ -1,4 +1,4 @@
-; Simple clear screen program. Assumes VT52 terminal.
+; Simple clear screen program. Assumes Heathkit terminal.
 ; Jeff Tranter <tranter@pobox.com>
 
         cpu     8080
@@ -9,6 +9,6 @@ start:  mvi     c,9             ; BDOS function: output string
         call    bdos
         ret                     ; Return to CCP
 
-; DEC VT52 clear screen, cursor home
-msg:    db      01BH,"H",01BH,"J"
+; Heathkit H19/H88/H89 clear display
+msg:    db      01BH,"E"
         end

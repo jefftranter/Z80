@@ -1,4 +1,4 @@
-all: hello.com example1.com example2.com jmon.com cls.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
+all: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -9,6 +9,16 @@ cls.com: cls.asm
 	asl -L cls.asm
 	p2bin -r '$$-$$' cls.p
 	mv cls.bin cls.com
+
+cls-vt52.com: cls-vt52.asm
+	asl -L cls-vt52.asm
+	p2bin -r '$$-$$' cls-vt52.p
+	mv cls-vt52.bin cls-vt52.com
+
+cls-heath.com: cls-heath.asm
+	asl -L cls-heath.asm
+	p2bin -r '$$-$$' cls-heath.p
+	mv cls-heath.bin cls-heath.com
 
 example1.com: example1.asm
 	asl -L example1.asm
