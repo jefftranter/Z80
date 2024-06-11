@@ -30,7 +30,7 @@
 ;   INFO: I
 ;   CHECKSUM: K <START> <END>
 ;   CLR SCREEN: L
-;   SCOPE LOOP: P <A/I> <R/W> <addr> [<data>]
+;   SCOPE LOOP: P <A/I> <R/W> <Y/N> <addr> [<data>]
 ;   QUIT: Q
 ;   REGISTERS: R
 ;   SEARCH: S <START> <END> <DATA>
@@ -691,45 +691,21 @@ CopyCommand:
         call    PrintSpace
         call    GetAddress      ; Prompt for start address
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
-        ld      a,l             ; Save source address in src (low,high)
-        ld      (src),a
-        ld      a,h
-        ld      (src+1),a
+        ld      (src),hl        ; Save source address in src
         call    PrintSpace
         call    GetAddress      ; Prompt for end address
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
-        ld      a,l             ; Save destination address in dst (low,high)
-        ld      (dst),a
-        ld      a,h
-        ld      (dst+1),a
+        ld      (dst),hl        ; Save destination address in dst
         call    PrintSpace
         call    GetAddress      ; Prompt for number of bytes
         jp      c,CancelCmd     ; Cancel if <ESC> pressed
-        ld      a,l             ; Save length in size (low,high)
-        ld      (size),a
-        ld      a,h
-        ld      (size+1),a
-        ld      a,(size)        ; Put size in BC
-        ld      c,a
-        ld      a,(size+1)
-        ld      b,a
-        ld      a,(dst)         ; Put destination in HL
-        ld      l,a
-        ld      a,(dst+1)
-        ld      h,a
-        ld      a,(src)         ; Put source in DE
-        ld      e,a
-        ld      a,(src+1)
-        ld      d,a
-copy:   ld      a,b             ; Get B (remaining bytes)
-        or      c               ; Also get C
-        jp      c,CancelCmd     ; Cancel if <ESC> pressed
-        ld      a,(de)          ; Get byte from source address (DE)
-        ld      (hl),a          ; Store byte in destination address (HL)
-        inc     de              ; Increment source address
-        inc     hl              ; Increment destination address
-        dec     bc              ; Decrement count of bytes
-        jr      copy            ; Repeat
+        ld      (size),hl       ; Save length in size
+        ld      bc,(size)       ; Put size in BC
+        ld      hl,(src)        ; Put source in HL
+        ld      de,(dst)        ; Put dest in DE
+        ldir                    ; Do the copy
+        call    PrintCR
+        ret
 
 ; Checksum Command
 ; Calculate 16-bit checksum of a block of memory.
