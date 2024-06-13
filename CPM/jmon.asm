@@ -74,9 +74,9 @@ CPM:    equ     1
 ; Defines
 
 if      CPUVILLE
-SREG:   equ     03h             ; UART status register
-CREG:   equ     03h             ; UART control register
-DREG:   equ     02h             ; UART data register
+SREG:   equ     03h             ; 8251A UART status register
+CREG:   equ     03h             ; 8251A UART control register
+DREG:   equ     02h             ; 8251A UART data register
 endif
 
 if      CPM

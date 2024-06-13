@@ -1046,7 +1046,7 @@ EDOPCODES:
         db      OP_INV,  2      ; $ED75
         db      OP_IN,   2      ; $ED76
         db      OP_INV,  2      ; $ED77
-        db      OP_INV,  2      ; $ED78
+        db      OP_IN,   2      ; $ED78
         db      OP_OUT,  2      ; $ED79
         db      OP_ADC,  2      ; $ED7A
         db      OP_LD,   4      ; $ED7B
