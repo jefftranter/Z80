@@ -1,0 +1,48 @@
+        MAPLE (Modem Applications Effector) - Quick Reference
+           For version 2.0.8 i5 (HDOS) or 2.1.0 i5 (CP/M).
+
+Defaults to port DTE port 330 IRQ 5.
+
+Communications Mode:
+f1            Send page to printer/computer/file
+f2            Copy output of remote command to copy pad
+f3            Show contents of copy pad
+f4            Sent contents of copy pad to printer
+f5            Store copy pad to file
+ERASE         Clear copy pad
+<Shift>ERASE  Delete file
+Blue          Send file
+Red           Exit to OS
+White         Enter Set Mode
+BREAK         Send break
+
+Set Mode:
+f1            Set copy mode text/abs/wards
+f2            Set send mode line/pause/block/wards/abs
+f3            Set prompt character for line mode
+f4            Set print device
+f5            Set default disk drive
+ERASE         Set modem handshaking no hands/xon xoff/ack etx/DSR/CTS
+Blue          Set parity none/even/odd
+RED           Set baud rate
+White         Set word bits 7/8 and stop bits 1/2
+BREAK         Set echo on/off
+
+1             ASCII/APL/TAPE/HEX mode
+^             Mount or reset disk (HDOS)
+Any other key Exit set mode
+
+Other Keys:
+Control-B     Send soft break
+Control-C     Terminate special function
+Control-G     Toggle graphics
+Control-K     APL character translation
+Control-L     Toggle copy log
+Control-P     Toggle printer
+Control-R     Restore previously dumped screen
+Control-T     Toggle page write to printer, remote computer, disk
+Esc-D         Dumb terminal mode
+Esc-H         Help (show keys)
+Esc-L         Toggle linefeeds
+Esc-M         Toggle modem mode
+Esc-~         Restore cleared copy pad
