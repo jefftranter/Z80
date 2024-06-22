@@ -252,7 +252,7 @@ invalid:
 ; Prompts to continue after a page of lines dumped.
 
 BYTES:equ 16                    ; Number of bytes to dump per line
-LINES:equ 24                    ; Number of lines to dump per page
+LINES:equ 23                    ; Number of lines to dump per page
 
 DumpCommand:
         call    PrintChar       ; Echo command back
