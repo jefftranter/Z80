@@ -1,147 +1,245 @@
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 1 OF 7
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 1 of 12
 
-COMMAND                 MEANING
--------                 ------------------------------------------------
-FNAME [ARGS]            IMPLICIT RUN OF SPECIFIED PROGRAM
-RU[N] FNAME [ARGS]      RUN SPECIFIED PROGRAM
-PIP [COMMAND]           RUN PIP
-VERI[FY] [ON|OFF[F]]    SHOW OR SET DEFAULT VERIFY STATE FOR COPY
-CO[PY] FNAME2=FNAME1    COPY FILE FROM FNAME1 TO FNAME2
-T[YPE] FNAME            SAME AS LIST
-LI[ST] FNAME            TYPE THE SPECIFIED FILE ON THE CONSOLE
-PR[INT] FNAME           PRINT THE SPECIFIED FILE ON THE SYSTEM LIST DEVICE
-C[AT] [DEV:]            TYPE A DISK CATALOG ON THE CONSOLE
-DIR [DEV:][NAMES]       SAME AS CAT
-CN                    ; TYPE A DISK CATALOG OF PRIMARY DEVICE #N. DEFAULT N=0.
-PCN                   ; PRINT A DISK CATALOG OF PRIMARY DEVICE #N. DEFAULT N=0.
-DEL[ETE] FNAME          DELETE SPECIFIED FILE(S)
-ERA[SE] FNAME           SAME AS DELETE
-REN[AME] NEWNAME=FNAME  RENAME SPECIFIED FILE FNAME TO NEWNAME
-CLS                     CLEAR CONSOLE SCREEN (RESET GRAPHICS, REVERSE, 25TH)
+COMMAND LIST FOR THE SYSTEM COMMAND PROCESSOR
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 2 OF 7
+Command 		Meaning
+------- 		----------------------------------------------------
+?[??]			Show SYSHELP.DOC on console
+ALT			Show alternate device name
+ALT xx[:]		Set alternate device name
+ALT :			Set alternate device name to default name
+BAT[CH] fname [args]	Bypass .ABS link & try to run BATCH file
+BYE		     ** End HDOS session
+C[AT] [file(s)] 	Show default drive catalog on console
+C[AT] dev:[file(s)]	Show specified drive catalog on console
+Cn [file(s)]	      ; Show disk catalog of primary device #n.  Default n=0
+CF[LAGS] file(s)	Clear all flags on specified file(s)
+CF[LAGS] file(s)=flags	Clear flags on specified file(s)
+CH[ECK] file(s) 	Calculate CRC for files
+CLS			Clear console screen (reset graphics, reverse, 25th)
+CLS <any arg>		Reset graphics, reverse, 25th line
+CO[PY] dest=source   ** Copy file(s) from source to destination
+CRC file(s)		Calculate CRC for files
 
-COMMAND                 MEANING
--------                 ------------------------------------------------
-FL[AGS] NAME[S]/SET:F.  SET FLAGS ON FILES
-FL[AGS] NAME[S]/CLR:F.  CLEAR FLAGS ON FILES
-CLR NAME[S]             CLEAR ALL FLAGS ON FILES
-CH[ECK] NAME[S]         CALCULATE CRC FOR FILES
-CRC NAME[S]             SAME AS CHECK
-VER[SION]               SHOW HDOS VERSION INFORMATION
-ID                      SAME AS VERSION PLUS A LITTLE DATA
-H[ELP]                  TYPE THIS LIST
-?[??]                   SAME AS HELP
-M[OUNT] DEV:            MOUNT THE SPECIFIED DEVICE
-MN                    ; MOUNT PRIMARY DEVICE #N.  DEFAULT N=0.
-MM [XX[:]]            ; MULTIPLE MOUNT (ALL AVAILABLE UNITS OF XX:)
-D[ISMOUNT] DEV:         DISMOUNT THE SPECIFIED DEVICE
-DN                    ; DISMOUNT PRIMARY DEVICE #N.  DEFAULT N=0.
-MD [XX[:]]            ; MULTIPLE DISMOUNT (ALL AVAILABLE UNITS OF XX:)
-R[ESET] DEV:            RESET (DISMOUNT/MOUNT) THE SPECIFIED DEVICE
-RN                    ; RESET PRIMARY DEVICE #N.  DEFAULT N=0.
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 2 of 12
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 3 OF 7
+Command 		Meaning
+------- 		----------------------------------------------------
+DA[TE]		     ** Show system date
+DA[TE] NO-DATE	     ** Clear system date to <NO-DATE>
+DA[TE] dd[-mmm[-yy]] ** Set system date
+DEF[AULT]		Show system default
+DEF[AULT] :		Set system default to default default
+DEF[AULT] text		Set system default (xx xx: xxn xxn: xxnext)
+DEF[AULT] 0		Set system default extension to nulls
+DEF[AULT] ~		Set system default to all nulls
+DEL[ETE] file(s)     ** Delete specified file(s)
+DEV[ICES]		Show system device information for all known devices
+DEV[ICES] xx[:] 	Show system device information for xx:
+DIR [file(s)]	     ** Show default drive catalog on console
+DIR dev:[file(s)]    ** Show specified drive catalog on console
+D[ISMOUNT] dev:     **; Dismount specified device
+Dn		      ; Dismount primary device #n.  Default n=0
+DM[M]			Show system memory usage
+ERA[SE] file(s) 	Erase specified file(s)
+FLO[AD] xx[:]		Same as LOAD plus Fix in memory
 
-COMMAND                 MEANING
--------                 ------------------------------------------------
-DM[M]                   DISPLAY SYSTEM MEMORY USAGE STATISTICS
-SI                      DISPLAY SYSTEM INFORMATION
-DEV[ICES]               SHOW SYSTEM DEVICE INFORMATION FOR ALL KNOWN DEVICES
-DEV[ICES] XX[:]         SHOW SYSTEM DEVICE INFORMATION FOR XX:
-L[OAD] XX[:]            LOAD AND LOCK SPECIFIED DEVICE DRIVER
-LOADF XX[:]             SAME AS LOAD PLUS FIX IN MEMORY
-UNL[OAD] XX[:]|*        UNLOAD SPECIFIED DEVICE DRIVER (* = ALL POSSIBLE DVD'S)
-ST[ART] TASKNAME        START SPECIFIED TASK
-LOG [ON|OF[F]]          ENABLE OR DISABLE LOGGING TASKS(S)
-DA[TE] [DD[-MMM[-YY]]]  SHOW OR SET THE SYSTEM DATE
-DA[TE] NO-DATE          CLEAR THE SYSTEM DATE TO <NO-DATE>
-TI[ME] [HH:MM[:SS]]     SHOW OR SET THE SYSTEM TIME
-TI[ME] /                SHOW SYSTEM TIME CONTINUOUS
-PRO[MPT] [TEXT]         SHOW OR SET THE SYSTEM PROMPT (SEE PAGE 6)
-PRO[MPT] ~              CLEAR THE SYSTEM PROMPT AND USE DEFAULT PROMPT
-PA[TH] [TEXT]           SHOW OR SET THE SYSTEM PATH
-PA[TH] ~                CLEAR THE SYSTEM PATH
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 3 of 12
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 4 OF 7
+Command 		Meaning
+------- 		----------------------------------------------------
+HA[LT]			Try SHUTDOWN.ABS(.BAT) then exit HDOS
+H[ELP]		     ** Show SYSHELP.DOC on console
+ID			Show extended VERSION information
+LI[ST] file(s)		Show specified file(s) on console
+L[OAD] xx[:]	     ** Load and lock specified device driver
+LOG			Enable logging task(s)
+LOG ON			Enable logging task(s)
+LOG OF[F]		Disable logging task(s)
+MD		      ; Multi-Dismount (All available units of default device)
+MD xx[:]	      ; Multi-Dismount (All available units of xx:)
+MM		      ; Multi-Mount (All available units of default device)
+MM xx[:]	      ; Multi-Mount (All available units of xx:)
+M[OUNT] dev:	    **; Mount specified device
+Mn		      ; Mount primary device #n.  Default n=0
+MOV[E] dest=source	Copy file(s), verify, delete source file(s)
+Pn			Set current list device unit to #n.  n=0..7
 
-COMMAND                 MEANING
--------                 ------------------------------------------------
-DEF[AULT][TEXT]         SHOW OR SET THE SYSTEM DEFAULT (XX XX: XXN XXN: XXNEXT)
-DEF[AULT] :             SET SYSTEM DEFAULT TO DEFAULT DEFAULT
-DEF[AULT] 0             SET SYSTEM DEFAULT EXTENSION TO NULLS
-BYE                     END HDOS
-Q[UIT]                  SAME AS BYE
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 4 of 12
 
-(CTL-A)                 INVOKE THE COMMAND LINE EDITOR
+Command 		Meaning
+------- 		----------------------------------------------------
+PA[TH]			Show system path
+PA[TH] text		Set system path
+PA[TH] ~		Clear system path
+PCn [file(s)]	      ; Print disk catalog of primary device #n.  Default n=0
+PIP			Run PIP
+PIP command		Run a PIP command and return to SYSCMD
+PR[INT] file(s) 	Print specified file(s) on system list device
+PRN			Show current list device name & unit
+PRN xx[:]		Set current list device to xx: (unit 0)
+PRN :			Set list device to default name (unit 0)
+PRO[MPT]		Show system prompt
+PRO[MPT] text		Set system prompt
+PRO[MPT] ~		Clear system prompt and use default prompt
+PU[SER] file(s)=users	Put specified file(s) in specified user areas
+QD		      ; Quiet Dismount (All available units of default device)
+QD xx[:]	      ; Quiet Dismount (All available units of xx:)
+QM		      ; Quiet Mount (All available units of default device)
+QM xx[:]	      ; Quiet Mount (All available units of xx:)
 
-         A      ABORT & RESTART          CTL-D  QUIT EDITOR
-         C      CHANGE MODE             NSC     SEARCH FOR CHAR
-        ND      DELETE CHAR(S)           X      EXTRA (INSERT MODE)
-         H      HACK & INSERT            ESC    EXIT INSERT OF CHANGE MODE
-         I      INSERT MODE             NSPACE  MOVE CURSOR RIGHT
-        NKC     KILL CHAR(S)            NBKSP   MOVE CURSOR LEFT
-         L      LIST REST OF LINE       NDEL    MOVE LEFT & DELETE CHAR(S)
-         Q      QUIT EDITOR              RET    ACCEPT COMMAND LINE
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 5 of 12
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 5 OF 7
+Command 		Meaning
+------- 		----------------------------------------------------
+Q[UIT]			End HDOS session
+REN[AME] new=old     ** Rename specified file(s) 'old' name to 'new' name
+R[ESET] dev:	    **; Reset (Dismount/Mount) specified device
+Rn		      ; Reset primary device #n.  Default n=0
+RUN fname [args]     ** Explicit RUN of specified program
+fname [args]	     ** Implicit RUN of specified program
+RU[SER] file(s) 	Remove specified file(s) from all active user areas
+RU[SER] file(s)=users	Remove specified file(s) from specified user areas
+SF[LAGS] file(s)=flags	Set specified flags on specified file(s)
+SI			Show system information
+ST[ART] taskname	Start specified task
+TI[ME]			Show system time
+TI[ME] /		Show system time continuous
+TI[ME] hh:mm[:ss]	Set system time
+T[YPE] file(s)	     ** Show specified file(s) on console
+UNL[OAD] xx[:]		Unload specified device driver
+UNL[OAD] *		Unload all possible device drivers
 
-BATCH COMMAND           MEANING
--------------           ------------------------------------------------
-AS[K] [TEXT]            SHOW TEXT, WAIT FOR KEY & SAVE KEY VALUE
-BIT S|C [DIGIT]         SET OR CLEAR SPECIFIED BIT FLAG (0..7) DEFLT.=ALL
-COU[NT] [+|-|[=] VALUE] INC., DEC. OR SET COUNTER (0..7) DEFLT.=0
-EC[HO] [ON|OF[F]|TEXT]  SHOW OR SET ECHO STATE OR SHOW TEXT
-END                     EXIT BATCH FILE (USUALLY BEFORE PHYSICAL END)
-GO[TO] LABEL            BRANCH TO LABEL (LABEL FORMAT IS ':LABEL')
-JU[MP] LABEL            SAME AS GOTO BUT SEARCHES FORWARD ONLY
-IF [NOT] COND CMD       IF CONDITION IS (IS NOT) TRUE, DO COMMAND
-        BIT DIGIT               EXI[ST] FILENAME
-        COU[NT] = VALUE         ERR[OR] = VALUE
-        CRC = VALUE             KEY = VALUE
-        STRING = STRING     (WHITE SPACE AND '=' ARE DELIMITERS)
-PAU[SE] [TEXT]          SHOW TEXT & WAIT FOR KEY
-REM [TEXT]              REMARK, DO NOTHING
-SH[IFT]                 SHIFT COMMAND LINE ARGS. LEFT ONE POSITION
-WAIT [VALUE]            WAIT FOR SPECIFIED SECONDS, DEFLT.=1, 0=DON'T WAIT
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 6 of 12
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 6 OF 7
+Command 		Meaning
+------- 		----------------------------------------------------
+U[SER]			Show active user area
+U[SER] n		Set active user area to #n.  n=0..7
+Un			Set active user area to #n.  n=0..7
+VERI[FY]		Show default VERIFY state for COPY
+VERI[FY] ON		Set default VERIFY state for COPY to ON
+VERI[FY] OF[F]		Set default VERIFY state for COPY to OFF
+VER[SION]	     ** Show SYSCMD version information
+XYZ[ZY] 		Toggle display of exit codes upon return to SYSCMD
+XYZ[ZY] <any arg>	Toggle display of PIP command syntax within SYSCMD
 
-SPECIAL CHARACTERS WHICH MAY BE USED IN PROMPT, ECHO, PAUSE, AND ASK TEXT.
-OTHER CONTROL CODES NOT ALLOWED.  ALL OTHER CHARACTERS PRINT NORMALLY.
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 7 of 12
 
-        $D = SYSTEM DATE (DD-MM-YY)             $E = THE ESCAPE CHAR
-        $T = SYSTEM TIME (00:00:00)             $_ = THE NEW LINE CHAR
-        $V = VERSION NUMBER (3.0A)              $= = THE CARRIAGE RETURN CHAR
-        $N = DEFAULT DEVICE NAME (XX)           $^ = THE FORM FEED CHAR
-        $U = DEFAULT DEVICE UNIT (N)            $H = THE BACKSPACE CHAR
-        $X = DEFAULT EXTENSION (XXX)            $, = THE TAB CHAR
-        $: = DEFAULT DEVICE (XXN:)              $B = THE BELL CHAR
-        $P = DEFAULT SYSTEM PROMPT              $' = THE CLICK CHAR
-        $$ = THE DOLLAR CHAR                    $S = THE SPACE CHAR
-        $~ = THE TILDE CHAR
+BATCH FACILITY WITHIN THE SYSTEM COMMAND PROCESSOR
 
-USER MUST PUT $_ AT THE END OF THE ECHO STRING TO GO TO A NEW LINE.  OTHERWISE
-THE CURSOR WILL REMAIN AT THE END OF THE STRING, WHEREVER IT MAY BE ON THE
-SCREEN.
+BATCH Command		Meaning
+-------------		----------------------------------------------------
+AS[K]			Wait for key & save key value
+AS[K] text		Show text, wait for key & save key value
+BIT			Show BIT flags
+BIT S digit		Set specified BIT flag (0..7) to 1
+BIT S			Set all BIT flags (0..7) to 1
+BIT C digit		Clear specified BIT flag (0..7)
+BIT C			Clear all BIT flags (0..7)
+BIT T digit		Toggle specified BIT flag (0..7)
+BIT T			Toggle all BIT flags (0..7)
+CB[UF]			Clear console buffer
+COU[NT] 		Show system counter value
+COU[NT] +		Increment counter
+COU[NT] -		Decrement counter
+COU[NT] [=] value	Set counter (0..255)
+EC[HO]			Show ECHO state
+EC[HO] text		Show text on screen
 
-SYSCMD/PLUS, HELP FILE -- HDOS 3.0A                 PAGE 7 OF 7
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 8 of 12
 
-NOTES:  COMMANDS MARKED WITH A ';' MAY BE PRECEDED BY ';' TO EFFECT THE
-        SECONDARY DEVICE.  FOR EXAMPLE: ;PC
+BATCH Command		Meaning
+-------------		----------------------------------------------------
+EC[HO] ON		Set ECHO state to ON
+EC[HO] OF[F]		Set ECHO state to OFF
+END			Exit BATCH file (usually before physical end)
+END C			Exit BATCH file & clear console screen & modes
+END <any arg>		Exit BATCH file & clear ONLY console modes
+GO[TO] label		Branch to label (label format is ':label')
+IF [NOT] BIT digit command		Test bit flags
+IF [NOT] EXI[ST] filename command	Test for presence of file
+IF [NOT] COU[NT] = value command	Test counter value
+IF [NOT] ERR[OR] = value command	Test last error code value
+IF [NOT] CRC = value command		Test last CRC value
+IF [NOT] KEY = value command		Test ASK or TRAP keystroke value
+IF [NOT] string = string command	Test string value
+				(white space and '=' are string delimiters)
+JU[MP] label		Same as GOTO but searches forward ONLY
+KEY			Show current ASK keystroke value
+KEY alpha		Preset ASK keystroke
+KEY ?<cr|space|tab|?>	Preset special value.  CR = null
 
-        ANY COMMAND MAY BE PRECEDED WITH A '.' WHICH WILL CLEAR THE SCREEN
-        AND SET HOLD SCREEN MODE.
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 9 of 12
 
-        THE COMMAND LINE WILL BE PARSED TO SEE IF USER WANTS SYSCMD TO ADD
-        DEVICE NAMES TO ARGUMENTS.  THE CURRENT DEFAULT WILL BE USED,
-        FOR EXAMPLE:  1:X.X BECOMES SY1:X.X
+BATCH Command		Meaning
+-------------		----------------------------------------------------
+PAU[SE] 		Prompt user & wait for key
+PAU[SE] text		Show text, prompt user & wait for key
+REM [text]		Remark, do nothing
+' [text]		Remark, do nothing
+SH[IFT] 		Shift command line arguments left one position
+TR[AP]			Grab keystroke on the fly & save it
+WAIT			Wait indefinitely for user to touch any key
+WAIT value		Wait for specified seconds, 0=don't wait
 
-        MULTIPLE COMMANDS MAY BE ENTERED ON A SINGLE COMMAND LINE.  SEPARATE
-        THEM WITH A BACKSLASH.  FOR EXAMPLE:  M1\C1\D1
+Note:	Replaceable parameters %0 - %9 may be used in BATCH files. %0 is always
+	the BATCH file name, even after SHIFT.	%1 - %9 are the corresponding
+	arguments entered in command.  White space is used as the delimiter.
 
-        REPLACEABLE PARAMETERS %0 - %9 MAY BE USED IN BATCH FILES. %0 IS ALWAYS
-        THE BATCH FILE NAME, EVEN AFTER SHIFT.  %1 - %9 ARE THE CORRESPONDING
-        ARGUMENTS ENTERED IN COMMAND.  WHITE SPACE IS USED AS THE DELIMITER.
-                %N = DEFAULT DEVICE NAME (SY)   %x = DEFAULT EXTENSION (ABS)
-                %U = DEFAULT UNIT NUMBER (0)    %: = DEFAULT DEVICE (SY0:)
+	%n = default device name (SY)		%# = active user area (0)
+	%u = default unit number (0)		%p = active LP unit (0)
+	%: = default device (SY0:)		%k = ASK keystroke
+	%x = default extension (ABS)
+
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 10 of 12
+
+Special characters which may be used in PROMPT, ECHO, PAUSE, and ASK text.
+Other control codes not allowed.  All other characters print normally.
+
+	$d = system date (dd-mmm-yy)		$@ = the NULL char
+	$t = system time (00:00:00)		$b = the BELL char
+	$v = version number (3.02)		$< = the BACKSPACE char
+	$n = default device name (xx)		$, = the TAB char
+	$u = default device unit (n)		$_ = the NEW LINE char
+	$: = default device (xxn:)		$^ = the FORM FEED char
+	$x = default extension (xxx)		$= = the CARRIAGE RETURN char
+	$# = active user area (0)		$' = the CLICK char (UltraROM)
+	$p = active LP unit (0) 		$e = the ESCAPE char
+	$k = the ASK keystroke			$s = the SPACE char
+	$h = the sequence BS,' ',BS		$$ = the DOLLAR char
+	$> = default system prompt		$~ = the TILDE char
+
+User must put $_ at the end of the ECHO string to go to a new line.  Otherwise
+the cursor will remain at the end of the string, wherever it may be on the
+screen.
+
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 11 of 12
+
+COMMAND-LINE EDITOR FOR THE SYSTEM COMMAND PROCESSOR
+
+(CTL-A) 		Invoke the command-line editor at the system prompt
+
+	 A	Abort & Restart 	 Ctl-D	Quit editor
+	 C	Change mode		nSc	Search for char
+	nD	Delete char(s)		 X	Extra (Insert mode)
+	 H	Hack & Insert		 ESC	Exit Insert or Change mode
+	 I	Insert mode		nSPACE	Move cursor right
+	nKc	Kill char(s)		nBKSP	Move cursor left
+	 L	List rest of line	nDEL	Move left & delete char(s)
+	 Q	Quit editor		 RET	Accept command line
+
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 12 of 12
+
+Notes:	Commands marked with a ';' may be preceded by ';' to effect the
+	secondary device.  For example:  ;PC0
+
+	Any command may be preceded with a '.' which will clear the screen
+	and set hold screen mode.
+
+	The command line will be parsed to see if user wants SYSCMD to add
+	device names to arguments.  The current default will be used.
+	For example:  1:X.X  becomes  SY1:X.X
+
+	Multiple commands may be entered on a single command line.  Separate
+	them with a backslash.	For example:  M1\C1\D1
