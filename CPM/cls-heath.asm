@@ -10,5 +10,5 @@ start:  mvi     c,9             ; BDOS function: output string
         ret                     ; Return to CCP
 
 ; Heathkit H19/H88/H89 clear display
-msg:    db      01BH,"E"
+msg:    db      01BH,"E$"
         end

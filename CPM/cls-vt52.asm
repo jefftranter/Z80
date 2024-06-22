@@ -10,5 +10,5 @@ start:  mvi     c,9             ; BDOS function: output string
         ret                     ; Return to CCP
 
 ; DEC VT52 clear screen, cursor home
-msg:    db      01BH,"H",01BH,"J"
+msg:    db      01BH,"H",01BH,"J$"
         end
