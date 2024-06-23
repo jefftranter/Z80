@@ -32,6 +32,13 @@ BREAK         Set echo on/off
 ^             Mount or reset disk (HDOS)
 Any other key Exit set mode
 
+Auto-Send Keypad Keys:
+Enter         Enter text, index (1-9,01-09), text, end with Break
+Delete        Do not echo characters
+`             Start or end comment
+.             Display current auto-send texts
+1-9,01-09     Send text for index
+
 Other Keys:
 Control-B     Send soft break
 Control-C     Terminate special function
