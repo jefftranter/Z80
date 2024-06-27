@@ -1,4 +1,5 @@
-        XTEXT HDOS
+        XTEXT   HOSDEF
+        XTEXT   HOSEQU
         ORG   USERFWA
 
 
@@ -28,8 +29,8 @@
 *       BYE BYE.          (YOU TYPE THIS)
 *       BYE BYE.          (DEMO2 TYPES THIS)
 *       >                 (DEMO2 EXITS TO HDOS)
-ENTRY  LXI      H,DEMOA    EXECUTION STARTS HERE
-       SCALL
+ENTRY  LXI      H,DEMOA   EXECUTION STARTS HERE
+       SCALL    .PRINT    PRINT 'HI!' MESSAGE 
 
 *      LOOP ECHOING LINES
 
@@ -38,7 +39,7 @@ ECHO   SCALL  .SCIN
        CPI    '.'
        JNE    ECHO1   NOT PERIOD CHARACTER
        STA    ENDFLAG MAKE ENDFLAG NON-ZERO
-                      (A '.', IN FACT)
+*                     (A '.', IN FACT)
 ECHO1  SCALL  .SCOUT  TYPE CHARACTER BACK
        LDA    ENDFLAG
        ANA    A
@@ -49,6 +50,6 @@ ECHO1  SCALL  .SCOUT  TYPE CHARACTER BACK
        XRA    A
        SCALL  .EXIT   RETURN TO HDOS
 
-DEMOA  DB     12Q,'HI,I'M DEMO2!',212Q
+DEMOA  DB     12Q,'HI,I''M DEMO2!',212Q
 ENDFLAG DB    0       <>0 IF TO EXIT
        END    ENTRY
