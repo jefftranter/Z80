@@ -1,19 +1,30 @@
-; Simple screen clear program that runs on HDOS.
+; Simple H89 screen clear program that runs on HDOS.
 
-        ORG     02280H
+; SYSCALL macro
+SCALL   MACRO   call
+        RST     7
+        DB      call
+        ENDM
 
-; Clear screen of Heath H89.
+; System calls
+EXIT   EQU     0
+PRINT  EQU     3
+
+; Start address of user programs
+USERFWA EQU     2280H
+
+; ------------------------------------------------------------------------
+
+        ORG     USERFWA
 
         LXI     H,MSG           ; (HL) = ADDRESS OF MSG
-        RST     7               ; SCALL
-        DB      3               ; .PRINT
+        SCALL   PRINT
 
 ;       RETURN CONTROL TO HDOS OPERATING SYSTEM
 
         XRA     A               ; EXIT TO OPERATING SYSTEM
-        RST     7               ; .EXIT
-        DB      0
+        SCALL   EXIT
 
-;       MESSAGES FOR .PRINT SCAL'S
+;       MESSAGES FOR .PRINT SCALLS
 
 MSG     DB      033Q,'E'+200Q
