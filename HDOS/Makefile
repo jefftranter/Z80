@@ -1,4 +1,4 @@
-all: xdemo.abs
+all: xdemo.abs xcls.abs
 
 xdemo.abs: xdemo.bin
 	./bin2abs.py xdemo.bin xdemo.abs
@@ -11,6 +11,18 @@ xdemo.bin: xdemo.p
 
 xdemo.p: xdemo.asm
 	asl -L -cpu 8080 -listradix 8 -splitbyte . xdemo.asm
+
+xcls.abs: xcls.bin
+	./bin2abs.py xcls.bin xcls.abs
+
+xcls.hex: xcls.p
+	p2hex -F Intel xcls.p
+
+xcls.bin: xcls.p
+	p2bin -r '$$-$$' xcls.p
+
+xcls.p: xcls.asm
+	asl -L -cpu 8080 -listradix 8 -splitbyte . xcls.asm
 
 clean:
 	$(RM) *.p
