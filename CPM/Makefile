@@ -30,6 +30,9 @@ example2.com: example2.asm
 	p2bin -r '$$-$$' example2.p
 	mv example2.bin example2.com
 
+jmon.abs: jmon.com
+	../HDOS/bin2abs.py jmon.com jmon.abs
+
 jmon.com: jmon.asm disasm.asm
 	z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
 	mv jmon.bin jmon.com
@@ -70,7 +73,7 @@ copy.com:
 	mv copy.bin copy.com
 
 clean:
-	$(RM) *.sys *.bin *.lst *.map *.p *.com
+	$(RM) *.sys *.bin *.lst *.map *.p *.com *.abs
 
 distclean: clean
 	$(RM) cpm22.z80 cpm2-asm.zip

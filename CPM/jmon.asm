@@ -60,16 +60,26 @@
 ; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
 ; 0.5     07-Jun-2024  Add support for using CP/M BDOS calls for input/output.
 ; 0.6     10-Jun-2024  Add Quit command and new option to scope loop.
+; 0.7     04-Jul-2024  Add support for running under HDOS.
 ;
 ; TODO:
 ; Intel or Motorola hex file loader?
 
 
-; Set either CPUVILLE or CPM to 1 to control whether input/output
-; uses the CPUVille board hardware or CP/M BDOS calls.
+; Set one of the below symbols to 1 to control whether the terminal
+; type is a DEC VT100, VT52, or Heath H19.
+
+VT100:  equ     0              ; DEC VT100/ANSI
+VT52:   equ     0              ; DEC VT52
+H19:    equ     1              ; Heathkit H19/H88/H89
+
+; Set one of the below symbols to 1 to control whether input/output
+; uses the CPUVille board hardware, CP/M BDOS calls, or HDOS system
+; calls.
 
 CPUVILLE: equ   0
 CPM:    equ     1
+HDOS:   equ     0
 
 ; Defines
 
@@ -85,8 +95,31 @@ BDOS:   equ     0005H           ; CP/M BDOS call
 DIO:    equ     06H             ; BDOS call for Direct Console i/o
 endif
 
+if      HDOS
+SCALL:  macro   call            ; SYSCALL macro
+        rst     38H
+        db      call
+        endm
+
+.EXIT:  EQU     0               ; HDOS System calls
+.SCIN:  EQU     1
+.SCOUT: EQU     2
+.CONSL: EQU     6
+
+USERFWA: EQU    2280H           ; Start address of user programs
+CSLMD:   EQU    0               ; Index for console mode.
+CSL.ECH: EQU    10000000B       ; Bit for suppress echo
+CSL.CHR: EQU    00000001B       ; Bit for update in character mode
+endif
+
+if      CPM | CPUVILLE
         org     0100H           ; Start at address 0100 if running from CP/M
 ;       org     1000H           ; Start at address 1000 if running from ROM monitor
+endif
+
+if      HDOS
+        org     USERFWA
+endif
 
 ; Constants
 
@@ -135,6 +168,14 @@ Start:
         ld      (save_sp+1),a
 
 ;       ld      sp,stack        ; Set up stack pointer
+
+; Set console mode under HDOS
+if      HDOS
+        ld      a,CSLMD       ; Index
+        ld      b,CSL.ECH|CSL.CHR ; Suppress echo and update in character mode
+        ld      c,CSL.ECH|CSL.CHR ; Mask
+        SCALL   .CONSL          ; Initialize HDOS console
+endif
 
         call    ClearScreen     ; Clear screen
         ld      hl,strStartup   ; Print startup message
@@ -1179,6 +1220,10 @@ QuitCommand:
 if      CPM                     ; If running under CP/M
         jp      BOOT            ;   jump to CP/M
 endif
+if      HDOS                    ; If running under HDOS
+        ld      a,0             ;   Flag for normal exit
+        SCALL   .EXIT           ;   EXIT system call
+endif
         ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1216,6 +1261,13 @@ PrintChar:
         ret                     ; And return
 endif
 
+if      HDOS
+PrintChar:
+        SCALL   .SCOUT          ; System call for System Console Output
+        ret
+endif
+
+
 ; GetChar
 ; Read character from console and return in A register. The character
 ; is not echoed. Waits for character to be entered.
@@ -1244,6 +1296,13 @@ l1:     ld      c,DIO           ; BDOS call
         pop     de
         pop     bc
         ret                     ; And return
+endif
+
+if      HDOS
+GetChar:
+nr:     SCALL   .SCIN          ; System call for System Console Input
+        jr      c,nr           ; Try again if no character ready
+        ret
 endif
 
 ; PrintCR
@@ -1665,7 +1724,15 @@ CMPER:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.6 by Jeff Tranter\r\n",0
+if      CPUVILLE
+        db      "JMON Monitor 0.7 by Jeff Tranter\r\n",0
+endif
+if      CPM
+        db      "JMON Monitor 0.7 (CPM) by Jeff Tranter\r\n",0
+endif
+if      HDOS
+        db      "JMON Monitor 0.7 (HDOS) by Jeff Tranter\r\n",0
+endif
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1692,9 +1759,15 @@ strHelp:
         db      "?                                   Help\r\n",0
 
 strClearScreen:
+        if      VT100
         db      ESC,"[2J",ESC,"[H",0       ; VT100/ANSI clear screen, cursor home
-;       db      ESC,"H",ESC,"J",0          ; DEC VT52 clear screen, cursor home
-;       db      ESC,"E",0                  ; Heathkit H19/H88/H89 clear display
+        endif
+        if      VT52
+        db      ESC,"H",ESC,"J",0          ; DEC VT52 clear screen, cursor home
+        endif
+        if      H19
+        db      ESC,"E",0                  ; Heathkit H19/H88/H89 clear display
+        endif
 
 strCpuType:
         db      "CPU type: ",0
