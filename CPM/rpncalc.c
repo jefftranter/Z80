@@ -9,7 +9,7 @@
 /* It will build and compile on Linux using gcc, for 6502-based systems */
 /* using cc65, and for the Apple Mac using retro68. */
 /* */
-/* Copyright (C) 2022 Jeff Tranter <tranter@pobox.com> */
+/* Copyright (C) 2022-2024 Jeff Tranter <tranter@pobox.com> */
 
 #include <stdint.h>
 #include <stdio.h>
@@ -74,9 +74,17 @@ void stackPrint()
 
     for (i = 0; i < stackSize; i++) {
         if (base == 10) {
+#ifdef __linux__
             printf("%d\n", stack[i]);
+#else
+            printf("%ld\n", stack[i]);
+#endif
         } else {
+#ifdef __linux__
             printf("%08X\n", stack[i]);
+#else
+            printf("%08lX\n", stack[i]);
+#endif
         }
     }
 }
@@ -265,7 +273,7 @@ int main()
     }
 
     /* Display startup message */
-    printf("RPN Calculator v1.0\n");
+    printf("RPN Calculator v1.1\n");
 
     /* Start of main command polling loop. */
     while (1) {
@@ -329,9 +337,9 @@ int main()
         } else if (!strcmp(command, "rot") || !strcmp(command, "ROT")) {
                 commandRot();
         } else if (base == 10) {
-            push(atol(command));
+            push(strtol(command, NULL, 10));
         } else if (base == 16) {
-            push(atol(command));
+            push(strtol(command, NULL, 16));
         } else {
             printf("Invalid command: '%s'\n", command);
             printf("type ? for help\n");
