@@ -2,18 +2,19 @@
  * Simple 8080 disasssembler. Reads and disassembles a binary (COM)
  * file passed on the command line.
  *
- * Note that this will compile natively under CP/M using the Hi-Tech C
- * compiler. Some of the source mode feature is disabled when
- * compiling for CP/M as the compiler ran out of memory when compiling
- * it.
+ * Note that this will compile natively under CP/M using the z88dk C
+ * compiler.
  *
- * Copyright 2023 Jeff Tranter <tranter@pobox.com>
+ * Copyright 2023-2024 Jeff Tranter <tranter@pobox.com>
  *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef CPM
+#include <conio.h>
+#endif
 
 /* Data structures */
 
@@ -192,31 +193,27 @@ int main(int argc, char *argv[])
 {
     char *filename;
     FILE *f;
-    unsigned long address = 0x100;
+    unsigned int address = 0x100;
+    unsigned int end = 0xffff;
     int i, len;
     int sourceMode = 0;
-    /* Due to bug in Hi-Tech C need to use unsigned long in hex printf statements. */
-#ifdef CPM
-    unsigned long op, am, mnem, op1, op2;
-#else
     int op, am, mnem, op1, op2;
-#endif
+    int lines = 0;
+    char c;
 
-    if (argc < 2 || argc > 4) {
-        printf("Usage: disasm [-a<address>] [-s] <filename>\n");
+    if (argc < 2 || argc > 5) {
+        printf("Usage: disasm [-a<start address>] [-e<end address> [-s] <filename>\n");
         return 1;
     }
 
     /* Parse any command line options. */
     for (i = 1; i < argc; i++) {
-#ifdef CPM
         if (!strcasecmp(argv[i], "-s")) {
-#else
-        if (!strcmp(argv[i], "-s")) {
-#endif
             sourceMode = 1;
         } else if (argv[i][0] == '-' && (argv[i][1] == 'a' || argv[i][1] == 'A')) {
-            address = atoi(argv[i]+2);
+            address = strtol(argv[i]+2, NULL, 16);
+        } else if (argv[i][0] == '-' && (argv[i][1] == 'e' || argv[i][1] == 'E')) {
+            end = strtol(argv[i]+2, NULL, 16);
         }
     }
 
@@ -228,11 +225,7 @@ int main(int argc, char *argv[])
     }
 
     if (sourceMode) {
-#ifdef CPM
-        printf("                ORG   0%04lXH\n", address);
-#else
-        printf("        ORG     0%04lXH\n", address);
-#endif
+        printf("        ORG     0%04XH\n", address);
     }
 
     while ((op = getc(f)) != EOF) {
@@ -243,9 +236,11 @@ int main(int argc, char *argv[])
         if (feof(f))
             break;
 
+        if (address > end)
+            break;
+
         switch (len) {
         case 1:
-#ifndef CPM
             if (sourceMode) {
                 if (mnem == invalid) {
                     printf("        DB      0%02XH\n", op);
@@ -253,25 +248,18 @@ int main(int argc, char *argv[])
                     printf("        %-4s    %s\n", mnemonicString[mnem], formatString[am]);
                 }
             } else {
-                printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
+                printf("%04X  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
             }
-#else
-            printf("%04lX  %02X        %-4s  %s\n", address, op, mnemonicString[mnem], formatString[am]);
-#endif
             break;
         case 2:
             op1 = getc(f);
             if (feof(f))
                 break;
-#ifndef CPM
             if (sourceMode) {
                 printf("        %-4s    ", mnemonicString[mnem]);
             } else {
-                printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
+                printf("%04X  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
             }
-#else
-            printf("%04lX  %02X %02X     %-4s  ", address, op, op1, mnemonicString[mnem]);
-#endif
             printf(formatString[am], op1);
             printf("\n");
             break;
@@ -282,28 +270,36 @@ int main(int argc, char *argv[])
             op2 = getc(f);
             if (feof(f))
                 break;
-#ifndef CPM
             if (sourceMode) {
                 printf("        %-4s    ", mnemonicString[mnem]);
             } else {
-                printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
+                printf("%04X  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
             }
-#else
-            printf("%04lX  %02X %02X %02X  %-4s  ", address, op, op1, op2, mnemonicString[mnem]);
-#endif
             printf(formatString[am], op2, op1);
             printf("\n");
             break;
         }
         address += len;
+
+        lines++;
+        if (lines >= 23) {
+            printf("Press <space> to continue, Q to quit ");
+#ifdef CPM
+            while (!kbhit())
+                ;
+            c = getch();
+            printf("\n");
+#else
+            c = getchar();
+#endif
+            if (c == 'q' || c == 'Q')
+                break;
+            lines = 0;
+        }
     }
 
     if (sourceMode) {
-#ifdef CPM
-        printf("                END\n");
-#else
         printf("        END\n");
-#endif
     }
 
     fclose (f);

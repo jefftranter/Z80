@@ -35,7 +35,7 @@
  */
 
 #include <ctype.h>
-/*#include <errno.h>*/
+#include <errno.h>
 /*#include <stdbool.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -649,7 +649,7 @@ void setPlayers()
 
     for (i = 0; i < numHumanPlayers; i++) {
         sprintf(buffer, "Name of player %d", i+1);
-        strncpy(playerName[i], promptString(buffer), sizeof(playerName[i]) - 1);
+        strncpy(playerName[i], promptString(buffer), 9);
         playerName[i][strlen(playerName[i])] = 0; /* May need to add terminating null */
         isComputerPlayer[i] = 0;
     }

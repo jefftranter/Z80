@@ -47,7 +47,7 @@
  * Linux.
  */
 
-#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__)
+#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__) || defined(CPM)
 #define FILEIO 1
 #endif
 
@@ -805,7 +805,6 @@ void doBackup()
     number i, j, n;
 
     /* Command line should be like "B[ACKUP] <NUMBER>" */
-    /* Number will be after first space. */
     sp = strchr(buffer, ' ');
     if (sp == NULL) {
         printf("Backup under what number?\n");

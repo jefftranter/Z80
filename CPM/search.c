@@ -13,6 +13,17 @@
 #include <stdio.h>
 #include <string.h>
 
+char *strtoupper(char *s)
+{
+    char *p = s;
+
+    while (*p) {
+        *p = toupper(*p);
+        p++;
+    }
+    return s;
+}
+
 int main(int argc, char *argv[])
 {
     int i;
@@ -20,6 +31,7 @@ int main(int argc, char *argv[])
     FILE *f;
     char *filename;
     char buff[132];
+    char s[132];
 
     if (argc < 3) {
         printf("usage: search <pattern> <filename(s)>\n");
@@ -42,11 +54,8 @@ int main(int argc, char *argv[])
 
 /* CP/M converts command line arguments to all upper case so we need
    to do a case insensitive compare. */
-#ifdef CPM
-            if (strcasestr(buff, argv[1]) != NULL) {
-#else
-            if (strstr(buff, argv[1]) != NULL) {
-#endif
+            strcpy(s, buff);
+            if (strstr(strtoupper(s), strtoupper(argv[1])) != NULL) {
                 printf("%s %d: %s", filename, line, buff);
             }
         }

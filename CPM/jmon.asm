@@ -1821,4 +1821,4 @@ opcode:  equ    vars+26        ; Opcode e.g. OP_ADD (1)
 mnemonic: equ   vars+27        ; Pointer to mnemonic string, e.g. "ADD " (2)
 len:    equ     vars+29        ; Length of instruction (1)
 
-        end
+;        end

@@ -28,12 +28,14 @@ int main()
     int i;
     int v;
 
-    v = bdos(CPMVERS);
+    v = bdos(CPM_VERS, 0);
     printf("OS: ");
-    if (v & MPM) {
+    if (v & 0x0100) {
         printf("MP/M\n");
-    } else if (v & CCPM) {
-        printf("Concurrent CP/M\n");
+    } else if (v & 0x0200) {
+        printf("CP/Net\n");
+    } else if (v & 0x0400) {
+        printf("16-bit multi-user\n");
     } else {
         printf("CP/M\n");
     }
@@ -49,9 +51,9 @@ int main()
 
     printf("Version: %d.%d\n", v / 16, v % 16);
     printf("Current User: %d\n", getuid());
-    printf("Current Disk: %c\n", bdos(CPMIDRV) + 'A');
+    printf("Current Disk: %c\n", bdos(CPM_IDRV, 0) + 'A');
 
-    v = bdos(CPMILOG);
+    v = bdos(CPM_ILOG, 0);
     printf("Login Vector:");
     for (i = 0; i < 32; i++) {
         if (v & (1 << i)) {
@@ -60,7 +62,7 @@ int main()
     }
     printf("\n");
 
-    v = bdos(CPMGROV);
+    v = bdos(29 /*CPMGROV*/, 0);
     printf("Read Only Vector:");
     for (i = 0; i < 32; i++) {
         if (v & (1 << i)) {
@@ -69,7 +71,7 @@ int main()
     }
     printf("\n");
 
-    v = bdos(CPMGIOB);
+    v = bdos(CPM_GIOB, 0);
     printf("IOBYTE:\nCON: is ");
     switch (v & 3) {
     case 0:
@@ -132,11 +134,6 @@ int main()
     }
     printf("\n");
 
-    /* Note: There appears to be a bug in the Hi-Tech C printf hex
-       format output which causes additional incorrect leading digits
-       to be displayed (e.g "220073" rather than "0073". I have not
-       found any workaround for this. */
-
-    printf("Allocation Vector: %4X\n", bdos(CPMGALL));
-    printf("Disk Parameter Block: %4X\n", bdos(CPMDPB));
+    printf("Allocation Vector: %4X\n", bdos(27 /*CPMGALL*/, 0));
+    printf("Disk Parameter Block: %4X\n", bdos(31 /*CPM_DPB*/, 0));
 }

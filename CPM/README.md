@@ -6,3 +6,5 @@ Tiny Basic came from here: http://www.nicholson.com/rhn/files/tinybasic.tar.Z
 The C programs are intended to be compiled using the Hi-Tech C
 Compiler for CP/M version 3.09.
 See https://github.com/agn453/HI-TECH-Z80-C
+
+They also compile with z88dk. See https://github.com/z88dk/z88dk/wiki

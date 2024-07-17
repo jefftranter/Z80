@@ -1,4 +1,8 @@
-all: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
+all: asm c
+
+asm: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
+
+c: advent1.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -34,7 +38,7 @@ jmon.abs: jmon.com
 	../HDOS/bin2abs.py jmon.com jmon.abs
 
 jmon.com: jmon.asm disasm.asm
-	z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
+	z80asm -b -l jmon.asm
 	mv jmon.bin jmon.com
 
 tinybas.com: tinybas.asm
@@ -72,8 +76,44 @@ copy.com:
 	p2bin -r '$$-$$' copy.p
 	mv copy.bin copy.com
 
+chello.com: chello.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o chello.com chello.c
+
+sieve.com: sieve.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o sieve.com sieve.c
+
+nqueens.com: nqueens.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o nqueens.com nqueens.c
+
+demo.com: demo.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o demo.com demo.c
+
+rpncalc.com: rpncalc.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o rpncalc.com rpncalc.c
+
+disasm.com: disasm.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o disasm.com disasm.c
+
+advent1.com: advent1.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent1.com advent1.c
+
+freq.com: freq.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o freq.com freq.c
+
+info.com: info.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o info.com info.c
+
+search.com: search.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o search.com search.c
+
+size.com: size.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o size.com size.c
+
+yum.com: yum.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o yum.com yum.c
+
 clean:
-	$(RM) *.sys *.bin *.lst *.map *.p *.com *.abs
+	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs
 
 distclean: clean
 	$(RM) cpm22.z80 cpm2-asm.zip
