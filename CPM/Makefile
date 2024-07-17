@@ -2,7 +2,7 @@ all: asm c
 
 asm: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
 
-c: advent1.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com
+c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -38,7 +38,7 @@ jmon.abs: jmon.com
 	../HDOS/bin2abs.py jmon.com jmon.abs
 
 jmon.com: jmon.asm disasm.asm
-	z80asm -b -l jmon.asm
+	/usr/bin/z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
 	mv jmon.bin jmon.com
 
 tinybas.com: tinybas.asm
@@ -96,6 +96,12 @@ disasm.com: disasm.c
 
 advent1.com: advent1.c
 	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent1.com advent1.c
+
+advent2.com: advent2.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent2.com advent2.c
+
+advent3.com: advent3.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent3.com advent3.c
 
 freq.com: freq.c
 	zcc -v -mz80 +cpm -subtype=hz89 -lm -o freq.com freq.c
