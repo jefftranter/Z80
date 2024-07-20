@@ -17,7 +17,9 @@ Character input/output using different methods:
    interrupt-driven input and fight for access.
 
 2. Call monitor ROM routines. Not available under CP/M as the boot ROM
-   is not normally mapped into memory. Works under HDOS.
+   is not normally mapped into memory. Works under HDOS 1 where ROM is
+   still mapped in but not in HDOS 2 fi 64K. Also suffers from same
+   interrupt driven issue on input as method 1.
 
 3. Call CP/M BDOS functions. Already supported by z88dk, so not
    implemented here.
@@ -27,6 +29,14 @@ Character input/output using different methods:
 To Do: Add file i/o routines.
 
 */
+
+// Define to one of 1, 2, or 4 as above.
+
+#define METHOD 2
+
+/********************* METHOD 1 ***************************************/
+
+#if METHOD == 1
 
 __asm
 ACE equ $E8         ; 8250 ACE i/o address
@@ -69,3 +79,39 @@ l2: in      LSR     ; Read status register
     ret
 __endasm
 }
+
+#endif
+
+/********************* METHOD 2 ***************************************/
+
+#if METHOD == 2
+
+__asm
+WCC equ     $03C2  ; Write char in A to console
+RCC equ     $03B2  ; Read console, return char in A
+__endasm
+
+int fputc_cons_native(char c) __naked
+{
+__asm
+    pop     bc      ; Return address
+    pop     hl      ; Character to print in l
+    push    hl
+    push    bc
+    ld      a,l     ; Get char to print
+    call    WCC     ; Write character to console
+    ret
+__endasm
+}
+
+int fgetc_cons() __naked
+{
+__asm
+    call    RCC     ; Read console character
+    ld      l,a     ; Return the result in hl
+    ld      h,0
+    ret
+__endasm
+}
+
+#endif
