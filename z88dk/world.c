@@ -12,8 +12,12 @@
 
 #include <stdio.h>
 
+void init();
+
 int main()
 {
+    init();
+
     /* Print a message */
     printf("Hello from z88dk!\r\n");
 

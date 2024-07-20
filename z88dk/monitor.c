@@ -32,7 +32,7 @@ To Do: Add file i/o routines.
 
 // Define to one of 1, 2, or 4 as above.
 
-#define METHOD 3
+#define METHOD 4
 
 /********************* METHOD 1 ***************************************/
 
@@ -46,6 +46,8 @@ LSR equ ACE+5       ; LSR register
 DR  equ %00000001   ; DR bit
 THE equ %00100000   ; THE bit
 __endasm
+
+void init() { }
 
 int fputc_cons_native(char c) __naked
 {
@@ -91,6 +93,8 @@ WCC equ     $03C2  ; Write char in A to console
 RCC equ     $03B2  ; Read console, return char in A
 __endasm
 
+void init() { }
+
 int fputc_cons_native(char c) __naked
 {
 __asm
@@ -125,6 +129,8 @@ BOOT equ    $0000  ; Return to CP/M
 BDOS equ    $0005  ; CP/M BDOS call
 DIO equ     $06    ; BDOS call for Direct Console i/o
 __endasm
+
+void init() { }
 
 int fputc_cons_native(char c) __naked
 {
@@ -163,6 +169,61 @@ l1: ld      c,DIO   ; BDOS call
     ld      l,a     ; Return the result in hl
     ld      h,0
     ret
+__endasm
+}
+
+#endif
+
+/********************* METHOD 4 ***************************************/
+
+#if METHOD == 4
+
+__asm
+SCALL   macro   call            ; SYSCALL macro
+        rst     $38
+        db      call
+        endm
+EXIT    equ     0               ; HDOS System calls
+SCIN    equ     1
+SCOUT   equ     2
+CONSL   equ     6
+CSLMD   equ     0               ; Index for console mode
+CSLECH  equ     %10000000       ; Bit for suppress echo
+CSLCHR  equ     %00000001       ; Bit for update in character mode
+__endasm
+
+void init()
+{
+__asm
+                                ; Set console mode under HDOS
+        ld      a,CSLMD         ; Index
+        ld      b,CSLECH|CSLCHR ; Suppress echo and update in character mode
+        ld      c,CSLECH|CSLCHR ; Mask
+        SCALL    CONSL          ; Initialize HDOS console
+__endasm
+}
+
+int fputc_cons_native(char c) __naked
+{
+__asm
+        pop     bc              ; Return address
+        pop     hl              ; Character to print in l
+        push    hl
+        push    bc
+        ld      a,l             ; Get char to print
+        SCALL   SCOUT           ; System call for System Console Output
+        ret
+__endasm
+}
+
+int fgetc_cons() __naked
+{
+__asm
+nr:     SCALL   SCIN            ; Get character
+        jr      c,nr            ; Try again if no character ready
+        ld      l,a             ; Return the result in hl
+        ld      h,0
+        ret
 __endasm
 }
 
