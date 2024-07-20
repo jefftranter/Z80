@@ -21,8 +21,8 @@ Character input/output using different methods:
    still mapped in but not in HDOS 2 fi 64K. Also suffers from same
    interrupt driven issue on input as method 1.
 
-3. Call CP/M BDOS functions. Already supported by z88dk, so not
-   implemented here.
+3. Call CP/M BDOS functions. Already supported by z88dk, but also
+   implemented here for example purposes.
 
 4. Call HDOS system calls.
 
@@ -32,7 +32,7 @@ To Do: Add file i/o routines.
 
 // Define to one of 1, 2, or 4 as above.
 
-#define METHOD 2
+#define METHOD 3
 
 /********************* METHOD 1 ***************************************/
 
@@ -108,6 +108,58 @@ int fgetc_cons() __naked
 {
 __asm
     call    RCC     ; Read console character
+    ld      l,a     ; Return the result in hl
+    ld      h,0
+    ret
+__endasm
+}
+
+#endif
+
+/********************* METHOD 3 ***************************************/
+
+#if METHOD == 3
+
+__asm
+BOOT equ    $0000  ; Return to CP/M
+BDOS equ    $0005  ; CP/M BDOS call
+DIO equ     $06    ; BDOS call for Direct Console i/o
+__endasm
+
+int fputc_cons_native(char c) __naked
+{
+__asm
+    pop     bc      ; Return address
+    pop     hl      ; Character to print in l
+    push    hl
+    push    bc
+    push    af      ; Save registers
+    push    bc
+    push    de
+    push    hl
+    ld      c,DIO   ; BDOS call
+    ld      e,l     ; Char is passed in e
+    call    BDOS    ; Call BDOS to output char
+    pop     hl      ; Restore registers
+    pop     de
+    pop     bc
+    pop     af
+    ret
+__endasm
+}
+
+int fgetc_cons() __naked
+{
+__asm
+    push    bc      ; Save registers
+    push    de
+l1: ld      c,DIO   ; BDOS call
+    ld      e,0FFH  ; Indicates to read
+    call    BDOS    ; Call BDOS to input char
+    cp      0       ; Char returned?
+    jr      z,l1    ; If not, try again
+    pop     de
+    pop     bc
     ld      l,a     ; Return the result in hl
     ld      h,0
     ret
