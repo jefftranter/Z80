@@ -211,7 +211,12 @@ __asm
         push    hl
         push    bc
         ld      a,l             ; Get char to print
-        SCALL   SCOUT           ; System call for System Console Output
+        cmp     '\n'            ; Is it newline?
+        jr      nz,pr1          ; Branch if not
+        ld      a,'\r'          ; If so, first print return
+        SCALL   SCOUT
+        ld      a,'\n'          ; Now print newline
+pr1:    SCALL   SCOUT           ; System call for System Console Output
         ret
 __endasm
 }
@@ -219,7 +224,7 @@ __endasm
 int fgetc_cons() __naked
 {
 __asm
-nr:     SCALL   SCIN            ; Get character
+nr:     SCALL   SCIN            ; System call for System Console Input
         jr      c,nr            ; Try again if no character ready
         ld      l,a             ; Return the result in hl
         ld      h,0

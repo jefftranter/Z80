@@ -19,17 +19,17 @@ int main()
     init();
 
     /* Print a message */
-    printf("Hello from z88dk!\r\n");
+    printf("\nHello from z88dk!\n");
 
-    /* Get characters and echo back. Exit if Control-Z pressed. */
+    /* Get characters and echo back. Exit if 'q', or 'Q' pressed. */
     while (1) {
         int c = getchar();
-        printf("%c\r\n", c);
-        if (c == 26)
-            break; /* Control-Z */
+        printf("%c", c);
+        if (c == 'q' || c == 'Q')
+            break;
     }
 
-    printf("\r\nGoodbye!\r\n");
+    printf("\nGoodbye!\n");
 
     return 0;
 }
