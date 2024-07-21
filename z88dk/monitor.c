@@ -47,8 +47,6 @@ DR  equ %00000001   ; DR bit
 THE equ %00100000   ; THE bit
 __endasm
 
-void init() { }
-
 int fputc_cons_native(char c) __naked
 {
 __asm
@@ -93,8 +91,6 @@ WCC equ     $03C2  ; Write char in A to console
 RCC equ     $03B2  ; Read console, return char in A
 __endasm
 
-void init() { }
-
 int fputc_cons_native(char c) __naked
 {
 __asm
@@ -129,8 +125,6 @@ BOOT equ    $0000  ; Return to CP/M
 BDOS equ    $0005  ; CP/M BDOS call
 DIO equ     $06    ; BDOS call for Direct Console i/o
 __endasm
-
-void init() { }
 
 int fputc_cons_native(char c) __naked
 {
@@ -191,17 +185,6 @@ CSLMD   equ     0               ; Index for console mode
 CSLECH  equ     %10000000       ; Bit for suppress echo
 CSLCHR  equ     %00000001       ; Bit for update in character mode
 __endasm
-
-void init()
-{
-__asm
-                                ; Set console mode under HDOS
-        ld      a,CSLMD         ; Index
-        ld      b,CSLECH|CSLCHR ; Suppress echo and update in character mode
-        ld      c,CSLECH|CSLCHR ; Mask
-        SCALL    CONSL          ; Initialize HDOS console
-__endasm
-}
 
 int fputc_cons_native(char c) __naked
 {

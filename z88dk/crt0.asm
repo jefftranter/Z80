@@ -69,6 +69,22 @@ start:
     ; Turn on interrupts if desired
     INCLUDE "crt/classic/crt_init_eidi.inc"
 
+    ; Initialization of console under HDOS
+IF  HDOS = 1
+SCALL macro call            ; SYSCALL macro
+    rst     $38
+    db      call
+    endm
+CONSL  equ  6
+CSLMD  equ  0               ; Index for console mode
+CSLECH equ  %10000000       ; Bit for suppress echo
+CSLCHR equ  %00000001       ; Bit for update in character mode
+    ld      a,CSLMD         ; Index
+    ld      b,CSLECH|CSLCHR ; Suppress echo and update in character mode
+    ld      c,CSLECH|CSLCHR ; Mask
+    SCALL   CONSL           ; Initialize HDOS console
+ENDIF
+
     ; Entry to the user code
     call    _main
     ; Exit code is in hl
