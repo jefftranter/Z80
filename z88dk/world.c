@@ -6,10 +6,6 @@
 
 */
 
-
-/* Tells C run-time to return to caller on exit */
-#pragma-define CRT_ON_EXIT=0x10002
-
 #include <stdio.h>
 
 int main()
