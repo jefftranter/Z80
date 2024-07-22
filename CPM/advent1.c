@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __CC65__
+#if defined(__CC65__) || defined(CPM)
 #include <conio.h>
 #endif
 
@@ -202,11 +202,11 @@ char *DescriptionOfLocation[NUMLOCATIONS] = {
     "at the top of the stairs",
     "in a boy's bedroom",
     "in a girl's bedroom",
-    "in the master bedroom next to\na bookcase",
+    "in the master bedroom next to a bookcase",
     "in the servant's quarters",
     "in the basement laundry room",
     "in the furnace room",
-    "in a vacant room next to a\nlocked door",
+    "in a vacant room next to a locked door",
     "in the cistern",
     "in an underground tunnel. There are rats here",
     "in the woods near a trapdoor",
@@ -299,7 +299,7 @@ GameState_t savedGame[SAVEGAMES];
 char *introText;
 
 #ifdef FILEIO
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
 char *helpString;
 #endif /* FILEIO */
@@ -310,12 +310,15 @@ char buffer[80];
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__APPLE2__)
+#if defined(__APPLE2__) || defined(CPM)
     clrscr();
-#else
+#elif defined(__linux__)
     number i;
     for (i = 0; i < 24; ++i)
         printf("\n");
+#else
+    /* Heathkit H89/H19 screen clear */
+    printf("\eE");
 #endif
 }
 
@@ -590,7 +593,7 @@ void doExamine()
 
     /* Examine bookcase - not an object */
     if (!strcasecmp(item, "bookcase")) {
-        printf("You pull back a book and the bookcase\nopens up to reveal a secret room.\n");
+        printf("You pull back a book and the bookcase opens up to reveal a secret room.\n");
         Move[17][North] = 18;
         return;
     }
@@ -603,7 +606,7 @@ void doExamine()
 
     /* Examine Book */
     if (!strcasecmp(item, "book")) {
-        printf("It is a very old book entitled\n\"Apple 1 operation manual\".\n");
+        printf("It is a very old book entitled \"Apple 1 operation manual\".\n");
         return;
     }
 
@@ -615,13 +618,13 @@ void doExamine()
 
     /* Examine toy car */
     if (!strcasecmp(item, "toy car")) {
-        printf("It is a nice toy car.\nYour grandson Matthew would like it.\n");
+        printf("It is a nice toy car. Your grandson Matthew would like it.\n");
         return;
     }
 
     /* Examine old radio */
     if (!strcasecmp(item, "old radio")) {
-        printf("It is a 1940 Zenith 8-S-563 console\nwith an 8A02 chassis. You'd turn it on\nbut the electricity is off.\n");
+        printf("It is a 1940 Zenith 8-S-563 console with an 8A02 chassis. You'd turn it on\nbut the electricity is off.\n");
         return;
     }
 
@@ -656,21 +659,21 @@ void doUse()
 
     /* Use key */
     if (!strcasecmp(item, "key") && (currentLocation == VacantRoom)) {
-        printf("You insert the key in the door and it\nopens, revealing a tunnel.\n");
+        printf("You insert the key in the door and it opens, revealing a tunnel.\n");
         Move[21][North] = 23;
         return;
     }
 
     /* Use pitchfork */
     if (!strcasecmp(item, "pitchfork") && (currentLocation == WolfTree) && (wolfState == 0)) {
-        printf("You jab the wolf with the pitchfork.\nIt howls and runs away.\n");
+        printf("You jab the wolf with the pitchfork. It howls and runs away.\n");
         wolfState = 1;
         return;
     }
 
     /* Use toy car */
     if (!strcasecmp(item, "toy car") && (currentLocation == WolfTree && wolfState == 1)) {
-        printf("You show Matthew the toy car and he\ncomes down to take it. You take Matthew\nin your arms and carry him home.\n");
+        printf("You show Matthew the toy car and he comes down to take it.\nYou take Matthew in your arms and carry him home.\n");
         wolfState = 2;
         return;
     }
@@ -705,7 +708,7 @@ void doUse()
 
     /* Use candybar */
     if (!strcasecmp(item, "candybar")) {
-        printf("That hit the spot. You no longer feel\nhungry.\n");
+        printf("That hit the spot. You no longer feel hungry.\n");
         ateFood = 1;
         return;
     }
@@ -713,18 +716,18 @@ void doUse()
     /* Use bottle */
     if (!strcasecmp(item, "bottle")) {
         if (currentLocation == Cistern) {
-            printf("You fill the bottle with water from the\ncistern and take a drink. You no longer\nfeel thirsty.\n");
+            printf("You fill the bottle with water from the cistern and take a drink.\nYou no longer feel thirsty.\n");
             drankWater = 1;
             return;
         } else {
-            printf("The bottle is empty. If only you had\nsome water to fill it!\n");
+            printf("The bottle is empty. If only you had some water to fill it!\n");
             return;
         }
     }
 
     /* Use stale meat */
     if (!strcasecmp(item, "stale meat")) {
-        printf("The meat looked and tasted bad. You\nfeel very sick and pass out.\n");
+        printf("The meat looked and tasted bad. You feel very sick and pass out.\n");
         gameOver = 1;
         return;
     }
@@ -1029,21 +1032,21 @@ void prompt()
 void doActions()
 {
     if ((turnsPlayed == 10) && !lampLit) {
-        printf("It will be getting dark soon. You need\nsome kind of light or soon you won't\nbe able to see.\n");
+        printf("It will be getting dark soon. You need some kind of light or soon you won't\nbe able to see.\n");
     }
 
     if ((turnsPlayed >= 60) && (!lampLit || (!itemIsHere("lamp") && !carryingItem("lamp")))) {
-        printf("It is dark out and you have no light.\nYou stumble around for a while and\nthen fall, hit your head, and pass out.\n");
+        printf("It is dark out and you have no light. You stumble around for a while and\nthen fall, hit your head, and pass out.\n");
         gameOver = 1;
         return;
     }
 
     if ((turnsPlayed == 20) && !drankWater) {
-        printf("You are getting very thirsty.\nYou need to get a drink soon.\n");
+        printf("You are getting very thirsty. You need to get a drink soon.\n");
     }
 
     if ((turnsPlayed == 30) && !ateFood) {
-        printf("You are getting very hungry.\nYou need to find something to eat.\n");
+        printf("You are getting very hungry. You need to find something to eat.\n");
     }
 
     if ((turnsPlayed == 50) && !drankWater) {
@@ -1077,13 +1080,13 @@ void doActions()
     if (currentLocation == WolfTree) {
         switch (wolfState) {
             case 0:
-                printf("A wolf is circling around the tree.\nMatthew is up in the tree. You have to\nsave him! If only you had some kind of\nweapon!\n");
+                printf("A wolf is circling around the tree. Matthew is up in the tree. You have to\nsave him! If only you had some kind of weapon!\n");
                 break;
             case 1:
-                printf("Matthew is afraid to come\ndown from the tree. If only you had\nsomething to coax him with.\n");
+                printf("Matthew is afraid to come down from the tree. If only you had\nsomething to coax him with.\n");
                 break;
             case 2:
-                printf("Congratulations! You succeeded and won\nthe game. I hope you had as much fun\nplaying the game as I did creating it.\n- Jeff Tranter <tranter@pobox.com>\n");
+                printf("Congratulations! You succeeded and won\nthe game. I hope you had as much fun playing the game as I did creating it.\n- Jeff Tranter <tranter@pobox.com>\n");
                 gameOver = 1;
                 return;
                 break;
@@ -1137,9 +1140,9 @@ int main(void)
 {
     int i;
 
-    introText = "     Abandoned Farmhouse Adventure\n           By Jeff Tranter\n\nYour three-year-old grandson has gone\nmissing and was last seen headed in the\ndirection of the abandoned family farm.\nIt's a dangerous place to play. You\nhave to find him before he gets hurt,\nand it will be getting dark soon...\n";
+    introText = "                          Abandoned Farmhouse Adventure\n                                 By Jeff Tranter\n\nYour three-year-old grandson has gone missing and was last seen headed in the\ndirection of the abandoned family farm. It's a dangerous place to play.\nYou have to find him before he gets hurt, and it will be getting dark soon...\n";
 
-    helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+    helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 
 #ifndef FILEIO
     /* Mark all saved games as initially invalid */
