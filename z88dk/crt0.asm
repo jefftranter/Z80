@@ -75,7 +75,8 @@ SCALL macro call            ; SYSCALL macro
     rst     $38
     db      call
     endm
-CONSL  equ  6
+CONSL  equ  6               ; CONSL system call
+EXIT   equ  0               ; EXIT system call
 CSLMD  equ  0               ; Index for console mode
 CSLECH equ  %10000000       ; Bit for suppress echo
 CSLCHR equ  %00000001       ; Bit for update in character mode
@@ -94,6 +95,11 @@ __Exit:
 
     ; Set the interrupt mode on exit
     INCLUDE "crt/classic/crt_exit_eidi.inc"
+
+IF  HDOS = 1
+    ld      a,0             ;   Flag for normal exit
+    SCALL   EXIT            ;   HDOS EXIT system call
+ENDIF
 
     ; How does the program end?
     INCLUDE "crt/classic/crt_terminate.inc"
