@@ -127,7 +127,6 @@ prompt: equ     '?'             ; Prompt character
 CR:             equ '\r'        ; Carriage Return
 NL:             equ '\n'        ; Newline
 ESC:            equ $1B         ; Escape
-stack:          equ $F000       ; Starting address for stack
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -157,17 +156,11 @@ Start:
         ld      (save_r),a
         ld      (save_ix),ix
         ld      (save_iy),iy
-        push    af              ; Push A and Flags
+        push    af              ; Push A and flags
         pop     bc              ; Pull A and flags to B,C
         ld      a,c             ; Put flags in A
         ld      (save_f),a      ; Save flags
-        ld      hl,stack        ; Set initial value of SP
-        ld      a,h
-        ld      (save_sp),a
-        ld      a,l
-        ld      (save_sp+1),a
-
-;       ld      sp,stack        ; Set up stack pointer
+        ld      (save_sp),sp    ; Save SP
 
 ; Set console mode under HDOS
 if      HDOS
