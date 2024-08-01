@@ -17,7 +17,7 @@
 ;-------
 
     EXTERN    _main           ;main() is always external to crt0 code
-    PUBLIC    __Exit         ;jp'd to by exit()
+    PUBLIC    __Exit          ;jp'd to by exit()
     PUBLIC    l_dcal          ;jp(hl)
     EXTERN	  asm_im1_handler
     EXTERN	  asm_nmi_handler
@@ -45,9 +45,7 @@ ENDIF
     defc    __CPU_CLOCK = 4000000
     INCLUDE "crt/classic/crt_rules.inc"
 
-
     org    	CRT_ORG_CODE
-
 
 IF CRT_ORG_CODE = 0x0000
     jp      start
@@ -58,6 +56,12 @@ start:
     INCLUDE "crt/classic/crt_init_sp.inc"
     ; Setup BSS memory and perform other initialisation
     call    crt0_init
+
+IF  HDOS = 1
+    ld      ix,0            ; Save original SP in IX as it is needed later
+    add     ix,sp
+ENDIF
+
     ; Make room for the atexit() stack
     INCLUDE "crt/classic/crt_init_atexit.inc"
 
@@ -84,6 +88,37 @@ CSLCHR equ  %00000001       ; Bit for update in character mode
     ld      b,CSLECH|CSLCHR ; Suppress echo and update in character mode
     ld      c,CSLECH|CSLCHR ; Mask
     SCALL   CONSL           ; Initialize HDOS console
+ENDIF
+
+; Handle command line arguments under HDOS.
+; Command line argument string starts at (SP) (with a space), ends at
+; $227F (terminated with a null).
+; example: "foo 1 22 33"
+; SP -> $2276
+; $2276 $2277 $2278 $2279 $227A $227B $227C $227D $227E' $227F
+;  ' '   '1'   ' '   '2'   '2'   ' '   '3'   '3'   '3'    $00
+
+IF HDOS = 1 && CRT_ENABLE_COMMANDLINE = 1
+EOS equ     $227e
+    ld      hl,EOS   ; Address of end of arguments
+    ld      bc, ix   ; Put original SP in BC
+    scf              ; Clear carry for subtract MAY NOT BE NEEDED?
+    ccf
+    sbc     hl,bc    ; Subtract SP to calculate length
+    ld      c,l      ; Put length in C
+    ld      b,0      ; Put zero in B
+    ld      hl,EOS   ; Put end address back in HL
+
+    ; Command line parsing code below wants (HL) = end of arguments,
+    ; (C) = length of arguments, (B) = 0.
+
+    INCLUDE	"crt/classic/crt_command_line.inc"
+    push    hl	; argv
+    push    bc	; argc
+ELSE
+    ld      hl,0
+    push    hl  ; argv
+    push    hl  ; argc
 ENDIF
 
     ; Entry to the user code

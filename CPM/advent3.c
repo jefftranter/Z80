@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __CC65__
+#if defined(__CC65__) || defined(CPM)
 #include <conio.h>
 #ifdef JOYSTICK
 #include <joystick.h>
@@ -396,14 +396,11 @@ GameState_t savedGame[SAVEGAMES];
 #endif
 
 const char *introText =
-    "        The Prisoner Adventure\n"
-    "           By Jeff Tranter\n\n"
-    "A trained spy, you wake up in what\n"
-    "initially appears to be your flat in\n"
-    "London, but looking out the window you\n"
-    "find yourself alone in a strange place\n"
-    "simply known as \"the Village\".\n"
-    "Can you figure out how to escape?\n";
+    "                        The Prisoner Adventure\n"
+    "                               By Jeff Tranter\n\n"
+    "A trained spy, you wake up in what initially appears to be your flat in\n"
+    "London, but looking out the window you find yourself alone in a strange place\n"
+    "simply known as \"the Village\". Can you figure out how to escape?\n";
 
 #ifdef FILEIO
 const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
@@ -472,7 +469,7 @@ number matchesCommand(const char *cmd, const char *str)
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__CC65__) && !defined(__KIM1__)
+#if defined(__CC65__) || defined(CPM)
     clrscr();
 #else
     number i;

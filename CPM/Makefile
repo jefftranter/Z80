@@ -2,7 +2,7 @@ all: asm c
 
 asm: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
 
-c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com
+c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com cecho.com
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -117,6 +117,9 @@ size.com: size.c
 
 yum.com: yum.c
 	zcc -v -mz80 +cpm -subtype=hz89 -lm -o yum.com yum.c
+
+cecho.com: cecho.c
+	zcc -v -mz80 +cpm -subtype=hz89 -lm -o cecho.com cecho.c
 
 clean:
 	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs

@@ -49,7 +49,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __CC65__
+#if defined(__CC65__) || defined(CPM)
 #include <conio.h>
 #ifdef JOYSTICK
 #include <joystick.h>
@@ -393,29 +393,21 @@ GameState_t savedGame[SAVEGAMES];
 #endif
 
 const char *introText =
-"       Skye's Castle Adventure\n"
-"           By Jeff Tranter\n\n"
-"Your great-great-grandfather built a\n"
-"castle, but the family fell on hard\n"
-"times and it has been vacant for 80\n"
-"years. Occasionally, family members\n"
-"visit the castle, although it is old\n"
-"and dusty and possibly not safe. Today\n"
-"your young granddaughter went to\n"
-"visit the castle with her aunt, but\n"
-"they did not return in the evening.\n"
-"Maybe you should have called the\n"
-"police, but instead you decide to go\n"
-"over there and find them on your own.\n"
-"It looks like a bad storm is brewing,\n"
-"and the castle has no electricity, so\n"
-"you had better find them before it gets\n"
-"too dark.\n";
+    "       Skye's Castle Adventure\n"
+    "           By Jeff Tranter\n\n"
+    "Your great-great-grandfather built a castle, but the family fell on hard\n"
+    "times and it has been vacant for 80 years. Occasionally, family members\n"
+    "visit the castle, although it is old and dusty and possibly not safe. Today\n"
+    "your young granddaughter went to visit the castle with her aunt, but\n"
+    "they did not return in the evening. Maybe you should have called the\n"
+    "police, but instead you decide to go over there and find them on your own.\n"
+    "It looks like a bad storm is brewing, and the castle has no electricity, so\n"
+    "you had better find them before it gets too dark.\n";
 
 #ifdef FILEIO
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #endif
 
 /* Line of user input */
@@ -479,7 +471,7 @@ number matchesCommand(const char *cmd, const char *str)
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__CC65__) && !defined(__KIM1__)
+#if defined(__CC65__) || defined(CPM)
     clrscr();
 #else
     number i;
@@ -756,7 +748,7 @@ void doGo()
             return;
         }
         /* You won! */
-        printf("Congratulations, you won the game!\nI hope you had as much fun playing\nthe game as I did creating it.\nJeff Tranter <tranter@pobox.com>\n");
+        printf("Congratulations, you won the game!\nI hope you had as much fun playing the game as I did creating it.\nJeff Tranter <tranter@pobox.com>\n");
         gameOver = 1;
         return;
     }
@@ -788,7 +780,7 @@ void doExamine()
 
     /* Examine fireplace - not an object */
     if (!strcasecmp(item, "fireplace") && (currentLocation == Study)) {
-        printf("On either side of the fireplace are\nsecret panels, which now open and\nreveal staircases.\n");
+        printf("On either side of the fireplace are secret panels, which now open and\nreveal staircases.\n");
         Move[Study][Up] = Hallway11;
         Move[Study][Down] = Stairs3;
         return;
