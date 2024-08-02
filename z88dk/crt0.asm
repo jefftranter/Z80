@@ -92,18 +92,34 @@ ENDIF
 
 ; Handle command line arguments under HDOS.
 ; Command line argument string starts at (SP) (with a space), ends at
-; $227F (terminated with a null).
-; example: "foo 1 22 33"
+; $227F (terminated with a null). If no command line options passed,
+; (SP) = $2280.
+; Example: "foo 1 22 33"
 ; SP -> $2276
 ; $2276 $2277 $2278 $2279 $227A $227B $227C $227D $227E' $227F
 ;  ' '   '1'   ' '   '2'   '2'   ' '   '3'   '3'   '3'    $00
 
 IF HDOS = 1 && CRT_ENABLE_COMMANDLINE = 1
 EOS equ     $227e
-    ld      hl,EOS   ; Address of end of arguments
-    ld      bc, ix   ; Put original SP in BC
-    scf              ; Clear carry for subtract MAY NOT BE NEEDED?
-    ccf
+    ld      hl,EOS      ; Address of end of arguments
+    ld      bc, ix      ; Put original SP in BC
+
+    ld      a, $80      ; Check for case of no options, i.e. SP = IX = $2280
+    cp      ixl
+    jr      nz,args     ; Branch if arguments
+
+    ; Handle case of no arguments
+    ld      hl,argv0    ; name of program (null)
+    push    hl
+    ld      hl,0
+    add     hl,sp	; address of argv
+    ld      bc,1        ; argc is 1
+    jp      pshargs
+
+argv0:
+    defb    0
+
+args:
     sbc     hl,bc    ; Subtract SP to calculate length
     ld      c,l      ; Put length in C
     ld      b,0      ; Put zero in B
@@ -113,6 +129,7 @@ EOS equ     $227e
     ; (C) = length of arguments, (B) = 0.
 
     INCLUDE	"crt/classic/crt_command_line.inc"
+pshargs:
     push    hl	; argv
     push    bc	; argc
 ELSE
