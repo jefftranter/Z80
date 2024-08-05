@@ -38,7 +38,7 @@ ENDIF
     ; Default, don't change the stack pointer
     defc    TAR__register_sp = -1
     ; Default, 32 functions can be registered for atexit()
-    defc    TAR__clib_exit_stack_size = 32
+    defc    TAR__clib_exit_stack_size = 0
     ; Default, halt loop
     defc    TAR__crt_on_exit = 0x10001
 
@@ -56,11 +56,6 @@ start:
     INCLUDE "crt/classic/crt_init_sp.inc"
     ; Setup BSS memory and perform other initialisation
     call    crt0_init
-
-IF  HDOS = 1
-    ld      ix,0            ; Save original SP in IX as it is needed later
-    add     ix,sp
-ENDIF
 
     ; Make room for the atexit() stack
     INCLUDE "crt/classic/crt_init_atexit.inc"
@@ -101,12 +96,13 @@ ENDIF
 
 IF HDOS = 1 && CRT_ENABLE_COMMANDLINE = 1
 EOS equ     $227e
-    ld      hl,EOS      ; Address of end of arguments
-    ld      bc, ix      ; Put original SP in BC
-
-    ld      a, $80      ; Check for case of no options, i.e. SP = IX = $2280
-    cp      ixl
+    ld      hl,sp       ; Check for case of no options, i.e. SP = $2280
+    ld      a,$80
+    cp      l
     jr      nz,args     ; Branch if arguments
+    ld      a,$22
+    cp      h
+    jr      nz,args
 
     ; Handle case of no arguments
     ld      hl,argv0    ; name of program (null)
@@ -120,7 +116,8 @@ argv0:
     defb    0
 
 args:
-    sbc     hl,bc    ; Subtract SP to calculate length
+    ld      hl,EOS   ; Address of end of arguments
+    sbc     hl,sp    ; Subtract SP to calculate length
     ld      c,l      ; Put length in C
     ld      b,0      ; Put zero in B
     ld      hl,EOS   ; Put end address back in HL
