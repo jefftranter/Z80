@@ -2,7 +2,7 @@
  *
  * James' The Prisoner Adventure
  *
- * A sequel to The Abandoned Farmhouse and Sky's Castle Adventures.
+ * A sequel to The Abandoned Farmhouse and Skye's Castle Adventures.
  *
  * Dedicated to my grandson James Tranter who was 19 months old when I
  * wrote this.
@@ -58,7 +58,7 @@
  * Linux.
  */
 
-#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__)
+#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__) || defined(CPM)
 #define FILEIO 1
 #endif
 
@@ -1177,7 +1177,7 @@ void doRestore()
     /* Check for header line */
     fgets(buffer, sizeof(buffer) - 1, fp);
     if (strcmp(buffer, "#Adventure3 Save File\n")) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (1).\n");
         fclose(fp);
         return;
     }
@@ -1190,13 +1190,13 @@ void doRestore()
            (int*) &Inventory[3],
            (int*) &Inventory[4]);
     if (i != 5) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (2).\n");
         fclose(fp);
         return;
     }
 
     /* Items: 0 1 8 0 7 6 9 2 16 15 18 25 29 10 12 19 */
-    i = fscanf(fp, "Items: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+    i = fscanf(fp, "Items: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
                (int*) &locationOfItem[0],
                (int*) &locationOfItem[1],
                (int*) &locationOfItem[2],
@@ -1227,11 +1227,10 @@ void doRestore()
                (int*) &locationOfItem[27],
                (int*) &locationOfItem[28],
                (int*) &locationOfItem[29],
-               (int*) &locationOfItem[30],
-               (int*) &locationOfItem[31]);
+               (int*) &locationOfItem[30]);
 
     if (i != 31) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (3).\n");
         fclose(fp);
         return;
     }
@@ -1247,7 +1246,7 @@ void doRestore()
                (int*) &Move[i][4],
                (int*) &Move[i][5]);
         if (j != 6) {
-            printf("File is not a valid game file.\n");
+            printf("File is not a valid game file (4).\n");
             fclose(fp);
             return;
         }
@@ -1263,7 +1262,7 @@ void doRestore()
                );
 
     if (i != 5) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (5).\n");
         fclose(fp);
         return;
     }

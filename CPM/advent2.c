@@ -62,7 +62,7 @@
  * Linux.
  */
 
-#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__)
+#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__) || defined(CPM)
 #define FILEIO 1
 #endif
 
@@ -393,8 +393,8 @@ GameState_t savedGame[SAVEGAMES];
 #endif
 
 const char *introText =
-    "       Skye's Castle Adventure\n"
-    "           By Jeff Tranter\n\n"
+    "                        Skye's Castle Adventure\n"
+    "                            By Jeff Tranter\n\n"
     "Your great-great-grandfather built a castle, but the family fell on hard\n"
     "times and it has been vacant for 80 years. Occasionally, family members\n"
     "visit the castle, although it is old and dusty and possibly not safe. Today\n"
@@ -1114,7 +1114,7 @@ void doRestore()
     /* Check for header line */
     fgets(buffer, sizeof(buffer) - 1, fp);
     if (strcmp(buffer, "#Adventure2 Save File\n")) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (1).\n");
         fclose(fp);
         return;
     }
@@ -1127,7 +1127,7 @@ void doRestore()
            (int*) &Inventory[3],
            (int*) &Inventory[4]);
     if (i != 5) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (2).\n");
         fclose(fp);
         return;
     }
@@ -1159,7 +1159,7 @@ void doRestore()
            (int*) &locationOfItem[22]);
 
     if (i != 23) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (3).\n");
         fclose(fp);
         return;
     }
@@ -1175,7 +1175,7 @@ void doRestore()
                (int*) &Move[i][4],
                (int*) &Move[i][5]);
         if (j != 6) {
-            printf("File is not a valid game file.\n");
+            printf("File is not a valid game file (4).\n");
             fclose(fp);
             return;
         }
@@ -1189,7 +1189,7 @@ void doRestore()
                &auntieTied);
 
     if (i != 4) {
-        printf("File is not a valid game file.\n");
+        printf("File is not a valid game file (5).\n");
         fclose(fp);
         return;
     }
