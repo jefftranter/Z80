@@ -397,7 +397,7 @@ GameState_t savedGame[SAVEGAMES];
 
 const char *introText =
     "                        The Prisoner Adventure\n"
-    "                               By Jeff Tranter\n\n"
+    "                           By Jeff Tranter\n\n"
     "A trained spy, you wake up in what initially appears to be your flat in\n"
     "London, but looking out the window you find yourself alone in a strange place\n"
     "simply known as \"the Village\". Can you figure out how to escape?\n";
@@ -469,12 +469,15 @@ number matchesCommand(const char *cmd, const char *str)
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__CC65__) || defined(CPM)
+#if defined(__CC65__)
     clrscr();
-#else
+#elif defined(__linux__)
     number i;
     for (i = 0; i < 24; ++i)
         printf("\n");
+#else
+    /* Heathkit H89/H19 screen clear */
+    printf("\eE");
 #endif /* __CC65__ */
 }
 

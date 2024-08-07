@@ -310,7 +310,7 @@ char buffer[80];
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__APPLE2__) || defined(CPM)
+#if defined(__APPLE2__)
     clrscr();
 #elif defined(__linux__)
     number i;

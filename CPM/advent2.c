@@ -471,12 +471,15 @@ number matchesCommand(const char *cmd, const char *str)
 /* Clear the screen */
 void clearScreen()
 {
-#if defined(__CC65__) || defined(CPM)
+#if defined(__CC65__)
     clrscr();
-#else
+#elif defined(__linux__)
     number i;
     for (i = 0; i < 24; ++i)
         printf("\n");
+#else
+    /* Heathkit H89/H19 screen clear */
+    printf("\eE");
 #endif /* __CC65__ */
 }
 
