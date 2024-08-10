@@ -1,6 +1,8 @@
+all: cpm hdos
+
 cpm: world.com
 
-hdos: world.abs
+hdos: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs
 
 world.com: world.c monitor.c crt0.asm
 	zcc +z80 -clib=classic -crt0=crt0.asm -pragma-define:CRT_ORG_CODE=0x0100 -pragma-define:CRT_ON_EXIT=0x10002 world.c monitor.c -create-app -m

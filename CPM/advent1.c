@@ -100,7 +100,7 @@ typedef enum {
     Book,
     Cheese,
     OldRadio,
-    LastItem
+    LastItem=OldRadio
 } Item_t;
 
 /* Locations */
@@ -158,12 +158,12 @@ typedef struct {
 /* TABLES */
 
 /* Names of directions */
-char *DescriptionOfDirection[] = {
+const char *DescriptionOfDirection[] = {
     "north", "south", "east", "west", "up", "down"
 };
 
 /* Names of items */
-char *DescriptionOfItem[LastItem+1] = {
+const char *DescriptionOfItem[LastItem+1] = {
     "",
     "key",
     "pitchfork",
@@ -184,7 +184,7 @@ char *DescriptionOfItem[LastItem+1] = {
 };
 
 /* Names of locations */
-char *DescriptionOfLocation[NUMLOCATIONS] = {
+const char *DescriptionOfLocation[NUMLOCATIONS] = {
     "",
     "in the driveway near your car",
     "in the driveway",
@@ -296,12 +296,12 @@ number gameOver;
 GameState_t savedGame[SAVEGAMES];
 #endif
 
-char *introText;
+const char *introText = "                          Abandoned Farmhouse Adventure\n                                 By Jeff Tranter\n\nYour three-year-old grandson has gone missing and was last seen headed in the\ndirection of the abandoned family farm. It's a dangerous place to play.\nYou have to find him before he gets hurt, and it will be getting dark soon...\n";
 
 #ifdef FILEIO
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
-char *helpString;
+const char * helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #endif /* FILEIO */
 
 /* Line of user input */
@@ -323,7 +323,7 @@ void clearScreen()
 }
 
 /* Return 1 if carrying an item */
-number carryingItem(char *item)
+number carryingItem(const char *item)
 {
     number i;
 
@@ -335,7 +335,7 @@ number carryingItem(char *item)
 }
 
 /* Return 1 if item it at current location (not carried) */
-number itemIsHere(char *item)
+number itemIsHere(const char *item)
 {
     number i;
 
@@ -354,7 +354,7 @@ number itemIsHere(char *item)
 }
 
 /* Check for an abbreviated item name. Return full name of item if it
-   uniquely matches. Otherwise returns the orignal name. Only check
+   uniquely matches. Otherwise returns the original name. Only check
    for items being carried or at current location. */
 char *getMatch(char *name)
 {
@@ -1139,14 +1139,9 @@ void initialize()
 /* Main program (obviously) */
 int main(void)
 {
-    int i;
-
-    introText = "                          Abandoned Farmhouse Adventure\n                                 By Jeff Tranter\n\nYour three-year-old grandson has gone missing and was last seen headed in the\ndirection of the abandoned family farm. It's a dangerous place to play.\nYou have to find him before he gets hurt, and it will be getting dark soon...\n";
-
-    helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
-
 #ifndef FILEIO
     /* Mark all saved games as initially invalid */
+    int i;
     for (i = 0; i < SAVEGAMES; i++) {
         savedGame[i].valid = 0;
     }

@@ -404,9 +404,9 @@ const char *introText =
     "simply known as \"the Village\". Can you figure out how to escape?\n";
 
 #ifdef FILEIO
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and\ndirections to the first letter.\nType just the first letter of\na direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #endif
 
 /* Line of user input */
@@ -514,7 +514,7 @@ number itemIsHere(const char *item)
 }
 
 /* Check for an abbreviated item name. Return full name of item if it
-   uniquely matches. Otherwise returns the orignal name. Only check
+   uniquely matches. Otherwise returns the original name. Only check
    for items being carried or at current location. */
 char *getMatch(char *name)
 {
@@ -593,7 +593,7 @@ void doLook()
 void doQuit()
 {
     printf("%s", "Are you sure you want to quit (y/n)? ");
-    fflush(stdin);
+    fflush(stdout);
     fgets(buffer, sizeof(buffer)-1, stdin);
     if (tolower(buffer[0]) == 'y') {
         gameOver = 1;
@@ -1410,7 +1410,7 @@ void prompt()
     }
 #else
     /* Get keyboard input */
-    fflush(stdin);
+    fflush(stdout);
     fgets(buffer, sizeof(buffer)-1, stdin);
 
     /* Remove trailing newline */
@@ -1550,7 +1550,7 @@ int main(void)
 
         printf("Game over after %d turns.\n", turnsPlayed);
         printf("%s", "Do you want to play again (y/n)? ");
-        fflush(stdin);
+        fflush(stdout);
         fgets(buffer, sizeof(buffer)-1, stdin);
         if (tolower(buffer[0]) == 'n') {
             break;

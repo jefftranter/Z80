@@ -23,8 +23,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * To Do:
- *
  * Revision History:
  *
  * Version  Date         Comments
@@ -43,7 +41,6 @@
  *  with joystick support in cc65.
  */
 //#define JOYSTICK 1
-
 
 #include <ctype.h>
 #include <stdio.h>
@@ -405,13 +402,13 @@ const char *introText =
     "you had better find them before it gets too dark.\n";
 
 #ifdef FILEIO
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
-const char *helpString = "Valid commands:\ngo east/west/north/south/up/down \nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #endif
 
 /* Line of user input */
-char buffer[40];
+char buffer[80];
 
 #if defined(__OSIC1P__)
 
@@ -515,7 +512,7 @@ number itemIsHere(const char *item)
 }
 
 /* Check for an abbreviated item name. Return full name of item if it
-   uniquely matches. Otherwise returns the orignal name. Only check
+   uniquely matches. Otherwise returns the original name. Only check
    for items being carried or at current location. */
 char *getMatch(char *name)
 {
