@@ -12,7 +12,7 @@
  * Written in standard C but designed to run on the Apple II or other
  * platforms using the CC65 6502 assembler.
  *
- * Copyright 2012-2023 Jeff Tranter
+ * Copyright 2012-2024 Jeff Tranter
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -397,7 +397,8 @@ GameState_t savedGame[SAVEGAMES];
 
 const char *introText =
     "                        The Prisoner Adventure\n"
-    "                           By Jeff Tranter\n\n"
+    "                           By Jeff Tranter\n"
+    "                          Dedicated to James.\n\n"
     "A trained spy, you wake up in what initially appears to be your flat in\n"
     "London, but looking out the window you find yourself alone in a strange place\n"
     "simply known as \"the Village\". Can you figure out how to escape?\n";
@@ -592,7 +593,7 @@ void doLook()
 void doQuit()
 {
     printf("%s", "Are you sure you want to quit (y/n)? ");
-    fflush(NULL);
+    fflush(stdin);
     fgets(buffer, sizeof(buffer)-1, stdin);
     if (tolower(buffer[0]) == 'y') {
         gameOver = 1;
@@ -1409,7 +1410,7 @@ void prompt()
     }
 #else
     /* Get keyboard input */
-    fflush(NULL);
+    fflush(stdin);
     fgets(buffer, sizeof(buffer)-1, stdin);
 
     /* Remove trailing newline */
@@ -1549,7 +1550,7 @@ int main(void)
 
         printf("Game over after %d turns.\n", turnsPlayed);
         printf("%s", "Do you want to play again (y/n)? ");
-        fflush(NULL);
+        fflush(stdin);
         fgets(buffer, sizeof(buffer)-1, stdin);
         if (tolower(buffer[0]) == 'n') {
             break;
