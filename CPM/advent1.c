@@ -7,7 +7,7 @@
  * Written in standard C but designed to run on the Apple Replica 1
  * or Apple II using the CC65 6502 assembler.
  *
- * Copyright 2012-2022 Jeff Tranter
+ * Copyright 2012-2024 Jeff Tranter
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,15 @@
  * 0.9      19 Mar 2012  First public release
  * 1.0      06 Sep 2015  Lower case and other Apple II improvements.
  * 1.1      26 Jul 2022  Added backup/restore commands.
+ * 2.0      11 Aug 2024  Align all three games with common code.
  *
  */
+
+/* Uncomment the next line to define JOYSTICK if you want to enable
+ *  support for moving using a joystick. You need to be on a platform
+ *  with joystick support in cc65.
+ */
+//#define JOYSTICK 1
 
 #include <ctype.h>
 #include <stdio.h>
@@ -39,7 +46,10 @@
 #include <string.h>
 #if defined(__CC65__) || defined(CPM)
 #include <conio.h>
-#endif
+#ifdef JOYSTICK
+#include <joystick.h>
+#endif /* JOYSTICK */
+#endif /* __CC65__ */
 
 /* Define FILEIO if you want backup and restore commands to use files.
  * Otherwise uses memory. Requires platform support for file i/o
@@ -69,7 +79,7 @@
 typedef char number;
 #else
 typedef int number;
-#endif
+#endif /* __CC65__ */
 
 /* Directions */
 typedef enum {
@@ -301,11 +311,66 @@ const char *introText = "                          Abandoned Farmhouse Adventure
 #ifdef FILEIO
 const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <file>\nrestore <file>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
 #else
-const char * helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
-#endif /* FILEIO */
+const char *helpString = "Valid commands:\ngo east/west/north/south/up/down\nlook\nuse <object>\nexamine <object>\ntake <object>\ndrop <object>\ninventory\nbackup <number>\nrestore <number>\nhelp\nquit\nYou can abbreviate commands and directions to the first letter.\nType just the first letter of a direction to move.\n";
+#endif
 
 /* Line of user input */
 char buffer[80];
+
+#if defined(__OSIC1P__)
+
+/* Have to implement fgets() ourselves as it is not available. */
+char* _fgets(char* buf, size_t size, FILE*)
+{
+    int c;
+    char *p;
+
+    /* get max bytes or upto a newline */
+    for (p = buf, size--; size > 0; size--) {
+        if ((c = cgetc()) == EOF)
+            break;
+        cputc(c); /* echo back */
+        *p++ = c;
+        if (c == '\n' || c == '\r')
+            break;
+    }
+    *p = 0;
+    if (p == buf || c == EOF)
+        return NULL;
+    return (p);
+}
+
+#define fgets _fgets
+#define printf cprintf
+#endif
+
+/*
+ * Check if string str starts with command or abbreviated command cmd, e.g
+ * "h", "he", "hel", or "help" matches "help". Not case sensitive. Ends
+ * comparison when str contains space, end of string, or end of cmd reached.
+ * Return 1 for match, 0 for non-match.
+ */
+number matchesCommand(const char *cmd, const char *str)
+{
+    unsigned int i;
+
+    /* Make sure that at least the first character matches. */
+    if (cmd[0] == '\0' || str[0] == '\0' || cmd[0] == ' ' || str[0] == ' ' || tolower(str[0]) != tolower(cmd[0])) {
+        return 0; /* no match */
+    }
+
+    /* Now check rest of strings. */
+    for (i = 1; i < strlen(cmd); i++) {
+        if (cmd[i] == '\0' || str[i] == '\0' || cmd[i] == ' ' || str[i] == ' ') {
+            return 1; /* A match */
+        }
+        if (tolower(str[i]) != tolower(cmd[i])) {
+            return 0; /* Not a match */
+        }
+    }
+
+    return 1; /* A match */
+}
 
 /* Clear the screen */
 void clearScreen()
@@ -534,7 +599,7 @@ void doGo()
 
     /* Command line should be like "G[O] N[ORTH]" Direction will be
        the first letter after a space. Or just a single letter
-       direction N S E W U D or full directon NORTH etc. */
+       direction N S E W U D or full direction NORTH etc. */
 
     sp = strrchr(buffer, ' ');
     if (sp != NULL) {
@@ -808,13 +873,14 @@ void doBackup()
     number i, j, n;
 
     /* Command line should be like "B[ACKUP] <NUMBER>" */
+    /* Number will be after first space. */
     sp = strchr(buffer, ' ');
     if (sp == NULL) {
         printf("Backup under what number?\n");
         return;
     }
 
-    n = atol(sp + 1);
+    n = strtol(sp + 1, NULL, 10);
     if  (n <= 0 || n > SAVEGAMES) {
         printf("Invalid backup number. Specify %d through %d.\n", 1, SAVEGAMES);
         return;
@@ -894,8 +960,8 @@ void doRestore()
         return;
     }
 
-    /* Items: 0 1 8 0 7 6 9 2 16 15 18 25 29 10 12 19 17 0 */
-    i = fscanf(fp, "Items: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+    /* Items: 0 1 8 0 7 6 9 2 16 15 18 25 29 10 12 19 17 */
+    i = fscanf(fp, "Items: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
            (int*) &locationOfItem[0],
            (int*) &locationOfItem[1],
            (int*) &locationOfItem[2],
@@ -912,10 +978,9 @@ void doRestore()
            (int*) &locationOfItem[13],
            (int*) &locationOfItem[14],
            (int*) &locationOfItem[15],
-           (int*) &locationOfItem[16],
-           (int*) &locationOfItem[17]);
+           (int*) &locationOfItem[16]);
 
-    if (i != 18) {
+    if (i != 17) {
         printf("File is not a valid game file (3).\n");
         fclose(fp);
         return;
@@ -975,7 +1040,7 @@ void doRestore()
         return;
     }
 
-    n = atol(sp + 1);
+    n = strtol(sp + 1, NULL, 10);
     if  (n <= 0 || n > SAVEGAMES) {
         printf("Invalid restore number. Specify %d through %d.\n", 1, SAVEGAMES);
         return;
@@ -1021,12 +1086,66 @@ void doRestore()
 /* Prompt user and get a line of input */
 void prompt()
 {
-    printf("? ");
+#ifdef __CC65__
+#ifdef JOYSTICK
+    unsigned char joy;
+#endif /* JOYSTICK */
+#endif /* __CC65__ */
+
+    printf("\n? ");
+
+#if defined(__CC65__) && !defined(__KIM1__)
+    while (1) {
+        if (kbhit()) {
+            fgets(buffer, sizeof(buffer)-1, stdin); /* Get keyboard input */
+            buffer[strlen(buffer)-1] = '\0'; /* Remove trailing newline */
+            break;
+#ifdef JOYSTICK
+        } else {
+            /* Check for joystick input */
+            joy = joy_read(1);
+            if (joy == JOY_UP_MASK) {
+                strcpy(buffer, "n");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            } else if (joy == JOY_DOWN_MASK) {
+                strcpy(buffer, "s");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            } else if (joy == JOY_RIGHT_MASK) {
+                strcpy(buffer, "e");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            } else if (joy == JOY_LEFT_MASK) {
+                strcpy(buffer, "w");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            } else if (joy == (JOY_UP_MASK|JOY_BTN_1_MASK)) {
+                strcpy(buffer, "u");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            } else if (joy == (JOY_DOWN_MASK|JOY_BTN_1_MASK)) {
+                strcpy(buffer, "d");
+                while (joy_read(1) != 0)
+                    ; /* Wait for joystick to be released */
+                break;
+            }
+#endif /* JOYSTICK */
+        }
+    }
+#else
+    /* Get keyboard input */
     fflush(stdout);
     fgets(buffer, sizeof(buffer)-1, stdin);
 
     /* Remove trailing newline */
     buffer[strlen(buffer)-1] = '\0';
+#endif /* __CC65__ */
 }
 
 /* Do special things unrelated to command typed. */
@@ -1139,6 +1258,15 @@ void initialize()
 /* Main program (obviously) */
 int main(void)
 {
+
+#ifdef __CC65__
+#ifdef JOYSTICK
+    unsigned char Res;
+    Res = joy_load_driver(joy_stddrv);
+    Res = joy_install(joy_static_stddrv);
+#endif /* JOYSTICK */
+#endif /* __CC65__ */
+
 #ifndef FILEIO
     /* Mark all saved games as initially invalid */
     int i;
@@ -1151,15 +1279,15 @@ int main(void)
         initialize();
         clearScreen();
         printf("%s", introText);
-
         while (!gameOver) {
             prompt();
             if (buffer[0] == '\0') {
-            } else if (tolower(buffer[0]) == 'h') {
+                /* Ignore empty line */
+            } else if (matchesCommand("help", buffer)) {
                 doHelp();
-            } else if (tolower(buffer[0]) == 'i') {
+            } else if (matchesCommand("inventory", buffer)) {
                 doInventory();
-            } else if ((tolower(buffer[0]) == 'g')
+            } else if (matchesCommand("go", buffer)
                        || !strcasecmp(buffer, "n") || !strcasecmp(buffer, "s")
                        || !strcasecmp(buffer, "e") || !strcasecmp(buffer, "w")
                        || !strcasecmp(buffer, "u") || !strcasecmp(buffer, "d")
@@ -1167,24 +1295,22 @@ int main(void)
                        || !strcasecmp(buffer, "east") || !strcasecmp(buffer, "west")
                        || !strcasecmp(buffer, "up") || !strcasecmp(buffer, "down")) {
                 doGo();
-            } else if (tolower(buffer[0]) == 'l') {
+            } else if (matchesCommand("look", buffer)) {
                 doLook();
-            } else if (tolower(buffer[0]) == 't') {
+            } else if (matchesCommand("take", buffer)) {
                 doTake();
-            } else if (tolower(buffer[0]) == 'e') {
+            } else if (matchesCommand("examine", buffer)) {
                 doExamine();
-            } else if (tolower(buffer[0]) == 'u') {
+            } else if (matchesCommand("use", buffer)) {
                 doUse();
-            } else if (tolower(buffer[0]) == 'd') {
+            } else if (matchesCommand("drop", buffer)) {
                 doDrop();
-            } else if (tolower(buffer[0]) == 'q') {
-                doQuit();
             } else if (tolower(buffer[0]) == 'b') {
                 doBackup();
             } else if (tolower(buffer[0]) == 'r') {
                 doRestore();
-            } else if (!strcasecmp(buffer, "xyzzy")) {
-                printf("Nice try, but that won't work here.\n");
+            } else if (matchesCommand("quit", buffer)) {
+                doQuit();
             } else {
                 printf("I don't understand. Try 'help'.\n");
             }

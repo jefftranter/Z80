@@ -33,6 +33,7 @@
  * 0.95     18 Feb 2019  Added joystick support, better parsing of commands.
  * 0.96     28 Apr 2019  Conditionally compile joystick support.
  * 1.0      29 Jul 2022  Added backup/restore commands.
+ * 2.0      11 Aug 2024  Align all three games with common code.
  */
 
 
@@ -696,7 +697,7 @@ void doGo()
 
     /* Command line should be like "G[O] N[ORTH]" Direction will be
        the first letter after a space. Or just a single letter
-       direction N S E W U D or full directon NORTH etc. */
+       direction N S E W U D or full direction NORTH etc. */
 
     sp = strrchr(buffer, ' ');
     if (sp != NULL) {

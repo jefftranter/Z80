@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         printf("%s", buffer);
     }
 #endif
-    
+
     printf("Closing file...\n");
     rc = fclose (fp);
     if (rc != 0) {

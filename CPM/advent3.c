@@ -32,6 +32,7 @@
  * -------  ----         --------
  * 0.0      30 Dec 2022  Started development.
  * 0.1      01 Jan 2023  First working version.
+ * 2.0      11 Aug 2024  Align all three games with common code.
  */
 
 
