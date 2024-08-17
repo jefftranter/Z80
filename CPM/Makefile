@@ -77,52 +77,52 @@ copy.com:
 	mv copy.bin copy.com
 
 chello.com: chello.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o chello.com chello.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o chello.com chello.c
 
 sieve.com: sieve.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o sieve.com sieve.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o sieve.com sieve.c
 
 nqueens.com: nqueens.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o nqueens.com nqueens.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o nqueens.com nqueens.c
 
 demo.com: demo.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o demo.com demo.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o demo.com demo.c
 
 rpncalc.com: rpncalc.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o rpncalc.com rpncalc.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o rpncalc.com rpncalc.c
 
 disasm.com: disasm.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o disasm.com disasm.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o disasm.com disasm.c
 
 advent1.com: advent1.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent1.com advent1.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent1.com advent1.c
 
 advent2.com: advent2.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent2.com advent2.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent2.com advent2.c
 
 advent3.com: advent3.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent3.com advent3.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o advent3.com advent3.c
 
 freq.com: freq.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o freq.com freq.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o freq.com freq.c
 
 info.com: info.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o info.com info.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o info.com info.c
 
 search.com: search.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o search.com search.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o search.com search.c
 
 size.com: size.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o size.com size.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o size.com size.c
 
 yum.com: yum.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o yum.com yum.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o yum.com yum.c
 
 cecho.com: cecho.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o cecho.com cecho.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o cecho.com cecho.c
 
 fileio.com: fileio.c
-	zcc -v -mz80 +cpm -subtype=hz89 -lm -o fileio.com fileio.c
+	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 -lm -o fileio.com fileio.c
 
 clean:
 	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs

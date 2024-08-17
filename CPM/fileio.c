@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Writing file...\n");
-    for (i = 1; i < 100; i++) {
+    for (i = 1; i < 10; i++) {
         fprintf(fp, "File data line %02d\n", i);
     }
 
