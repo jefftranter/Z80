@@ -641,7 +641,7 @@ TABL:   DB      0,  0,  0,  0,  0       ; SPACE
 ;
 ; Variables in RAM
 ;
-        ORG     $8000
+        ORG     $FF00
 TASK:   EQU     $               ;SAVE IT
         ORG     $+1
 OFSET:  EQU     $               ;LOAD OFFSET

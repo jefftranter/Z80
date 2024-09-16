@@ -39,6 +39,33 @@ jmon-patb.bin: jmon-patb.asm disasm.asm
 	p2bin -r '$$-$$' jmon-patb.p
 	p2hex -r '$$-$$' -F Intel jmon-patb.p
 
+hello.hex: hello.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 hello.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom hello.bin
+	mv a.map hello.map
+	mv a.ihx hello.hex
+	rm a.bin a_DATA.bin
+
+advent1.hex: ../../CPM/advent1.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 ../../CPM/advent1.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom advent1.bin
+	mv a.map advent1.map
+	mv a.ihx advent1.hex
+	rm a.bin a_DATA.bin
+
+advent2.hex: ../../CPM/advent2.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 ../../CPM/advent2.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom advent2.bin
+	mv a.map advent2.map
+	mv a.ihx advent2.hex
+	rm a.bin a_DATA.bin
+
+advent3.hex: ../../CPM/advent3.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 ../../CPM/advent3.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom advent3.bin
+	mv a.map advent3.map
+	mv a.ihx advent3.hex
+	rm a.bin a_DATA.bin
 
 clean:
 	$(RM) *.bin *.lst *.map *.hex *.p
