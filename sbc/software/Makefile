@@ -40,7 +40,7 @@ jmon-patb.bin: jmon-patb.asm disasm.asm
 	p2hex -r '$$-$$' -F Intel jmon-patb.p
 
 hello.hex: hello.c hardware.asm
-	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 hello.c hardware.asm -create-app -m -Cz--ihex
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 hello.c hardware.asm -create-app -m -Cz--ihex -lm
 	mv a.rom hello.bin
 	mv a.map hello.map
 	mv a.ihx hello.hex

@@ -7,6 +7,7 @@
 */
 
 #include <stdio.h>
+#include <math.h>
 
 int main()
 {
@@ -14,6 +15,12 @@ int main()
 
     /* Print a message */
     printf("\nHello from z88dk!\n");
+
+    for (i = 0; i <= 100; i++) {
+        printf("%d %d %f\n", i, i*i, sqrt(i));
+    }
+
+    printf("\nPress a key to echo, 'Q' to quit\n");
 
     /* Get characters and echo back. Exit if 'q', or 'Q' pressed. */
     while (1) {
