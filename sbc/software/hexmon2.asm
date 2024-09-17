@@ -13,6 +13,7 @@
 ; R[<offset>]                   Read tape into memory (with optional offset)
 ; V                             Verify tape against memory
 ; W<start>,<end>[,<autostart>]  Write and label paper tape (with optional autostart address)
+; Q                             Quit and return to JMON
 
 ; HEXMON: A MONITOR TO DUMP, LOAD, AND
 ;      VERIFY INTEL HEX CHECKSUM TAPES
@@ -163,6 +164,8 @@ RSTRT:  LD      SP,STACK
         JP      Z,PLOAD
         CP      'V'             ;VERIFY
         JP      Z,PLOAD
+        CP      'Q'             ;QUIT
+        JP      Z,0000H         ;JMON
         CP      'G'             ;GO SOMEWHERE
         JP      NZ,ERROR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -530,6 +533,8 @@ SIGN:   DB      CR,LF
         DB      'W - write paper tape'
         DB      ' (and label)',CR,LF,'    '
         DB      '(with optional autostart)'
+        DB      CR,LF
+        DB      'Q - quit'
         DB      CR,LF,0
 LMESG:  DB      CR,LF,'Enter leader message'
         DB      CR,LF,0
