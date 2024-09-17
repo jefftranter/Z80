@@ -1,4 +1,6 @@
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin
+PRAGMAS = -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
+
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin hello.hex advent1.hex advent2.hex advent3.hex
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -40,27 +42,27 @@ jmon-patb.bin: jmon-patb.asm disasm.asm
 	p2hex -r '$$-$$' -F Intel jmon-patb.p
 
 hello.hex: hello.c hardware.asm
-	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 hello.c hardware.asm -create-app -m -Cz--ihex -lm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic $(PRAGMAS) hello.c hardware.asm -create-app -m -Cz--ihex -lm
 	mv a.rom hello.bin
 	mv a.map hello.map
 	mv a.ihx hello.hex
 	rm a.bin a_DATA.bin
 advent1.hex: ../../CPM/advent1.c hardware.asm
-	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 ../../CPM/advent1.c hardware.asm -create-app -m -Cz--ihex
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic $(PRAGMAS) ../../CPM/advent1.c hardware.asm -create-app -m -Cz--ihex
 	mv a.rom advent1.bin
 	mv a.map advent1.map
 	mv a.ihx advent1.hex
 	rm a.bin a_DATA.bin
 
 advent2.hex: ../../CPM/advent2.c hardware.asm
-	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 ../../CPM/advent2.c hardware.asm -create-app -m -Cz--ihex
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic $(PRAGMAS) ../../CPM/advent2.c hardware.asm -create-app -m -Cz--ihex
 	mv a.rom advent2.bin
 	mv a.map advent2.map
 	mv a.ihx advent2.hex
 	rm a.bin a_DATA.bin
 
 advent3.hex: ../../CPM/advent3.c hardware.asm
-	. ../../z88dk/env.sh && zcc +z80 -clib=classic -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x00000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 ../../CPM/advent3.c hardware.asm -create-app -m -Cz--ihex
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic $(PRAGMAS) ../../CPM/advent3.c hardware.asm -create-app -m -Cz--ihex
 	mv a.rom advent3.bin
 	mv a.map advent3.map
 	mv a.ihx advent3.hex
