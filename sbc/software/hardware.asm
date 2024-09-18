@@ -9,7 +9,7 @@
 ;   zcc +z80 -clib=classic \
 ;    -pragma-define:CRT_MODEL=1 \
 ;    -pragma-define:CRT_ORG_CODE=0x8000 \
-;    -pragma-define:CRT_ON_EXIT=0x00000 \
+;    -pragma-define:CRT_ON_EXIT=0x0000 \
 ;    -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 \
 ;    hello.c hardware.asm -create-app -m -Cz--ihex
 ; The resulting .hex file can be loaded from JMON and run at address
@@ -17,9 +17,6 @@
 ;
 ; You can disassemble the binary using a command like:
 ;   z88dk-dis -x hello.map -o 0x8000 hello.bin
-;
-; To Do:
-;   Write custom crt0.asm.
 ;
 ; See:
 ;   https://z88dk.org/site/

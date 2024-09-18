@@ -7,6 +7,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 int main()
@@ -19,6 +20,13 @@ int main()
     for (i = 0; i <= 100; i++) {
         printf("%d %d %f\n", i, i*i, sqrt(i));
     }
+
+    printf("One second delay:");
+    for (i = 1; i <= 10; i++) {
+        printf(" %d", i);
+        sleep(1);
+    }
+    printf("\n");
 
     printf("\nPress a key to echo, 'Q' to quit\n");
 
