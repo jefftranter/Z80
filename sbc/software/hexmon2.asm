@@ -4,7 +4,9 @@
 ;
 ; It was modified by Jeff Tranter <tranter@pobox.com> to assemble with
 ; the z80asm cross-assembler and to run on my Z80-based Single Board
-; Computer and converted from 8080 to Z80 mnemonics.
+; Computer and converted from 8080 to Z80 mnemonics. I also removed
+; code for sending nulls, turning the punch on and off, and sending
+; a tape label.
 ;
 ; Commands:
 ;
@@ -12,7 +14,7 @@
 ; G<addr>                       Go to address given
 ; R[<offset>]                   Read tape into memory (with optional offset)
 ; V                             Verify tape against memory
-; W<start>,<end>[,<autostart>]  Write and label paper tape (with optional autostart address)
+; W<start>,<end>[,<autostart>]  Write paper tape (with optional autostart address)
 ; Q                             Quit and return to JMON
 
 ; HEXMON: A MONITOR TO DUMP, LOAD, AND
@@ -42,7 +44,6 @@ CR:     EQU     13              ;CARRIAGE RETURN
 LF:     EQU     10              ;LINE FEED
 DEL:    EQU     127             ;DELETE
 CTRH:   EQU     8               ;^H CONSOLE BACKUP
-NNULS:  EQU     0               ;CONSOLE NULLS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 START:  JP      CONTIN
@@ -116,7 +117,7 @@ RDHL2:  CALL    GETCH
         JP      C,RDHL5         ;END OF LINE
         CALL    NIB             ;CONVERT TO BINARY
         JP      C,RDHL4         ;NOT HEX
-        ADD     HL,HL           ; SHIFT LEFT
+        ADD     HL,HL           ;SHIFT LEFT
         ADD     HL,HL
         ADD     HL,HL
         ADD     HL,HL
@@ -219,17 +220,6 @@ INPLC:  CP      CTRH            ;^H?
 CRLF:   LD      A,CR
         CALL    OUTT
         LD      A,LF
-;
-; USE NULLS REQUIRED AFTER  CR, LF
-; USE REPEAT MACRO
-;       IF NULS > 0             ;ASSEMBLE
-;       CALL    OUTT
-;       XRA     A               ;GET A NULL
-;       REPT    NNULS-1
-;       CALL    OUTT
-;       ENDM
-;       ENDIF
-;                               ;NULLS
         JP      OUTT
 ;
 ; DELETE ANY PRIOR CHARACTER
@@ -269,13 +259,11 @@ PDUMP:  CALL    READHL          ;START ADDRESS
         PUSH    HL
         CALL    READHL          ;AUTOSTART ADDR
         EX      (SP),HL         ;PUT ON STACK
-        CALL    LEADR           ;PUNCH LEADER
-        CALL    LABEL           ;PUNCH LABEL
 ;
 ; START NEW RECORD, ZERO THE CHECKSUM
-; PUNCH CR, LF, 2 NULLS AND COLON
+; PUNCH CR, LF, AND COLON
 ;
-NEWREC: CALL    PCRLF           ;CR, LF, NULLS
+NEWREC: CALL    PCRLF           ;CR, LF
 ;
 ; FIND THE RECORD LENGTH
 ;
@@ -324,17 +312,7 @@ DONE:   XOR     A
         INC     A
 DON2:   CALL    PNHEX           ;RECORD TYPE 1
         CALL    CSUM            ;PUNCH CHECKSUM
-        CALL    LEADR           ;PUNCH TRAILER
         JP      RSTRT           ;NEXT JOB
-;
-; PUNCH BLANK HEADER AND TRAILER
-;
-LEADR:  XOR     A
-        LD      B,60            ;TAPE NULLS
-NLDR:   CALL    POUT
-        DEC     B
-        JP      NZ,NLDR
-        RET
 ;
 ; PUNCH THE H,L REGISTER PAIR
 ;
@@ -395,14 +373,11 @@ PIN:    IN      A,(PSTAT)
         AND     7FH             ;STRIP PARITY
         RET
 ;
-; PUNCH CR, LF, NULLS AND COLON
+; PUNCH CR, LF, AND COLON
 ;
 PCRLF:  LD      A,CR
         CALL    POUT
         LD      A,LF
-        CALL    POUT
-        XOR     A
-        CALL    POUT            ;TWO NULLS
         CALL    POUT
         LD      A,':'           ;COLON
         JP      POUT
@@ -411,8 +386,6 @@ PCRLF:  LD      A,CR
 ; ENTRY FOR LOAD, EXECUTE AND VERIFY
 ;
 PLOAD:  LD      (TASK),A
-        LD      A,17            ;TAPE READER ON
-        CALL    POUT
         CALL    READHL          ;OFFSET
         LD      (OFSET),HL      ;SAVE IT
 ;
@@ -475,7 +448,6 @@ ENDFL:  CALL    TAPEHL          ;AUTOSTART ADDRESS
                                 ;AND RECORD TYPE
         PUSH    AF              ;SAVE RECORD TYPE
         CALL    PHEX            ;INPUT CHECKSUM
-        CALL    TOFF            ;TAPE READER OFF
         POP     AF              ;RETRIEVE REC TYPE
         CP      1               ;AUTOSTART?
         JP      NZ,RSTRT        ;NO
@@ -484,11 +456,6 @@ ENDFL:  CALL    TAPEHL          ;AUTOSTART ADDRESS
         JP      Z,JPCHL         ;YES, GO THERE
         CALL    OUTHL           ;NO, PRINT HL
         JP      RSTRT           ;NEXT TASK
-;
-;TURN OFF TAPE READER
-;
-TOFF:   LD      A,19
-        JP      POUT
 ;
 ; CALCULATE AND PUNCH THE CHECKSUM
 ;
@@ -511,7 +478,6 @@ CHECK:  CALL    PHEX            ;INPUT CHECKSUM
         DB      1               ;DB TRICK TO SKIP
 MERROR: LD      A,'M'           ;M FOR BAD MEMORY
         PUSH    AF
-        CALL    TOFF            ;TAPE READER OFF
         POP     AF
         CALL    OUTT            ;PRINT ERROR TYPE
         CALL    OUTHL           ;PRINT H/L
@@ -523,113 +489,9 @@ SIGN:   DB      CR,LF
         DB      'G<addr>                      - Go from address',CR,LF
         DB      'R[<offset>]                  - Read tape into memory',CR,LF
         DB      'V                            - Verify tape against memory',CR,LF
-        DB      'W<start>,<end>[,<autostart>] - Write and label paper tape',CR,LF
+        DB      'W<start>,<end>[,<autostart>] - Write paper tape',CR,LF
         DB      'Q                            - Quit to monitor',CR,LF
         DB      0
-;
-LMESG:  DB      CR,LF,'Enter leader message'
-        DB      CR,LF,0
-;
-; PUNCH READABLE LABELS ON PAPER TAPE
-;
-LABEL:  PUSH    HL
-        PUSH    DE
-        LD      DE,LMESG        ;LABEL MESS.
-        CALL    SENDM           ;SEND IT
-        CALL    INPLN           ;GET A LINE
-LABL1:  CALL    GETCH           ;GET CHARACTER
-        JP      C,LABL2         ;DONE ON CARRY
-        SBC     A,20H           ;ASCII BIAS
-        JP      C,LABL1         ;< SPACE
-        CP      63
-        JP      NC,LABL1        ;TOO BIG
-        LD      L,A
-        LD      E,A
-        LD      H,0
-        LD      D,0
-        ADD     HL,HL           ;DOUBLE IT
-        ADD     HL,HL           ;TIMES 4
-        ADD     HL,DE           ;TIMES 5
-        EX      DE,HL
-        LD      HL,TABL
-        ADD     HL,DE
-        LD      C,5
-NEXTC:  LD      A,(HL)
-        CALL    POUT
-        INC     HL
-        DEC     C
-        JP      NZ,NEXTC
-        XOR     A
-        CALL    POUT
-        JP      LABL1           ;NEXT CHARACTER
-LABL2:  CALL    LEADR
-        POP     DE
-        POP     HL
-        RET
-;
-TABL:   DB      0,  0,  0,  0,  0       ; SPACE
-        DB      0,  0,  207,207,0       ; !
-        DB      0,  7,  0,  7,  0       ; "
-        DB      40, 254,40, 254,40      ; #
-        DB      70, 137,255,137,114     ; $
-        DB      70, 38, 16, 200,196     ; %
-        DB      108,146,172,64, 160     ; &
-        DB      0,  4,  3,  3,  0       ; '
-        DB      0,  60, 66, 129,0       ; (
-        DB      0,  129,66, 60, 9       ; )
-        DB      136,80, 248,80, 136     ; *
-        DB      8,  8,  126,8,  8       ;+
-        DB      0,  128,112,48, 0       ; ,
-        DB      8,  8,  8,  8,  8       ;-
-        DB      0,  192,192,0,  0       ; .
-        DB      64, 32, 16, 8,  4       ; /
-        DB      126,161,137,133,126     ; 0
-        DB      132,130,255,128,128     ; 1
-        DB      194,161,145,137,134     ; 2
-        DB      66, 137,137,137,118     ; 3
-        DB      12, 10, 137,255,136     ; 4
-        DB      103,137,137,137,113     ; 5
-        DB      126,137,137,137,114     ; 6
-        DB      1,  1,  249,5,  3       ; 7
-        DB      118,137,137,137,118     ; 8
-        DB      70, 137,137,137,126     ; 9
-        DB      0,  216,216,0,  0       ; :
-        DB      0,  128,118,54, 0       ; ;
-        DB      16, 40, 68, 130,0       ; <
-        DB      40, 40, 40, 40, 40      ; =
-        DB      130,68, 40, 16, 0       ; >
-        DB      6,  1,  185,9,  6       ; ?
-        DB      126,129,157,145,14      ;
-        DB      254,9,  9,  9,  254     ; A
-        DB      129,255,137,137,118     ; B
-        DB      126,129,129,129,66      ; C
-        DB      129,255,129,129,126     ; D
-        DB      255,137,137,137,137     ; E
-        DB      255,9,  9,  9,  1       ; F
-        DB      126,129,145,145,114     ; G
-        DB      255,8,  8,  8,  255     ; H
-        DB      0,  129,255,129,0       ; I
-        DB      96, 128,129,127,1       ; J
-        DB      255,8,  20, 34, 193     ; K
-        DB      255,128,128,128,128     ; L
-        DB      255,2,  12, 2,  255     ; M
-        DB      255,2,  60, 64, 255     ; N
-        DB      255,129,129,129,255     ; O
-        DB      5,  9,  9,  9,  6       ; P
-        DB      126,129,161,65, 190     ; Q
-        DB      255,25, 41, 73, 134     ; R
-        DB      70, 137,137,137,114     ; S
-        DB      1,  1,  255,1  ,1       ; T
-        DB      127,128,128,128,127     ; U
-        DB      15, 48, 192,48, 15      ; V
-        DB      127,128,112,128,127     ; W
-        DB      195,36, 24, 36, 195     ; X
-        DB      3,  4,  248,4,  3       ; Y
-        DB      193,161,145,137,135     ; Z
-        DB      0,  255,129,129,129     ; [
-        DB      4,  8,  16, 32, 64      ; \
-        DB      129,129,129,255,0       ; [
-        DB      12, 2,  1,  2,  12      ; ^
 ;
 ; Fill rest of 8K ROM
 ;
