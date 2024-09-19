@@ -518,24 +518,15 @@ MERROR: LD      A,'M'           ;M FOR BAD MEMORY
         JP      RSTRT
 ;
 SIGN:   DB      CR,LF
-        DB      'Hex paper-tape program'
-        DB      CR,LF,LF
-        DB      'E - load and execute'
-        DB      CR,LF
-        DB      'G - go to addresses given'
-        DB      CR,LF
-        DB      'R - read tape into memory'
-        DB      CR,LF
-        DB      '    (with optional offset)'
-        DB      CR,LF
-        DB      'V - verify tape against'
-        DB      ' memory',CR,LF
-        DB      'W - write paper tape'
-        DB      ' (and label)',CR,LF,'    '
-        DB      '(with optional autostart)'
-        DB      CR,LF
-        DB      'Q - quit'
-        DB      CR,LF,0
+        DB      'Hex Paper Tape Mode:',CR,LF
+        DB      'E                            - Load and execute',CR,LF
+        DB      'G<addr>                      - Go from address',CR,LF
+        DB      'R[<offset>]                  - Read tape into memory',CR,LF
+        DB      'V                            - Verify tape against memory',CR,LF
+        DB      'W<start>,<end>[,<autostart>] - Write and label paper tape',CR,LF
+        DB      'Q                            - Quit to monitor',CR,LF
+        DB      0
+;
 LMESG:  DB      CR,LF,'Enter leader message'
         DB      CR,LF,0
 ;
