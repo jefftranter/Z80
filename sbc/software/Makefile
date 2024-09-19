@@ -47,12 +47,15 @@ hello.hex: hello.c hardware.asm
 	mv a.map hello.map
 	mv a.ihx hello.hex
 	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' hello.hex
+
 advent1.hex: ../../CPM/advent1.c hardware.asm
 	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/advent1.c hardware.asm -create-app -m -Cz--ihex
 	mv a.rom advent1.bin
 	mv a.map advent1.map
 	mv a.ihx advent1.hex
 	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' advent1.hex
 
 advent2.hex: ../../CPM/advent2.c hardware.asm
 	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/advent2.c hardware.asm -create-app -m -Cz--ihex
@@ -60,6 +63,7 @@ advent2.hex: ../../CPM/advent2.c hardware.asm
 	mv a.map advent2.map
 	mv a.ihx advent2.hex
 	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' advent2.hex
 
 advent3.hex: ../../CPM/advent3.c hardware.asm
 	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/advent3.c hardware.asm -create-app -m -Cz--ihex
@@ -67,6 +71,7 @@ advent3.hex: ../../CPM/advent3.c hardware.asm
 	mv a.map advent3.map
 	mv a.ihx advent3.hex
 	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' advent3.hex
 
 clean:
 	$(RM) *.bin *.lst *.map *.hex *.p
