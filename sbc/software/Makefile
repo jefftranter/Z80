@@ -1,6 +1,6 @@
 PRAGMAS = -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x0000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
 
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin hello.hex advent1.hex advent2.hex advent3.hex
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin hello.hex sieve.hex advent1.hex advent2.hex advent3.hex
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -20,11 +20,8 @@ sysmon.bin: sysmon.asm hexmon.asm
 ml.bin: ml.asm
 	z80asm -o ml.bin -lml.lst -Lml.map ml.asm
 
-jmon.bin: jmon.asm disasm.asm hexmon2.asm
-	z80asm -o part1.bin -ljmon.lst -Ljmon.map jmon.asm
-	z80asm -o part2.bin -lhexmon2.lst -Lhexmon2.map hexmon2.asm
-	cat part1.bin part2.bin >jmon.bin
-	$(RM) part1.bin part2.bin
+jmon.bin: jmon.asm disasm.asm
+	z80asm -o jmon.bin -ljmon.lst -Ljmon.map jmon.asm
 
 patb.bin: patb.asm
 	asl -L patb.asm
@@ -48,6 +45,14 @@ hello.hex: hello.c hardware.asm
 	mv a.ihx hello.hex
 	rm a.bin a_DATA.bin
 	sed -i 's/^:00000001FF$$/:008000017F/' hello.hex
+
+sieve.hex: ../../CPM/sieve.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/sieve.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom sieve.bin
+	mv a.map sieve.map
+	mv a.ihx sieve.hex
+	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' sieve.hex
 
 advent1.hex: ../../CPM/advent1.c hardware.asm
 	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/advent1.c hardware.asm -create-app -m -Cz--ihex

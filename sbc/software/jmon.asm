@@ -39,6 +39,9 @@
 ;   MATH: = <ADDRESS> +/- <ADDRESS>
 ;   HELP: ?
 ;
+; To Do:
+; - Merge Intel file commands into main program.
+;
 ; Revision History
 ; Version Date         Comments
 ; 0.1     26-Jun-2021  First version started, based on 8080 version for
@@ -57,6 +60,7 @@
 ;                      Add memory size in info command.
 ; 0.4     04-Aug-2021  Implemented unassemble ("U") command.
 ; 0.5     07-May-2023  Added support for Intel hex file load/save.
+; 0.6     20-Sep-2024  Combined HEXMON source code into this file.
 ;
 
         org     0000H           ; Start at address 0 if running from ROM
@@ -68,8 +72,6 @@ CR:             equ '\r'        ; Carriage Return
 NL:             equ '\n'        ; Newline
 ESC:            equ $1B         ; Escape
 stack:          equ $F000       ; Starting address for stack
-HexCommand:     equ $1900       ; Start address of Intel Hex tape load/save program
-
 
 ; Reset/RST 00 vector: jump to start entry point
 RESET:  JP      Start
@@ -187,7 +189,7 @@ tryG:
 tryH:
         cp      'H'
         jr      nz,tryI
-        call    HexCommand
+        call    HEXMON
         jr      mainloop
 tryI:
         cp      'I'
@@ -975,7 +977,7 @@ Okay:
         ld      a,'='
         call    PrintChar
         call    PrintSpace
-        ld      a,(size)         ; Get operator
+        ld      a,(size)        ; Get operator
         cp      '-'
         jr      z,Sub           ; Branch if operation is subtract
 
@@ -1647,7 +1649,7 @@ CMPER:
 ; Strings
 
 strStartup:
-        db      "JMON Monitor 0.5 by Jeff Tranter\r\n",0
+        db      "JMON Z80 Monitor 0.6 by Jeff Tranter\r\n",0
 
 strInvalid:
         db      "Invalid command. Type ? for help.\r\n",0
@@ -1707,35 +1709,533 @@ strRamFound2:
         include "disasm.asm"
 
 ;
-; Fill rest of ROM space
+; This code came from chapter 9, "Paper Tape and Magnetic Tape
+; Routines" from the book "8080/Z80 Assembly Language - Techniques for
+; Improved Programming" by Alan R. Miller
 ;
-        ds      $1900-$,$FF
+; It was modified by Jeff Tranter <tranter@pobox.com> to assemble with
+; the z80asm cross-assembler and to run on my Z80-based Single Board
+; Computer and converted from 8080 to Z80 mnemonics. I also removed
+; code for sending nulls, turning the punch on and off, and sending
+; a tape label.
+;
+; Commands:
+;
+; E                             Load and execute
+; G<addr>                       Go to address given
+; R[<offset>]                   Read tape into memory (with optional offset)
+; V                             Verify tape against memory
+; W<start>,<end>[,<autostart>]  Write paper tape (with optional autostart address)
+; Q                             Quit and return to JMON
+
+; HEXMON: A MONITOR TO DUMP, LOAD, AND
+;      VERIFY INTEL HEX CHECKSUM TAPES
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+RLEN:   EQU     16              ; RECORD LENGTH
+;
+CSTAT:  EQU     80H             ; CONSOLE STATUS
+CDATA:  EQU     CSTAT+1         ; CONSOLE DATA
+CIMSK:  EQU     1               ; IN MASK
+COMSK:  EQU     2               ; OUT MASK
+PSTAT:  EQU     80H             ; PUNCH STATUS
+PDATA:  EQU     PSTAT+1         ; PUNCH DATA
+PIMSK:  EQU     1               ; PUNCH IN MASK
+POMSK:  EQU     2               ; PUNCH OUT MASK
+;
+LF:     EQU     10              ; LINE FEED
+DEL:    EQU     127             ; DELETE
+CTRH:   EQU     8               ; ^H CONSOLE BACKUP
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+HEXMON: JP      CONTIN
+;
+; INPUT A BYTE FROM TAPE CONSOLE
+;
+INPUTT: IN      A,(CSTAT)
+        AND     CIMSK
+        JP      Z,INPUTT
+        IN      A,(CDATA)
+        AND     7FH             ; STRIP PARITY
+        RET
+;
+OUTT:   PUSH    AF
+OUTW:   IN      A,(CSTAT)
+        AND     COMSK
+        JP      Z,OUTW
+        POP     AF
+        OUT     (CDATA),A
+        RET
+;
+; OUTPUT H,L TO CONSOLE
+; 16-BIT BINARY TO HEX
+;
+OUTHL:  LD      C,H             ; FETCH H
+        CALL    OUTHX           ; PRINT IT
+        LD      C,L             ; FETCH L, PRINT IT
+;
+; CONVERT A BINARY NUMBER TO TWO
+; HEX CHARACTERS, AND PRINT THEM
+;
+OUTHX:  LD      A,C
+        RRA                     ; ROTATE
+        RRA                     ; UPPER
+        RRA                     ; CHARACTER
+        RRA                     ; TO LOWER
+        CALL    HEX1            ; OUTPUT UPPER
+        LD      A,C             ; OUTPUT LOWER
+;
+; OUTPUT A HEX CHARACTER
+; FROM LOWER FOUR BITS
+;
+HEX1:   AND     0FH             ; TAKE 4 BITS
+        ADD     A,144
+        DAA                     ; DAA TRICK
+        ADC     A,64
+        DAA                     ; ONCE AGAIN
+        JP      OUTT
+;
+; CONVERT ASCII CHARACTER FROM CONSOLE
+; TO 4 BINARY BITS
+;
+NIB:    SUB     '0'             ; ASCII BIAS
+        RET     C               ; < '0'
+        CP      'F'-'0'+1
+        CCF                     ; INVERT
+        RET     C               ; ERROR, IF > 'F'
+        CP      10
+        CCF                     ; INVERT
+        RET     NC
+        SUB     'A'-'9'-1
+        CP      10
+        RET                     ; CHARACTER IS A-F
+;
+; INPUT H,L FROM CONSOLE
+;
+READHL: PUSH    DE
+        PUSH    BC
+        LD      HL,0            ; START WITH 0
+RDHL2:  CALL    GETCH
+        JP      C,RDHL5         ; END OF LINE
+        CALL    NIB             ; CONVERT TO BINARY
+        JP      C,RDHL4         ; NOT HEX
+        ADD     HL,HL           ; SHIFT LEFT
+        ADD     HL,HL
+        ADD     HL,HL
+        ADD     HL,HL
+        OR      L               ; COMBINE NEW
+        LD      L,A
+        JP      RDHL2           ; NEXT
+;
+; CHECK FOR COMMA OR BLANK
+; AT END OF ADDRESS
+;
+RDHL4:  CP      ','-'0'         ; COMMA?
+        JP      Z,RDHL5         ; YES, OK
+        CP      ' ' -'0'        ; BLANK?
+        JP      NZ,ERROR        ; NO
+RDHL5:  POP     BC
+        POP     DE
+        RET
+;
+ERROR:  LD      A,'?'           ; IMPROPER INPUT
+        CALL    OUTT
+        JP      HEXMON          ; TELL HOW AGAIN
+;
+; SEND CHARACTERS POINTED TO BY D,E
+; UNTIL A BINARY ZERO IS FOUND
+;
+SENDM:  LD      A,(DE)          ; NEXT BYTE
+        OR      A               ; SEE IF ZERO
+        RET     Z
+        CALL    OUTT
+        INC     DE
+        JP      SENDM
+;
+CONTIN: LD      DE,SIGN         ; MESSAGE
+        CALL    SENDM           ; SEND IT
+;
+RSTRT:  CALL    INPLN           ; GET A LINE
+        CALL    GETCH           ; INPUT THE TASK
+        CP      'W'             ; DUMP
+        JP      Z,PDUMP
+        CP      'R'             ; READ,NO AUTOSTART
+        JP      Z,PLOAD
+        CP      'E'             ; LOAD AND EXECUTE
+        JP      Z,PLOAD
+        CP      'V'             ; VERIFY
+        JP      Z,PLOAD
+        CP      'Q'             ; QUIT
+        JP      Z,0000H         ; JMON
+        CP      'G'             ; GO SOMEWHERE
+        JP      NZ,ERROR
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; JUMP TO ANOTHER PROGRAM
+;
+        CALL    READHL          ; JUMP ADDRESS
+JPCHL:  JP      (HL)            ; OK, GOODBYE
+;
+; INPUT A LINE FROM THE CONSOLE
+; AND PUT IT INTO A BUFFER
+;
+INPLN:  CALL    CRLF
+        LD      A,'>'           ; COMMAND PROMPT
+        CALL    OUTT            ; SEND TO CONSOLE
+INPL2:  LD      HL,IBUFF        ; BUFFER ADDRESS
+        LD      (IBUFP),HL      ; INITIALIZE POINTER
+        LD      C,0             ; INITIALIZE COUNT
+INPLI:  CALL    INPUTT          ; CHAR FROM CONSOLE
+        CP      ' '             ; CONTROL CHAR?
+        JP      C,INPLC         ; YES, GO PROCESS
+        CP      DEL             ; DELETE CHAR?
+        JP      Z,INPLB         ; YES
+        CP      'Z'+1           ; UPPER CASE?
+        JP      C,INPL3         ; NO
+        AND     5FH             ; MAKE UPPER
+INPL3:  LD      (HL),A          ; PUT IN BUFFER
+        LD      A,32            ; GET BUFFER SIZE
+        CP      C               ; TEST IF FULL
+        JP      Z,INPLI         ; YES, LOOP
+        LD      A,(HL)          ; RECALL CHARACTER
+        INC     HL              ; INCR POINTER
+        INC     C               ; AND INCR COUNT
+INPLE:  CALL    OUTT            ; OUTPUT CHARACTER
+        JP      INPLI           ; GET NEXT CHAR
+;
+; PROCESS CONTROL CHARACTER
+;
+INPLC:  CP      CTRH            ; ^H?
+        JP      Z,INPLB         ; YES
+        CP      CR              ; TEST IF RETURN
+        JP      NZ,INPLI        ; NO, IGNORE CHAR
+;
+; END OF INPUT LINE
+;
+        LD      A,C             ; LINE COUNT
+        LD      (IBUFC),A       ; SAVE
+;
+; CARRIAGE RETURN, LINE FEED
+;
+CRLF:   LD      A,CR
+        CALL    OUTT
+        LD      A,LF
+        JP      OUTT
+;
+; DELETE ANY PRIOR CHARACTER
+;
+INPLB:  LD      A,C             ; CHAR COUNT
+        OR      A               ; ZERO?
+        JP      Z,INPLI         ; YES
+        DEC     HL              ; BACK POINTER
+        DEC     C               ; AND COUNT
+        LD      A,CTRH          ; BACK CURSOR
+        JP      INPLE           ; PRINT IT
+;
+; OBTAIN A CHARACTER FROM THE CONSOLE
+; BUFFER. SET CARRY IF EMPTY.
+;
+GETCH:  PUSH    HL              ; SAVE REGS
+        LD      HL,(IBUFP)      ; GET POINTER
+GETCH2: LD      A,(IBUFC)       ; GET COUNT
+        SUB     1               ; DECR WITH CARRY
+        JP      C,GETCH4        ; NO CHARACTERS
+        LD      (IBUFC),A       ; REPLACE COUNT
+        LD      A,(HL)          ; GET CHARACTER
+GETCH3: INC     HL              ; INCR POINTER
+        LD      (IBUFP),HL      ; REPLACE POINTER
+GETCH4: POP     HL              ; RESTORE REGS
+        RET                     ; CARRY IF NO CHAR
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; PUNCH A PAPER TAPE
+;
+PDUMP:  CALL    READHL          ; START ADDRESS
+        JP      C,ERROR         ; TOO FEW PARAM
+        EX      DE,HL
+        CALL    READHL          ; STOP ADDRESS
+        EX      DE,HL
+        INC     DE
+        PUSH    HL
+        CALL    READHL          ; AUTOSTART ADDR
+        EX      (SP),HL         ; PUT ON STACK
+;
+; START NEW RECORD, ZERO THE CHECKSUM
+; PUNCH CR, LF, AND COLON
+;
+NEWREC: CALL    PCRLF           ; CR, LF
+;
+; FIND THE RECORD LENGTH
+;
+        LD      A,E             ; COMPARE LOW STOP
+        SUB     L               ; TO LOW POINTER
+        LD      C,A             ; DIFFERENCE IN C
+        LD      A,D             ; COMPARE HIGH STOP
+        SBC     A,H             ; TO HIGH POINTER
+        LD      B,A             ; DIFFERENCE IN B
+        JP      C,ERROR         ; IMPROPER H,L > D,E
+        LD      A,RLEN          ; FULL RECORD
+        JP      NZ,NEW2
+        CP      C               ; COMPARE TO E-L
+        JP      C,NEW2          ; FULL RECORD LENGTH
+        LD      A,B             ; ARE BOTH E-L AND
+        OR      C               ; D-E ZERO?
+        JP      Z,DONE          ; YES, REC LENGTH = 0
+        LD      A,C             ; SHORT RECORD
+NEW2:   LD      C,A             ; RECORD LENGTH TO C
+        LD      B,0             ; ZERO THE CHECKSUM
+        CALL    PNHEX           ; PUNCH RECORD LENGTH
+        CALL    PUNHL           ; PUNCH HL
+        XOR     A
+        CALL    PNHEX           ; PUNCH RECORD TYPE 0
+PMEM:   LD      A,(HL)
+        CALL    PNHEX           ; PUNCH MEMORY BYTE
+        INC     HL              ; INCR. MEMORY POINTER
+        DEC     C               ; DECR RECORD LENGTH
+        JP      NZ,PMEM
+        CALL    CSUM            ; PUNCH CHECKSUM
+        JP      NEWREC          ; NEXT RECORD
+;
+; FINISHED, PUNCH LAST RECORD, RECORD
+; LENGTH 00, THE START ADDRESS,
+; AND A RECORD TYPE OF 01
+;
+DONE:   XOR     A
+        LD      B,A             ; ZERO CHECKSUM
+        CALL    PNHEX           ; ZERO RECORD LEN.
+        POP     HL
+        CALL    PUNHL           ; AUTOSTART H/L
+        LD      A,H             ; CHECK FOR
+        OR      L               ; AUTOSTART
+        LD      A,0             ; 0 WITH CARRY
+        JP      Z,DON2          ; NO AUTOSTART
+        INC     A
+DON2:   CALL    PNHEX           ; RECORD TYPE 1
+        CALL    CSUM            ; PUNCH CHECKSUM
+        JP      RSTRT           ; NEXT JOB
+;
+; PUNCH THE H,L REGISTER PAIR
+;
+PUNHL:  LD      A,H             ; FETCH H
+        CALL    PNHEX           ; PUNCH IT
+        LD      A,L             ; GET L, PUNCH IT
+;
+; CONVERT A BINARY NUMBER TO TWO HEX
+; CHARACTERS, PUNCH THEM, ADD TO CHECKSUM
+;
+PNHEX:  PUSH    AF              ; SAVE ON STACK
+        ADD     B               ; ADD TO CHECKSUM
+        LD      B,A             ; SAVE IT IN B
+        POP     AF              ; RETRIEVE BYTE
+        PUSH    AF
+        RRA
+        RRA                     ; ROTATE UPPER
+        RRA
+        RRA                     ; TO LOWER
+        CALL    PHEX1           ; LEFT CHARACTER
+        POP     AF              ; RIGHT CHARACTER
+;
+; PUNCH A HEX CHARACTER FROM
+; LOWER FOUR BITS
+;
+PHEX1:  AND     0FH             ; MASK UPPER 4 BITS
+        ADD     A,144
+        DAA
+        ADC     A,64
+        DAA
+        JP      POUT
+;
+; INPUT A HEX CHARACTER FROM TAPE
+;
+HEX:    CALL    PIN
+        SUB     '0'
+        CP      10
+        RET     C               ; 0-9
+        SUB     7               ; A-F
+        RET
+;
+; OUTPUT A BYTE TO THE PUNCH
+;
+POUT:   PUSH    AF
+PUTW:   IN      A,(PSTAT)
+        AND     POMSK
+        JP      Z,PUTW
+        POP     AF
+        OUT     (PDATA),A
+        RET
+;
+; INPUT A BYTE FROM PAPER TAPE
+;
+PIN:    IN      A,(PSTAT)
+        AND     PIMSK
+        JP      Z,PIN
+        IN      A,(PDATA)
+        AND     7FH             ; STRIP PARITY
+        RET
+;
+; PUNCH CR, LF, AND COLON
+;
+PCRLF:  LD      A,CR
+        CALL    POUT
+        LD      A,LF
+        CALL    POUT
+        LD      A,':'           ; COLON
+        JP      POUT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; ENTRY FOR LOAD, EXECUTE AND VERIFY
+;
+PLOAD:  LD      (TASK),A
+        CALL    READHL          ; OFFSET
+        LD      (OFSET),HL      ; SAVE IT
+;
+; PROCESS THE RECORD HEADING ON INPUT
+;
+HEAD:   CALL    PIN             ; INPUT FROM TAPE
+        CP      ':'             ; COLON?
+        JP      NZ,HEAD         ; NO, TRY AGAIN
+        LD      B,0             ; ZERO THE CHECKSUM
+        CALL    PHEX            ; RECORD LENGTH
+        OR      A               ; IS IT ZERO?
+        JP      Z,ENDFL         ; YES, DONE
+        LD      C,A             ; SAVE REC.LEN.
+        CALL    TAPEHL          ; GET H/L
+        EX      DE,HL           ; ADDR TO D,E
+        LD      HL,(OFSET)      ; GET OFFSET
+        ADD     HL,DE           ; ADD
+LOOP:   CALL    PHEX            ; INPUT DATA BYTE
+        LD      E,A             ; SAVE BYTE
+        LD      A,(TASK)        ; GET TASK
+        CP      'V'             ; SEE IF VERIFYING
+        LD      A,E             ; MOVE BACK
+        JP      Z,SKIP          ; JUMP IF VERIFYING
+        LD      (HL),A          ; DATA TO MEMORY
+SKIP:   CP      (HL)            ; CHECK MEMORY
+        JP      NZ,MERROR       ; BAD MEMORY
+        INC     HL              ; INCREMENT POINTER
+        DEC     C               ; DECR RECORD LEN
+        JP      NZ,LOOP         ; NOT YET ZERO
+        CALL    CHECK           ; PROCESS CHECKSUM
+        JP      HEAD            ; START NEXT RECORD
+;
+; INPUT H,L AND RECORD TYPE FROM TAPE
+;
+TAPEHL: CALL    PHEX            ; READ H
+        LD      H,A
+        CALL    PHEX            ; READ L
+        LD      L,A             ; READ RECORD TYPE
+;
+; CONVERT 2 CHAR FROM TAPE TO ONE BINARY
+; WORD, STORE IN A AND ADD TO CHECKSUM
+;
+PHEX:   CALL    HEX             ; UPPER CHARACTER
+        RLCA
+        RLA                     ; MOVE TO UPPER
+        RLA
+        RLA
+        LD      E,A             ; SAVE IT
+        CALL    HEX             ; LOWER CHARACTER
+        ADD     E               ; COMBINE BOTH
+        LD      E,A             ; SAVE IT
+        ADD     B               ; ADD TO CHECKSUM
+        LD      B,A             ; SAVE T
+        LD      A,E             ; RETRIEVE DATA
+        RET
+;
+; ROUTINE TO CHECK FOR AUTOSTART
+;
+ENDFL:  CALL    TAPEHL          ; AUTOSTART ADDRESS
+                                ; AND RECORD TYPE
+        PUSH    AF              ; SAVE RECORD TYPE
+        CALL    PHEX            ; INPUT CHECKSUM
+        POP     AF              ; RETRIEVE REC TYPE
+        CP      1               ; AUTOSTART?
+        JP      NZ,RSTRT        ; NO
+        LD      A,(TASK)        ; CHECK TASK
+        CP      'E'             ; EXECUTE?
+        JP      Z,JPCHL         ; YES, GO THERE
+        CALL    OUTHL           ; NO, PRINT HL
+        JP      RSTRT           ; NEXT TASK
+;
+; CALCULATE AND PUNCH THE CHECKSUM
+;
+CSUM:   LD      A,B             ; CHECKSUM TO A
+        CPL                     ; ONE'S COMPLEMENT
+        INC     A               ; TWO'S COMPLEMENT
+        JP      PNHEX           ; PUNCH CHECKSUM
+;
+; SEE IF CHECKSUM IS CORRECT (ZERO)
+;
+CHECK:  CALL    PHEX            ; INPUT CHECKSUM
+        XOR     A
+        ADD     B               ; IS CHECKSUM ZERO?
+        RET     Z               ; YES, RETURN
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; ERROR MESSAGES
+;
+        LD      A,'C'           ; CHECKSUM ERROR
+        DB      1               ; DB TRICK TO SKIP
+MERROR: LD      A,'M'           ; M FOR BAD MEMORY
+        PUSH    AF
+        POP     AF
+        CALL    OUTT            ; PRINT ERROR TYPE
+        CALL    OUTHL           ; PRINT H/L
+        JP      RSTRT
+;
+SIGN:   DB      CR,LF
+        DB      'Hex Paper Tape Mode:',CR,LF
+        DB      'E                            - Load and execute',CR,LF
+        DB      'G<addr>                      - Go from address',CR,LF
+        DB      'R[<offset>]                  - Read tape into memory',CR,LF
+        DB      'V                            - Verify tape against memory',CR,LF
+        DB      'W<start>,<end>[,<autostart>] - Write paper tape',CR,LF
+        DB      'Q                            - Quit to monitor',CR,LF
+        DB      0
+;
+; Fill rest of 8K ROM
+;
+        DS      $2000-$,$FF
+;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Variables (size in bytes)
 
 vars:   equ     $FF00
-save_a: equ     vars           ; Save A reg (1)
-save_f: equ     vars+1         ; Saved flags (1)
-save_b: equ     vars+2         ; Saved B reg (1)
-save_c: equ     vars+3         ; Saved C reg (1)
-save_d: equ     vars+4         ; Saved D reg(1)
-save_e: equ     vars+5         ; Saved E reg (1)
-save_h: equ     vars+6         ; Saved H reg (1)
-save_l: equ     vars+7         ; Saved L ref (1)
-save_i: equ     vars+8         ; Saved I reg (1)
-save_r: equ     vars+9         ; Saved R reg (1)
-save_sp: equ    vars+10        ; Saved SP (2)
-save_pc: equ    vars+12        ; Saved PC (2)
-save_ix: equ    vars+14        ; Saved IX reg (2)
-save_iy: equ    vars+16        ; Saved IY (2)
-src:    equ     vars+18        ; Source address, used for commands like Copy (2)
-dst:    equ     vars+20        ; Destination address (2)
-size:   equ     vars+22        ; Size (2)
-address: equ    vars+24        ; Next address to disassemble (2)
-opcode:  equ    vars+26        ; Opcode e.g. OP_ADD (1)
-mnemonic: equ   vars+27        ; Pointer to mnemonic string, e.g. "ADD " (2)
-len:    equ     vars+29        ; Length of instruction (1)
+save_a: equ     vars            ; Save A reg (1)
+save_f: equ     vars+1          ; Saved flags (1)
+save_b: equ     vars+2          ; Saved B reg (1)
+save_c: equ     vars+3          ; Saved C reg (1)
+save_d: equ     vars+4          ; Saved D reg(1)
+save_e: equ     vars+5          ; Saved E reg (1)
+save_h: equ     vars+6          ; Saved H reg (1)
+save_l: equ     vars+7          ; Saved L ref (1)
+save_i: equ     vars+8          ; Saved I reg (1)
+save_r: equ     vars+9          ; Saved R reg (1)
+save_sp: equ    vars+10         ; Saved SP (2)
+save_pc: equ    vars+12         ; Saved PC (2)
+save_ix: equ    vars+14         ; Saved IX reg (2)
+save_iy: equ    vars+16         ; Saved IY (2)
+src:    equ     vars+18         ; Source address, used for commands like Copy (2)
+dst:    equ     vars+20         ; Destination address (2)
+size:   equ     vars+22         ; Size (2)
+address: equ    vars+24         ; Next address to disassemble (2)
+opcode:  equ    vars+26         ; Opcode e.g. OP_ADD (1)
+mnemonic: equ   vars+27         ; Pointer to mnemonic string, e.g. "ADD " (2)
+len:    equ     vars+29         ; Length of instruction (1)
+;
+; Hexmon variables
+;
+TASK:   equ     vars+30         ; SAVE IT (1)
+OFSET:  equ     vars+31         ; LOAD OFFSET (2)
+IBUFP:  equ     vars+33         ; BUFFER POINTER (2)
+IBUFC:  equ     vars+35         ; BUFFER COUNT (1)
+IBUFF:  equ     vars+36         ; INPUT BUFFER
 
         end
