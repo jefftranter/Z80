@@ -5,7 +5,7 @@
 # Converts a pure binary binary file, such as that produced by an
 # assembler, to the ABS file format used for HDOS executables.
 #
-# usage: bin2abs [-a <load address>] [-s <start address>] <infile> <outfile>
+# usage: bin2abs [-a <load address>] [-s <start address>] [-n] <infile> <outfile>
 #
 # Load address defaults to USERFWA: 0x2280 or 0o21200.
 # Start address defaults to load address.
@@ -45,6 +45,7 @@ parser.add_argument("infilename", help="Binary input file to read")
 parser.add_argument("outfilename", help="ABS output file to write")
 parser.add_argument("-a", "--load-address", help="Specify load address (defaults to 0x2280)", default=0x2280, type=auto_int)
 parser.add_argument("-s", "--start-address", help="Specify starting address (defaults to load address)", default=-1, type=auto_int)
+parser.add_argument("-n", "--no-header", help='Do not add file header', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -53,6 +54,7 @@ infile = args.infilename
 outfile = args.outfilename
 start_address = args.start_address
 load_address = args.load_address
+no_header = args.no_header
 
 if start_address == -1:
     start_address = load_address
@@ -80,12 +82,13 @@ except (PermissionError, IsADirectoryError):
 # Get input file size
 size = os.stat(infile).st_size
 
-# Output header
-fout.write(b'\xff')  # ID byte = FFH
-fout.write(b'\0')  # FT byte = 00H
-fout.write(load_address.to_bytes(2, 'little'))  # Load address (low byte, high byte)
-fout.write(size.to_bytes(2, 'little'))  # Program length (low byte, high byte)
-fout.write(start_address.to_bytes(2, 'little'))  # Start address (low byte, high byte)
+# Optionally output header
+if not no_header:
+    fout.write(b'\xff')  # ID byte = FFH
+    fout.write(b'\0')  # FT byte = 00H
+    fout.write(load_address.to_bytes(2, 'little'))  # Load address (low byte, high byte)
+    fout.write(size.to_bytes(2, 'little'))  # Program length (low byte, high byte)
+    fout.write(start_address.to_bytes(2, 'little'))  # Start address (low byte, high byte)
 
 # Now output contents of the input file.
 while True:
@@ -100,6 +103,9 @@ while True:
         break
 
 # Finally, pad the file with zeroes out to the next 256 byte boundary.
-pad = 256 - (size + 8) % 256
+if no_header:
+    pad = 256 - (size) % 256
+else:
+    pad = 256 - (size + 8) % 256
 for p in range(0, pad):
     fout.write(b'\0')
