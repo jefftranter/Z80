@@ -2,7 +2,7 @@
            For version 2.0.8 i5 (HDOS) or 2.1.0 i5 (CP/M).
              Jeff Tranter <tranter@pobox.com> 22-Jun-2024
 
-Defaults to port DTE port 330 IRQ 5.
+Defaults to port DTE i/o port 330 IRQ 5.
 
 Communications Mode:
 f1            Send page to printer/computer/file
@@ -31,7 +31,7 @@ BREAK         Set echo on/off
 
 1             ASCII/APL/TAPE/HEX mode
 ^             Mount or reset disk (HDOS)
-Any other key Exit set mode
+Any other key exits set mode
 
 Auto-Send Keypad Keys:
 Enter         Enter text, index (1-9,01-09), text, end with Break
