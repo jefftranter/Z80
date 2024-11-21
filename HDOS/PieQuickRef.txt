@@ -56,6 +56,6 @@ Control-Z (HDOS only) Type twice. Exit before any editing has started.
 
 Macros:
 
-DO (Blue key)        Perform recorded macro.
+DO (BLUE key)        Perform recorded macro.
 ENTER DO<commands>DO Record macro using <commands>.
 ENTER<n>DO           Perform macro <n> times.
