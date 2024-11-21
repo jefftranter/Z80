@@ -1,5 +1,6 @@
-        MAPLE (Modem Applications Effector) - Quick Reference
+        Quick Reference - MAPLE (Modem Applications Effector)
            For version 2.0.8 i5 (HDOS) or 2.1.0 i5 (CP/M).
+             Jeff Tranter <tranter@pobox.com> 22-Jun-2024
 
 Defaults to port DTE port 330 IRQ 5.
 
@@ -11,9 +12,9 @@ f4            Sent contents of copy pad to printer
 f5            Store copy pad to file
 ERASE         Clear copy pad
 <Shift>ERASE  Delete file
-Blue          Send file
-Red           Exit to OS
-White         Enter Set Mode
+BLUE          Send file
+RED           Exit to OS
+WHITE         Enter Set Mode
 BREAK         Send break
 
 Set Mode:
@@ -23,9 +24,9 @@ f3            Set prompt character for line mode
 f4            Set print device
 f5            Set default disk drive
 ERASE         Set modem handshaking no hands/xon xoff/ack etx/DSR/CTS
-Blue          Set parity none/even/odd
+BLUE          Set parity none/even/odd
 RED           Set baud rate
-White         Set word bits 7/8 and stop bits 1/2
+WHITE         Set word bits 7/8 and stop bits 1/2
 BREAK         Set echo on/off
 
 1             ASCII/APL/TAPE/HEX mode

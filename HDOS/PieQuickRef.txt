@@ -1,6 +1,6 @@
                   Quick Reference - PIE Text Editor
                        H8/H89/Z89 Version 1.5c
-             Jeff Tranter <tranter@pobox.com> 21-Nov 2024
+             Jeff Tranter <tranter@pobox.com> 21-Nov-2024
 
 Function keys:
 
