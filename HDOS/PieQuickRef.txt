@@ -1,0 +1,61 @@
+                  Quick Reference - PIE Text Editor
+                       H8/H89/Z89 Version 1.5c
+             Jeff Tranter <tranter@pobox.com> 21-Nov 2024
+
+Function keys:
+
+f1        +PAGE. Move forward one page (24 lines). ENTER<n>f1 moves forward <n> pages.
+f2        +LINE. Move forward one line. ENTER<n>f2 moves forward <n> lines. ENTER f2
+          makes cursor first line.
+f3        GOTO. Go to top of file. ENTER f3 moves to end of file. ENTER<n>f3 moves
+          to line <n> of file.
+f4        -LINE. Move back one line. ENTER<n>f3 moves back <n> lines.
+f5        -PAGE. Move back one page (24 lines). ENTER<n>f5 moves back <n> pages.
+ERASE     Erase characters from cursor to end of line.
+BLUE      DO. See Macros section.
+RED       PICK. Place current line in temporary line buffer without deleting it.
+          ENTER<n>RED places <n> lines (up to 24) in buffer.
+WHITE     PUT. Insert lines from temporary line buffer at cursor position.
+
+Keypad keys:
+
+IC        Toggle insert mode.
+Up        Move cursor up.
+DC        Delete character at cursor position.
+Left      Move cursor left.
+HOME      Move cursor to upper left of screen.
+Right     Move cursor right. With SHIFT, move alternately to beginning and end of line.
+IL        Insert blank line after cursor. ENTER<n>IL inserts <n> blank lines.
+Down      Move cursor down.
+DL        Delete current line. ENTER<n>DL deletes <n> lines (up to 24). Saves
+          deleted line(s) in temporary line buffer. With SHIFT, does not save
+          deleted lines in buffer.
+0         Search forward for last string given to search command.
+.         Search backward for last string given to search command.
+ENTER<s>0 Searches forward for string <s>.
+ENTER<s>. Searches backward for string <s>.
+
+Keyboard keys:
+
+TAB       Move right to next tab stop.
+ESC       Move left to previous tab stop.
+BACKSPACE Move cursor left and erase character.
+RETURN    Move to left margin and down one line.
+Control-C (CP/M only) Exit before any editing has started.
+Control-E EXIT. Write text to file and exit. ENTER<s>Control-E writes to file
+          <s> instead. ENTER Control-E exits without saving.
+Control-D DIVIDE. Divide current line at cursor into two lines.
+Control-K QUOTE. Enter next character typed as a control character.
+Control-R REPLACE. (HDOS ONLY) ENTER<drive>Control-R unmounts disk <drive> (e.g.
+          SY1:) and prompts for new disk to mount.
+Control-V SAVE. Save text to file and continue editing. ENTER<s>Control-V saves
+          to file <s> instead.
+Control-W WRAP. Toggle word wrap mode. Set right margin at current cursor
+          position (or column 76 if in column 1).
+Control-Z (HDOS only) Type twice. Exit before any editing has started.
+
+Macros:
+
+DO (Blue key)        Perform recorded macro.
+ENTER DO<commands>DO Record macro using <commands>.
+ENTER<n>DO           Perform macro <n> times.
