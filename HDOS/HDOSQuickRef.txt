@@ -1,4 +1,4 @@
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 1 of 12
+SYSCMD/plus 3.02 HELP file - for HDOS 3.0
 
 COMMAND LIST FOR THE SYSTEM COMMAND PROCESSOR
 
@@ -21,8 +21,6 @@ CLS <any arg>		Reset graphics, reverse, 25th line
 CO[PY] dest=source   ** Copy file(s) from source to destination
 CRC file(s)		Calculate CRC for files
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 2 of 12
-
 Command 		Meaning
 ------- 		----------------------------------------------------
 DA[TE]		     ** Show system date
@@ -44,8 +42,6 @@ DM[M]			Show system memory usage
 ERA[SE] file(s) 	Erase specified file(s)
 FLO[AD] xx[:]		Same as LOAD plus Fix in memory
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 3 of 12
-
 Command 		Meaning
 ------- 		----------------------------------------------------
 HA[LT]			Try SHUTDOWN.ABS(.BAT) then exit HDOS
@@ -64,8 +60,6 @@ M[OUNT] dev:	    **; Mount specified device
 Mn		      ; Mount primary device #n.  Default n=0
 MOV[E] dest=source	Copy file(s), verify, delete source file(s)
 Pn			Set current list device unit to #n.  n=0..7
-
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 4 of 12
 
 Command 		Meaning
 ------- 		----------------------------------------------------
@@ -88,8 +82,6 @@ QD xx[:]	      ; Quiet Dismount (All available units of xx:)
 QM		      ; Quiet Mount (All available units of default device)
 QM xx[:]	      ; Quiet Mount (All available units of xx:)
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 5 of 12
-
 Command 		Meaning
 ------- 		----------------------------------------------------
 Q[UIT]			End HDOS session
@@ -110,8 +102,6 @@ T[YPE] file(s)	     ** Show specified file(s) on console
 UNL[OAD] xx[:]		Unload specified device driver
 UNL[OAD] *		Unload all possible device drivers
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 6 of 12
-
 Command 		Meaning
 ------- 		----------------------------------------------------
 U[SER]			Show active user area
@@ -123,8 +113,6 @@ VERI[FY] OF[F]		Set default VERIFY state for COPY to OFF
 VER[SION]	     ** Show SYSCMD version information
 XYZ[ZY] 		Toggle display of exit codes upon return to SYSCMD
 XYZ[ZY] <any arg>	Toggle display of PIP command syntax within SYSCMD
-
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 7 of 12
 
 BATCH FACILITY WITHIN THE SYSTEM COMMAND PROCESSOR
 
@@ -147,8 +135,6 @@ COU[NT] [=] value	Set counter (0..255)
 EC[HO]			Show ECHO state
 EC[HO] text		Show text on screen
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 8 of 12
-
 BATCH Command		Meaning
 -------------		----------------------------------------------------
 EC[HO] ON		Set ECHO state to ON
@@ -170,8 +156,6 @@ KEY			Show current ASK keystroke value
 KEY alpha		Preset ASK keystroke
 KEY ?<cr|space|tab|?>	Preset special value.  CR = null
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 9 of 12
-
 BATCH Command		Meaning
 -------------		----------------------------------------------------
 PAU[SE] 		Prompt user & wait for key
@@ -191,8 +175,6 @@ Note:	Replaceable parameters %0 - %9 may be used in BATCH files. %0 is always
 	%u = default unit number (0)		%p = active LP unit (0)
 	%: = default device (SY0:)		%k = ASK keystroke
 	%x = default extension (ABS)
-
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 10 of 12
 
 Special characters which may be used in PROMPT, ECHO, PAUSE, and ASK text.
 Other control codes not allowed.  All other characters print normally.
@@ -214,8 +196,6 @@ User must put $_ at the end of the ECHO string to go to a new line.  Otherwise
 the cursor will remain at the end of the string, wherever it may be on the
 screen.
 
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 11 of 12
-
 COMMAND-LINE EDITOR FOR THE SYSTEM COMMAND PROCESSOR
 
 (CTL-A) 		Invoke the command-line editor at the system prompt
@@ -228,8 +208,6 @@ COMMAND-LINE EDITOR FOR THE SYSTEM COMMAND PROCESSOR
 	nKc	Kill char(s)		nBKSP	Move cursor left
 	 L	List rest of line	nDEL	Move left & delete char(s)
 	 Q	Quit editor		 RET	Accept command line
-
-SYSCMD/plus 3.02 HELP file - for HDOS 3.0           Page 12 of 12
 
 Notes:	Commands marked with a ';' may be preceded by ';' to effect the
 	secondary device.  For example:  ;PC0
