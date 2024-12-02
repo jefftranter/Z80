@@ -1721,7 +1721,7 @@ if      CPUVILLE
         db      "JMON Monitor 0.7 by Jeff Tranter\r\n",0
 endif
 if      CPM
-        db      "JMON Monitor 0.7 (CPM) by Jeff Tranter\r\n",0
+        db      "JMON Monitor 0.7 (CP/M) by Jeff Tranter\r\n",0
 endif
 if      HDOS
         db      "JMON Monitor 0.7 (HDOS) by Jeff Tranter\r\n",0
