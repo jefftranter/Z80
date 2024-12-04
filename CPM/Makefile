@@ -1,10 +1,18 @@
 PRAGMAS = -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
 
-all: asm c
+all: asm c native
 
 asm: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
 
-c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com cecho.com fileio.com
+c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com cecho.com fileio.com arch.com unarch.com
+
+native: arch unarch
+
+arch:	arch.c
+	gcc -Wall -o arch arch.c
+
+unarch:	unarch.c
+	gcc -Wall -o unarch unarch.c
 
 hello.com: hello.asm
 	asl -L hello.asm
@@ -126,8 +134,14 @@ cecho.com: cecho.c
 fileio.com: fileio.c
 	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o fileio.com fileio.c
 
+arch.com: arch.c
+	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -o arch.com arch.c
+
+unarch.com: unarch.c
+	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -o unarch.com unarch.c
+
 clean:
-	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs
+	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs arch unarch
 
 distclean: clean
 	$(RM) cpm22.z80 cpm2-asm.zip
