@@ -23,21 +23,21 @@ int main(int argc, char **argv)
 
     /* Check command line options. */
     if (argc !=2) {
-        fprintf(stderr, "usage: %s <archive file>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <archive file>\n", argv[0]);
         return 1;
     }
 
     /* Open archive file. */
-    afp = fopen(argv[1], "r");
+    afp = fopen(argv[1], "rb");
     if (afp == NULL) {
-        fprintf(stderr, "error: fopen of %s failed\n", argv[1]);
+        fprintf(stderr, "Error: open of %s failed\n", argv[1]);
         return 1;
     }
 
     /* Read and verify magic number. */
     fread(buffer, 1, 3, afp);
     if (buffer[0] != 'J' && buffer[1] != 'J' && buffer[2] != 'T') {
-        fprintf(stderr, "error: %s is not a valid archive file\n", argv[1]);
+        fprintf(stderr, "Error: %s is not a valid archive file\n", argv[1]);
         return 1;    
     }
 
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     fread(buffer, 1, 1, afp);
     numfiles = buffer[0];
     if (numfiles > MAX_FILES) {
-        fprintf(stderr, "error: too many files in archive\n");
+        fprintf(stderr, "Error: too many files in archive\n");
         return 1;    
     }
 
@@ -67,9 +67,9 @@ int main(int argc, char **argv)
          close file
     */
     for (i = 0; i < numfiles; i++) {
-        fp = fopen(filename[i], "w");
+        fp = fopen(filename[i], "wb");
         if (fp == NULL) {
-            fprintf(stderr, "error: unable to create %s\n", filename[i]);
+            fprintf(stderr, "Error: unable to create %s\n", filename[i]);
             return 1;
         }
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     /* Verify end of archive marker */
     fread(buffer, 1, 3, afp);
     if (buffer[0] != 'E' && buffer[1] != 'N' && buffer[2] != 'D') {
-        fprintf(stderr, "warning: no end of archive file marker found\n");
+        fprintf(stderr, "Warning: No end of archive file marker found\n");
     }
 
     /* Close archive file. */
