@@ -1,20 +1,57 @@
 /*
 
   Simple file unarchiver. Extracts files created by arch.c. Runs on
-  Linux, CP/M, and HDOS.
+  Linux, CP/M, and HDOS. This version compiles under HDOS or CP/M
+  using the Software Toolworks C/80 compiler.
+
+  To build on HDOS:
+  c80 -d1000 sy4:unarch=sy4:unarch
+  a80 sy4:unarch=sy4:unarch
+
+  To build on CP/M:
+  c80 -d1000 c::unarch=c:unarch
+  a80 c:unarch=c:unarch
 
 */
 
-#include <stdio.h>
-#include <string.h>
+#include "stdio.h"
 
 /* Maximum number of files supported */
 #define MAX_FILES 16
 
-int main(int argc, char **argv)
+/*
+  These two functions are not available under HDOS or CP/M so are
+  implemented here.
+*/
+int fread(ptr, size, nmemb, fp)
+    char *ptr; int size; int nmemb; FILE *fp;
+{
+    int i;
+
+    for (i = 0; i < size * nmemb; i++) {
+        ptr[i] = getc(fp);
+    }
+
+    return 0;
+}
+
+int fwrite(ptr, size, nmemb, fp)
+    char *ptr; int size; int nmemb; FILE *fp;
+{
+    int i;
+
+    for (i = 0; i < size * nmemb; i++) {
+        putc(ptr[i], fp);
+    }
+
+    return 0;
+}
+
+int main(argc, argv)
+    int argc; char **argv;
 {
     int numfiles;
-    int i, n;
+    int i, j, k, n;
     FILE *afp;
     FILE *fp;
     char buffer[256];
@@ -54,10 +91,10 @@ int main(int argc, char **argv)
         fread(buffer, 1, 12, afp);
         strcpy(filename[i], buffer);
         fread(buffer, 1, 4, afp);
-        size[i] = ((unsigned char)buffer[0] << 24)
-            + ((unsigned char)buffer[1] << 16)
-            + ((unsigned char)buffer[2] << 8)
-            + (unsigned char)buffer[3];
+        /* Below is a hack to convert signed chars to unsigned integers. */
+        j = (buffer[2] < 0) ? ~buffer[2] + 1 : buffer[2];
+        k = (buffer[3] < 0) ? ~buffer[3] + 1 : buffer[3];
+        size[i] = (j << 8) + k;
     }
 
     /* for each file:
@@ -103,3 +140,7 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+#include "adlib.c"
+#include "stdlib.c"
+#include "printf.c"
