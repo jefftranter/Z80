@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     }
 
     /* Now write raw contents of each file. */
-    for (i = 1; i < numfiles + 2; i++) {
+    for (i = 2; i < numfiles + 2; i++) {
 
         fp = fopen(argv[i], "rb");
 
