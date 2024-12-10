@@ -3,6 +3,14 @@
   Simple file unarchiver. Extracts files created by arch.c. Runs on
   Linux, CP/M, and HDOS.
 
+  TODO: Consider adding command line options:
+  -w Allow overwriting existing files
+  -l List archive contents only
+  -t Handle as text files
+  -b Handle as binary files (default)
+  -a Attempt to automatically handle text and binary files (e.g. binary for .ABS .COM .SYS .OBJ .REL)
+  -d Show additional debug output
+  -v Show program version
 */
 
 #include <stdio.h>

@@ -4,6 +4,14 @@
   simplify uploads, etc. Runs on Linux, CP/M, and HDOS. A corresponding
   program can extract them.
 
+  TODO: Consider adding command line options:
+  -w Allow overwriting existing archive file
+  -t Handle as text files
+  -b Handle as binary files (default)
+  -a Attempt to automatically handle text and binary files (e.g. binary for .ABS .COM .SYS .OBJ .REL)
+  -n Don't enforce valid CP/M or HDOS filenames
+  -d Show additional debug output
+  -v Show program version
 */
 
 #include <stdio.h>

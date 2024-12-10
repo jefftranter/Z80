@@ -12,6 +12,8 @@
   c80 -d1000 c::unarch=c:unarch
   a80 c:unarch=c:unarch
 
+  TODO: Should use long type to handle larger files sizes, but not
+  supported by standard C/80 compiler.
 */
 
 #include "stdio.h"
