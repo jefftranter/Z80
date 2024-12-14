@@ -17,7 +17,11 @@
 #include <string.h>
 
 /* Maximum number of files supported */
+#ifdef CPM
 #define MAX_FILES 16
+#else
+#define MAX_FILES 100
+#endif
 
 int main(int argc, char **argv)
 {

@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
         printf("usage: %s <directory>\n", argv[0]);
         return 1;
     }
-    
+
     // Open the directory
     dir = opendir(argv[1]);
     if (dir == NULL) {
