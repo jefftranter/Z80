@@ -5,8 +5,6 @@
   unarch program can extract them.
 
   To Do:
-  - Get file sizes by reading rather than stat (which only works on
-    CP/M for binary files).
   - Add filename wildcard expansion on CP/M.
   - Add option -a, Attempt to automatically handle text and binary
     files based in file extension (e.g. binary for .ABS .COM .SYS .OBJ
