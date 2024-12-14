@@ -30,7 +30,7 @@ int wildcard(char *pattern, char matches[MAXWILDCARDS][FILENAMELEN])
     //fprintf(stderr, "setfcb() returned %d\n", rc);
 
     for (i = 0; i < MAXWILDCARDS; i++) {
-        if (i == 0) {        
+        if (i == 0) {
             /* First call Find First to get first match of filename pattern. */
             rc = bdos(CPM_FFST, file);
             //fprintf(stderr, "CPM_FFST returned %d\n", rc);
@@ -46,7 +46,7 @@ int wildcard(char *pattern, char matches[MAXWILDCARDS][FILENAMELEN])
 
         /* Directory entry will be at DMA + rc * 32 (where rc is 0-3).
            File name (8 chars) starts at offset 1 and file extension
-           (3 chars) at offset 9. */       
+           (3 chars) at offset 9. */
         p = (char *) 0x80 + rc * 32;
         memcpy(&matches[i][0], p + 1, 8);
         matches[i][8] = '.';
@@ -71,10 +71,10 @@ int main(int argc, char **argv)
     }
 
     /* Need to save the command line arguments before making any BDOS
-       calls as they overwrite the same DMA buffer area. */   
+       calls as they overwrite the same DMA buffer area. */
     for (i = 0; i < argc - 1; i++) {
         strcpy(patterns[i], argv[i+1]);
-        //fprintf(stderr, "Argument '%s'\n", patterns[i]); 
+        //fprintf(stderr, "Argument '%s'\n", patterns[i]);
     }
 
     /* Expand wildcard arguments. */

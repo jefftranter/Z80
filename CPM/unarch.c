@@ -6,8 +6,7 @@
   TODO: Consider adding command line options:
   -w Allow overwriting existing files
   -l List archive contents only
-  -t Handle as text files
-  -b Handle as binary files (default)
+  -t Handle as text files (default is binary)
   -a Attempt to automatically handle text and binary files (e.g. binary for .ABS .COM .SYS .OBJ .REL)
   -d Show additional debug output
   -v Show program version
