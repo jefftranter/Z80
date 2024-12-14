@@ -1081,7 +1081,7 @@ void setRandomSeed()
 #else
 
     /* On desktop systems use system time as random seed. */
-    srand(time(0));
+    srand((int)time(0));
 
 #endif
 }

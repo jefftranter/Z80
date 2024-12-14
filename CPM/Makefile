@@ -1,4 +1,5 @@
 PRAGMAS = -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
+OPTIONS = -mz80 +cpm -subtype=hz89
 
 all: asm c native
 
@@ -18,33 +19,33 @@ dir:	dir.c
 	gcc -Wall -o dir dir.c
 
 hello.com: hello.asm
-	asl -L hello.asm
-	p2bin -r '$$-$$' hello.p
+	asl -q -L hello.asm
+	p2bin -q -r '$$-$$' hello.p
 	mv hello.bin hello.com
 
 cls.com: cls.asm
-	asl -L cls.asm
-	p2bin -r '$$-$$' cls.p
+	asl -q -L cls.asm
+	p2bin -q -r '$$-$$' cls.p
 	mv cls.bin cls.com
 
 cls-vt52.com: cls-vt52.asm
-	asl -L cls-vt52.asm
-	p2bin -r '$$-$$' cls-vt52.p
+	asl -q -L cls-vt52.asm
+	p2bin -q -r '$$-$$' cls-vt52.p
 	mv cls-vt52.bin cls-vt52.com
 
 cls-heath.com: cls-heath.asm
-	asl -L cls-heath.asm
-	p2bin -r '$$-$$' cls-heath.p
+	asl -q -L cls-heath.asm
+	p2bin -q -r '$$-$$' cls-heath.p
 	mv cls-heath.bin cls-heath.com
 
 example1.com: example1.asm
-	asl -L example1.asm
-	p2bin -r '$$-$$' example1.p
+	asl -q -L example1.asm
+	p2bin -q -r '$$-$$' example1.p
 	mv example1.bin example1.com
 
 example2.com: example2.asm
-	asl -L example2.asm
-	p2bin -r '$$-$$' example2.p
+	asl -q -L example2.asm
+	p2bin -q -r '$$-$$' example2.p
 	mv example2.bin example2.com
 
 jmon.abs: jmon.com
@@ -55,96 +56,96 @@ jmon.com: jmon.asm disasm.asm
 	mv jmon.bin jmon.com
 
 tinybas.com: tinybas.asm
-	asl -L tinybas.asm
-	p2bin -r '$$-$$' tinybas.p
+	asl -q -L tinybas.asm
+	p2bin -q -r '$$-$$' tinybas.p
 	mv tinybas.bin tinybas.com
 
 go.com: go.asm
-	asl -cpu 8080 -L go.asm
-	p2bin -r '$$-$$' go.p
+	asl -q -cpu 8080 -L go.asm
+	p2bin -q -r '$$-$$' go.p
 	mv go.bin go.com
 
 list.com: list.asm
-	asl -cpu 8080 -L list.asm
-	p2bin -r '$$-$$' list.p
+	asl -q -cpu 8080 -L list.asm
+	p2bin -q -r '$$-$$' list.p
 	mv list.bin list.com
 
 echo.com: echo.asm
-	asl -cpu 8080 -L echo.asm
-	p2bin -r '$$-$$' echo.p
+	asl -q -cpu 8080 -L echo.asm
+	p2bin -q -r '$$-$$' echo.p
 	mv echo.bin echo.com
 
 glob.com: glob.asm
-	asl -cpu 8080 -L glob.asm
-	p2bin -r '$$-$$' glob.p
+	asl -q -cpu 8080 -L glob.asm
+	p2bin -q -r '$$-$$' glob.p
 	mv glob.bin glob.com
 
 test.com:
-	asl -cpu 8080 -L test.lst test.asm
-	p2bin -r '$$-$$' test.p
+	asl -q -cpu 8080 -L test.lst test.asm
+	p2bin -q -r '$$-$$' test.p
 	mv test.bin test.com
 
 copy.com:
-	asl -cpu 8080 -L copy.lst copy.asm
-	p2bin -r '$$-$$' copy.p
+	asl -q -cpu 8080 -L copy.lst copy.asm
+	p2bin -q -r '$$-$$' copy.p
 	mv copy.bin copy.com
 
 chello.com: chello.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o chello.com chello.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o chello.com chello.c
 
 sieve.com: sieve.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o sieve.com sieve.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o sieve.com sieve.c
 
 nqueens.com: nqueens.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o nqueens.com nqueens.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o nqueens.com nqueens.c
 
 demo.com: demo.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o demo.com demo.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o demo.com demo.c
 
 rpncalc.com: rpncalc.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o rpncalc.com rpncalc.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o rpncalc.com rpncalc.c
 
 disasm.com: disasm.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o disasm.com disasm.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o disasm.com disasm.c
 
 advent1.com: advent1.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o advent1.com advent1.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o advent1.com advent1.c
 
 advent2.com: advent2.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o advent2.com advent2.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o advent2.com advent2.c
 
 advent3.com: advent3.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o advent3.com advent3.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o advent3.com advent3.c
 
 freq.com: freq.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o freq.com freq.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o freq.com freq.c
 
 info.com: info.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o info.com info.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o info.com info.c
 
 search.com: search.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o search.com search.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o search.com search.c
 
 size.com: size.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o size.com size.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o size.com size.c
 
 yum.com: yum.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o yum.com yum.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o yum.com yum.c
 
 cecho.com: cecho.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o cecho.com cecho.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o cecho.com cecho.c
 
 fileio.com: fileio.c
-	. ../z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -lm -o fileio.com fileio.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o fileio.com fileio.c
 
 arch.com: arch.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -o arch.com arch.c
+	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o arch.com arch.c
 
 unarch.com: unarch.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -o unarch.com unarch.c
+	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o unarch.com unarch.c
 
 wildcard.com: wildcard.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc -v -mz80 +cpm -subtype=hz89 $(PRAGMAS) -o wildcard.com wildcard.c
+	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o wildcard.com wildcard.c
 
 clean:
 	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs arch unarch dir
