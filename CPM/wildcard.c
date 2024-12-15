@@ -12,6 +12,22 @@
 #define MAXWILDCARDS 40
 #define FILENAMELEN 13    // 8 + 3 + '.' + terminating null
 
+/* Remove all spaced from a string. */
+void removeSpaces(char *str) {
+    int i = 0, j = 0;
+
+    // Loop through the string
+    while (str[i] != '\0') {
+        // If the current character is not a space, copy it to the front
+        if (str[i] != ' ') {
+            str[j++] = str[i];
+        }
+        i++;
+    }
+    // Null terminate the new string
+    str[j] = '\0';
+}
+
 /* Return a list of strings matching a wildcard pattern. Returns the
    number of matches. */
 int wildcard(char *pattern, char matches[MAXWILDCARDS][FILENAMELEN])
@@ -52,6 +68,7 @@ int wildcard(char *pattern, char matches[MAXWILDCARDS][FILENAMELEN])
         matches[i][8] = '.';
         memcpy(&matches[i][9], p + 9, 3);
         matches[i][12] = 0;
+        removeSpaces(matches[i]);
         //fprintf(stderr, "wildcard match %d: '%s'\n", i, matches[i]);
     }
 
