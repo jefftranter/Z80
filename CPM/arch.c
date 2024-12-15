@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
     /* Handle -v option (show version and exit). */
     if (opt_v) {
-        fprintf(stderr, "arch version 1.0\n");
+        fprintf(stderr, "arch version 1.0.0\n");
         return 1;
     }
 
