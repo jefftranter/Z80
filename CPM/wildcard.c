@@ -9,7 +9,7 @@
 #include <string.h>
 #include <cpm.h>
 
-#define MAXWILDCARDS 40
+#define MAXWILDCARDS 100
 #define FILENAMELEN 13    // 8 + 3 + '.' + terminating null
 
 /* Remove all spaced from a string. */
@@ -94,13 +94,17 @@ int main(int argc, char **argv)
         //fprintf(stderr, "Argument '%s'\n", patterns[i]);
     }
 
-    /* Expand wildcard arguments. */
+    /* Expand all wildcard arguments. */
+    j = 0;
     for (i = 0; i < argc - 1; i++) {
-        k = wildcard(patterns[i], matches);
-        fprintf(stderr, "Pattern '%s' matches:\n", patterns[i]);
-        for (j = 0; j < k; j++) {
-            fprintf(stderr, "%s\n", matches[j]);
-        }
+        k = wildcard(patterns[i], &matches[j]);
+        j = j + k;
+        fprintf(stderr, "Pattern '%s' had %d matches\n", patterns[i], k);
+    }
+
+    fprintf(stderr, "Total number of matches: %d\n", j);
+    for (i = 0; i < j; i++) {
+        fprintf(stderr, "'%s'\n", matches[i]);
     }
 
     return 0;
