@@ -12,7 +12,7 @@
 #define MAXWILDCARDS 100
 #define FILENAMELEN 13    // 8 + 3 + '.' + terminating null
 
-/* Remove all spaced from a string. */
+/* Remove all spaces from a string. */
 void removeSpaces(char *str) {
     int i = 0, j = 0;
 
