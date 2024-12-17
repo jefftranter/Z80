@@ -10,45 +10,7 @@
 */
 
 #include <stdio.h>
-#include <arch/z80.h>
-
-extern uint8_t *CALLNO;
-
-/* Wrapper for HDOS system call (scall). Pass in scall number and register values.
-   Returns carry status (normally set for error, clear for success. */
-int scall(uint8_t request, uint8_t *a, uint16_t *bc, uint16_t *de, uint16_t *hl)
-{
-    Z80_registers regs;
-
-    // Write system call number after RST instruction
-    z80_bpoke(&CALLNO, request);
-
-    // Set up register parameters.
-    regs.Bytes.A = *a;
-    regs.UWords.BC = *bc;
-    regs.UWords.DE = *de;
-    regs.UWords.HL = *hl;
-
-    // Call SYSCALL routine below.
-    AsmCall(&SYSCALL, &regs, REGS_MAIN, REGS_MAIN);
-
-    // Get back register values to return.
-    *a = regs.Bytes.A;
-    *bc = regs.Words.BC;
-    *de = regs.Words.DE;
-    *hl = regs.Words.HL;
-
-    // Return carry status
-    return regs.Flags.C;
-}
-
-#asm
-_SYSCALL:
-        rst     $38     ; System call
-_CALLNO:
-        db      $00     ; Call # goes here
-        ret
-#endasm
+#include "hdos.h"
 
 int main()
 {
@@ -68,7 +30,7 @@ int main()
     hl = 0;
 
     printf("\nCalling .VERS\n");
-    rc = scall(011, &a, &bc, &de, &hl);
+    rc = scall(SYSCALL_VERS, &a, &bc, &de, &hl);
 
     printf("Returned %d\n", rc);
     printf("a  = %02x\n", a);
@@ -76,14 +38,14 @@ int main()
     printf("de = %04x\n", de);
     printf("hl = %04x\n", hl);
 
-    s = "\nThis is a test.\n\xcrc180";
+    s = "\nThis is a test.\n\x80";
     a = 0;
     bc = 0;
     de = 0;
     hl = s;
 
     printf("\nCalling .PRINT\n");
-    rc = scall(3, &a, &bc, &de, &hl);
+    rc = scall(SYSCALL_PRINT, &a, &bc, &de, &hl);
 
     printf("Returned %d\n", rc);
     printf("a  = %02x\n", a);
