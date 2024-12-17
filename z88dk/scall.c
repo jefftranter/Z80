@@ -53,6 +53,23 @@ int main()
     printf("de = %04x\n", de);
     printf("hl = %04x\n", hl);
 
+    a = 0;
+    bc = 0;
+    de = 0;
+    hl = s;
+
+    printf("\nCalling .SCIN\n");
+    printf("Press a key to continue...");
+    do {
+        rc = scall(SYSCALL_SCIN, &a, &bc, &de, &hl);
+    } while (rc == 1);
+
+    printf("\nReturned %d\n", rc);
+    printf("a  = %02x\n", a);
+    printf("bc = %04x\n", bc);
+    printf("de = %04x\n", de);
+    printf("hl = %04x\n", hl);
+
     printf("\nExiting\n");
 
     return 0;
