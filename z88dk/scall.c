@@ -4,7 +4,7 @@
 
   Jeff Tranter <tranter@pobox.com>
 
-  To see disassembly, do:
+  To see disassembly (useful for debugging), do:
   ~/git/z88dk/bin/z88dk-dis -x a.map -o 0x2280 a.bin  | less -i
 
 */
@@ -22,8 +22,6 @@ int scall(uint8_t request, uint8_t *a, uint16_t *bc, uint16_t *de, uint16_t *hl)
 
     // Write system call number after RST instruction
     z80_bpoke(&CALLNO, request);
-
-    // TODO: We could pass NULL to indicate parameters that are not needed?
 
     // Set up register parameters.
     regs.Bytes.A = *a;
