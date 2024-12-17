@@ -4,6 +4,21 @@
 
   Jeff Tranter <tranter@pobox.com>
 
+  Calling tree (for debuggging):
+
+fopen()
+  open()
+fprintf()
+  writebyte()
+feof() Internal to z88dk, when read returns -1.
+fgets()
+  readbyte()
+    read()
+cgetc()
+fclose()
+  close();
+WHAT CAUSES SY0: TO BE UNMOUNTED? (TRY SELECTIVELY REMOVING CODE)
+
 */
 
 #include <stdio.h>
@@ -142,7 +157,7 @@ int readbyte(int fd)
 
 int writebyte(int fd, int byte)
 {
-    printk("writebyte(%d, %d')\n", fd, byte);
+    printk("writebyte(%d, '%c')\n", fd, byte);
 
     if ((fd == *stdout.desc.fd) || (fd == *stderr.desc.fd)) {
         fputc_cons_native(byte);

@@ -31,9 +31,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Writing file...\n");
-    for (i = 1; i < 10; i++) {
-        fprintf(fp, "File data line %02d\n", i);
-    }
+    fprintf(fp, "File data line %02d\n", i);
 
     printf("Closing file...\n");
     rc = fclose (fp);
@@ -52,15 +50,20 @@ int main(int argc, char *argv[])
 #if 0
     /* Implementation using getc */
     printf("Reading file...\n");
-    while ((c = getc(fp)) != EOF) {
+    for (i = 1; i < 3; i++) {
+        c = getc(fp);
         printf("%c", c);
+        if (c == EOF)
+            break;
     }
 #endif
 
 #if 1
     /* Implementation using fgets */
     printf("Reading file...\n");
-    while (!feof(fp)) {
+    for (i = 1; i < 3; i++) {
+        if (feof(fp))
+            break;
         fgets(buffer, sizeof(buffer)-1, fp);
         printf("%s", buffer);
     }
