@@ -14,7 +14,7 @@
 
 int main()
 {
-    int rc;
+    int i, rc;
     uint8_t a;
     uint16_t bc;
     uint16_t de;
@@ -52,6 +52,19 @@ int main()
     printf("bc = %04x\n", bc);
     printf("de = %04x\n", de);
     printf("hl = %04x\n", hl);
+
+    a = 0;
+    bc = 0;
+    de = 0;
+    hl = 0;
+
+    printf("\nCalling .ERROR\n");
+    for (i = 1 ; i <= 56; i++) {
+        a = i;
+        hl = 0;
+        scall(SYSCALL_ERROR, &a, &bc, &de, &hl);
+        printf("\n");
+    }
 
     a = 0;
     bc = 0;
