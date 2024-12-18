@@ -5,11 +5,11 @@
   Jeff Tranter <tranter@pobox.com>
 
   Calling tree (for debuggging):
-
 fopen()
   open()
 fprintf()
   writebyte()
+    write()
 feof() Internal to z88dk, when read returns -1.
 fgets()
   readbyte()
@@ -17,7 +17,6 @@ fgets()
 cgetc()
 fclose()
   close();
-WHAT CAUSES SY0: TO BE UNMOUNTED? (TRY SELECTIVELY REMOVING CODE)
 
 */
 
@@ -88,7 +87,7 @@ int close(int fd)
     return 0;
 }
 
-// If fd is stdin, stdout, or stderr, use console...
+// If fd is stdin use console, otherwise file.
 ssize_t read(int fd, void *ptr, size_t len)
 {
     int i;
@@ -106,14 +105,14 @@ ssize_t read(int fd, void *ptr, size_t len)
 }
 
 
-// If fd is stdin, stdout, or stderr, use console...
+// If fd is stdout or stderr use console, otherwise file.
 ssize_t write(int fd, void *ptr, size_t len)
 {
     int i;
 
     //printk("write(%d, %ld, %d)\n", fd, ptr, len);
 
-    if ((fd == 1) || (fd ==2) || (fd == *stdout.desc.fd) || (fd == *stderr.desc.fd)) {
+    if ((fd == 1) || (fd == 2) || (fd == *stdout.desc.fd) || (fd == *stderr.desc.fd)) {
         for (i = 0; i < len; i++) {
             fputc_cons_native(ptr[i]);
         }
@@ -157,14 +156,7 @@ int readbyte(int fd)
 
 int writebyte(int fd, int byte)
 {
-    printk("writebyte(%d, '%c')\n", fd, byte);
-
-    if ((fd == *stdout.desc.fd) || (fd == *stderr.desc.fd)) {
-        fputc_cons_native(byte);
-        return_nc 0;
-    }
-
-    return_nc write(fd, &byte, 1);
+    return(write(fd, &byte, 1));
 }
 
 /* Abandon file with the handle fd - this is called by the system on
