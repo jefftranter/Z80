@@ -21,6 +21,7 @@ fclose()
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <hdos.h>
 
@@ -37,6 +38,10 @@ CSLMD   equ     0               ; Index for console mode
 CSLECH  equ     %10000000       ; Bit for suppress echo
 CSLCHR  equ     %00000001       ; Bit for update in character mode
 __endasm
+
+/* Global Variables */
+char default[7]; // Default device and extension
+char fname[20]; // File name buffer
 
 int fputc_cons_native(char c) __naked
 {
@@ -71,52 +76,125 @@ __endasm
 
 int open(const char *name, int flags, mode_t mode)
 {
+    uint8_t request, a;
+    uint16_t bc, de, hl;
+    int channel, rc;
+
     printk("open(%s, %d, %d)=5\n", name, flags, mode);
-    return 5;
+
+    printk("flags:");
+    if (flags & O_RDONLY)
+        printk(" O_RDONLY");
+    if (flags & O_WRONLY)
+        printk(" O_WRONLY");
+    if (flags & O_RDWR)
+        printk(" O_RDWR");
+    if (flags & O_TRUNC)
+        printk(" O_TRUNC");
+    if (flags & O_CREAT)
+        printk(" O_CREAT");
+    if (flags & O_APPEND)
+        printk(" O_APPEND");
+    if (flags & O_BINARY)
+        printk(" O_BINARY");
+    printk("\nmode:");
+    if (mode & _IOUSE)
+        printk(" _IOUSE");
+    if (mode & _IOREAD)
+        printk(" _IOREAD");
+    if (mode & _IOWRITE)
+        printk(" _IOWRITE");
+    if (mode & _IOEOF)
+        printk(" _IOEOF");
+    if (mode & _IOSYSTEM)
+        printk(" _IOSYSTEM");
+    if (mode & _IOEXTRA)
+        printk(" _IOEXTRA");
+    if (mode & _IOTEXT)
+        printk(" _IOTEXT");
+    if (mode & _IOSTRING)
+        printk(" _IOSTRING");
+    printk("\n");
+
+    // Channel can be 0 to 5 (-1 is the running program). Initially
+    // hardcode to only channel 1 for now.
+    channel = 5;
+
+    strcpy(default, "SY0TMP");
+    strcpy(fname, "SY0:TEXT.TXT");
+
+    if (mode & _IOREAD) {
+        request = SYSCALL_OPENR;
+    } else if (mode & _IOWRITE) {
+        request = SYSCALL_OPENW;
+    }
+
+    a = channel;
+    bc = 0; // Not used
+    de = default;
+    hl = fname;
+
+    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
+    rc = scall(request, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
+    return channel;
 }
 
 int creat(const char *name, mode_t mode)
 {
     printk("creat(%s, %d)\n", name, mode);
+    printk("mode:");
+    if (mode & _IOUSE)
+        printk(" _IOUSE");
+    if (mode & _IOREAD)
+        printk(" _IOREAD");
+    if (mode & _IOWRITE)
+        printk(" _IOWRITE");
+    if (mode & _IOEOF)
+        printk(" _IOEOF");
+    if (mode & _IOSYSTEM)
+        printk(" _IOSYSTEM");
+    if (mode & _IOEXTRA)
+        printk(" _IOEXTRA");
+    if (mode & _IOTEXT)
+        printk(" _IOTEXT");
+    if (mode & _IOSTRING)
+        printk(" _IOSTRING");
+    printk("\n");
+
     return 10;
 }
 
 int close(int fd)
 {
+    uint8_t a;
+    uint16_t bc, de, hl;
+    int rc;
+
     printk("close(%d)\n", fd);
+
+    a = 5;
+    bc = 0; de = 0; hl = 0;
+    printk("Calling scall(%d, %d, %d, %d, %d)\n", SYSCALL_CLOSE, a, bc, de, hl);
+    rc = scall(SYSCALL_CLOSE, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
     return 0;
 }
 
-// If fd is stdin use console, otherwise file.
 ssize_t read(int fd, void *ptr, size_t len)
 {
-    int i;
-
     printk("read(%d, %ld, %d)\n", fd, ptr, len);
-
-    if ((fd == 0) || (fd == *stdin.desc.fd)) {
-        for (i = 0; i < len; i++) {
-            ptr[i] = fgetc_cons();
-        }
-        return len;
-    }
-
-    return -1;
+    return -1; /* EOF */
 }
 
-
-// If fd is stdout or stderr use console, otherwise file.
 ssize_t write(int fd, void *ptr, size_t len)
 {
-    int i;
-
+    // Uncommenting the line below will cause infinite recursion
     //printk("write(%d, %ld, %d)\n", fd, ptr, len);
-
-    if ((fd == 1) || (fd == 2) || (fd == *stdout.desc.fd) || (fd == *stderr.desc.fd)) {
-        for (i = 0; i < len; i++) {
-            fputc_cons_native(ptr[i]);
-        }
-    }
 
     return len;
 }
@@ -138,10 +216,6 @@ int readbyte(int fd)
     unsigned char buffer;
 
     printk("readbyte(%d)\n", fd);
-
-    if ((fd == 0) || (fd == *stdin.desc.fd)) {
-        return_nc fgetc_cons();
-    }
 
     if (read(fd, &buffer, 1) <= 0) {
         return_c -1;
