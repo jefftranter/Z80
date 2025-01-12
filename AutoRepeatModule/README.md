@@ -20,26 +20,26 @@ repeat. I've never seen an original unit, but the manual has a
 schematic and instructions that were enough to reproduce the board. I
 designed a PCB and assembled it and it works very well. It goes inline
 between the keyboard and ribbon cable so no modifications to the
-computer are needed and it should work with the H89, H89A, H19, and
-H19A (I have an H89).
+computer are needed and it should work with the Heathkit H89, H89A,
+H19, H19A and Zenith Z-19 and Z-89.
 
 ## Parts List
 
 | Qty | Des    | Description                                                  |
 | --- |------- | -----------                                                  |
-| 1   | -      | 2x17 PC104 connector SAMTEC ESQ-117-14-G-D or ESQ-117-39-L-F |
+| 1   | J1     | 2x17 PC104 connector SAMTEC ESQ-117-14-G-D or ESQ-117-39-L-F |
 | 1   | U1     | CD4013 IC                                                    |
 | 1   | U2     | CD4020 IC                                                    |
-| 1   | Q1     | 2N3904 Transistor                                            |
+| 1   | Q1     | 2N3904 transistor                                            |
 | 1   | C1     | 22uF 10V or higher tantalum  or electrolytic capacitor       |
-| 4   | R1-R4  | 27K 1/4W Resistor                                            |
-| 16  | D1-D16 | 1N4148 Diode                                                 |
-| 1   | n/a    | 14-pin IC Socket                                             |
-| 1   | n/a    | 16-pin IC Socket                                             |
+| 4   | R1-R4  | 27K 1/4W resistor                                            |
+| 16  | D1-D16 | 1N4148 diode                                                 |
+| 1   | n/a    | 14-pin IC socket                                             |
+| 1   | n/a    | 16-pin IC socket                                             |
 | 1   | n/a    | PCB                                                          |
 | 1   | Z      | 1K resistor (optional)                                       |
 | 1   | Cx     | 1000 pF capacitor (optional)                                 |
-| 1   | -      | Pads for wires to defeat switch (optional)                   |
+| 1   | S      | Header for wires to defeat switch (optional)                 |
 
 The connector is a Samtec PC104 connector ESQ-117-14-G-D (e.g Mouser
 part no. 200-ESQ11714GD).
@@ -87,6 +87,11 @@ When installed, keyboard keys will autorepeat after a short delay. The
 REPEAT key can still be used if you want an immediate repeat function.
 
 ## Other
+
+There is a third party replacement available for the keyboard encoder
+IC used on the H19/H89. It implements autorepeat internally. It is
+unknown if the autorepeat module will work this part, but in any case
+it would serve no purpose.
 
 The hardware design is Open Source Hardware, licensed under the The TAPR
 Open Hardware License. You are welcome to build the circuit and use my
