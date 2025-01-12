@@ -1,6 +1,6 @@
-#Heathkit H89/H19 Automatic Key Repeat
+# Heathkit H89/H19 Automatic Key Repeat
 
-##Summary
+## Summary
 
 Automatic Key Repeat board for the Heathkit H19 terminal or H89
 computer. Based on the circuit used in a commercial product sold by
@@ -10,7 +10,7 @@ key. Does not require any modifications to the computer: plugs in
 between the keyboard and ribbon cable to computer. The original manual
 describes the assembly and operation.
 
-##Introduction
+## Introduction
 
 The lack of automatic key repeat on the H89 and H19 is a little
 annoying when you are used to this feature on modern computers. In the
@@ -23,9 +23,10 @@ between the keyboard and ribbon cable so no modifications to the
 computer are needed and it should work with the H89, H89A, H19, and
 H19A (I have an H89).
 
-##Parts List
+## Parts List
 
 | Qty | Des    | Description                                                  |
+| --- |------- | -----------                                                  |
 | 1   | -      | 2x17 PC104 connector SAMTEC ESQ-117-14-G-D or ESQ-117-39-L-F |
 | 1   | U1     | CD4013 IC                                                    |
 | 1   | U2     | CD4020 IC                                                    |
@@ -46,7 +47,7 @@ part no. 200-ESQ11714GD).
 I ordered my PCBs from jlcpcb.com and they were very inexpensive and
 of high quality.
 
-##Construction
+## Construction
 
 Assembly is straightforward and uses all through-hole components. All
 parts are commonly available.
@@ -80,13 +81,12 @@ on the component side and avoid getting solder on the pins where the
 connector attaches. Note the orientation of the board and the ribbon
 cable.
 
-##Operation
+## Operation
 
 When installed, keyboard keys will autorepeat after a short delay. The
 REPEAT key can still be used if you want an immediate repeat function.
-Copyright (c) 2016-2023 by Jeff Tranter <tranter@pobox.com>
 
-##Other
+## Other
 
 The hardware design is Open Source Hardware, licensed under the The TAPR
 Open Hardware License. You are welcome to build the circuit and use my
@@ -97,7 +97,7 @@ Documentation written by me is licensed under a Creative Commons
 Attribution 4.0 International License.
 See https://creativecommons.org/licenses/by/4.0/
 
-##References
+## References
 
 1. https://oshwlab.com/tranter/h89-h19-automatic-key-repeat
 2. https://easyeda.com/editor#id=|f389a216686142f587bb133ffbe48b7c|0499826e9c3442c9a9fe8f3af5bf9ad2
