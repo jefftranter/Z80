@@ -83,13 +83,13 @@ cable.
 
 # Images
 
-![Assembled board](image1.png)
+![Assembled board](./image1.png)
 
-![Side view showing connector](image2.png)
+![Side view showing connector](./image2.png)
 
-![Plugged into keyboard](image3.png)
+![Plugged into keyboard](./image3.png)
 
-![Ready to plug in ribbon cable](image4.png)
+![Ready to plug in ribbon cable](./image4.png)
 
 ## Operation
 
