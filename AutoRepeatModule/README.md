@@ -7,8 +7,7 @@ computer. Based on the circuit used in a commercial product sold by
 Analytical Products in the 1980s. Adds automatic keyboard key repeat
 as on more modern computers, avoiding the need to press the REPEAT
 key. Does not require any modifications to the computer: plugs in
-between the keyboard and ribbon cable to computer. The original manual
-describes the assembly and operation.
+between the keyboard and ribbon cable to computer.
 
 ## Introduction
 
@@ -103,7 +102,7 @@ IC used on the H19/H89. It implements autorepeat internally. It is
 unknown if the autorepeat module will work this part, but in any case
 it would serve no purpose.
 
-The hardware design is Open Source Hardware, licensed under the The TAPR
+The hardware design is Open Source Hardware, licensed under the TAPR
 Open Hardware License. You are welcome to build the circuit and use my
 PCB layout.
 See https://web.tapr.org/OHL/TAPR_Open_Hardware_License_v1.0.txt
@@ -115,5 +114,4 @@ See https://creativecommons.org/licenses/by/4.0/
 ## References
 
 1. https://oshwlab.com/tranter/h89-h19-automatic-key-repeat
-2. https://easyeda.com/editor#id=|f389a216686142f587bb133ffbe48b7c|0499826e9c3442c9a9fe8f3af5bf9ad2
 3. https://sebhc.github.io/sebhc/documentation/supplemental/AnaPro_AutoKeyRepeat.pdf
