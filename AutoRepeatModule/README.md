@@ -83,7 +83,7 @@ cable.
 
 # Images
 
-![Assembled board](./image1.png)
+![Assembled board](file://image1.png)
 
 ![Side view showing connector](./image2.png)
 
