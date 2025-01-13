@@ -85,11 +85,11 @@ cable.
 
 ![Assembled board](https://github.com/jefftranter/Z80/blob/master/AutoRepeatModule/image1.jpg)
 
-![Side view showing connector](./image2.png)
+![Side view showing connector](https://github.com/jefftranter/Z80/blob/master/AutoRepeatModule/image2.jpg)
 
-![Plugged into keyboard](./image3.png)
+![Plugged into keyboard](https://github.com/jefftranter/Z80/blob/master/AutoRepeatModule/image3.jpg)
 
-![Ready to plug in ribbon cable](./image4.png)
+![Ready to plug in ribbon cable](https://github.com/jefftranter/Z80/blob/master/AutoRepeatModule/image4.jpg)
 
 ## Operation
 
