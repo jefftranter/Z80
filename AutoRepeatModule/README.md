@@ -81,6 +81,16 @@ on the component side and avoid getting solder on the pins where the
 connector attaches. Note the orientation of the board and the ribbon
 cable.
 
+# Images
+
+![Assembled board](image1.png)
+
+![Side view showing connector](image2.png)
+
+![Plugged into keyboard](image3.png)
+
+![Ready to plug in ribbon cable](image4.png)
+
 ## Operation
 
 When installed, keyboard keys will autorepeat after a short delay. The
