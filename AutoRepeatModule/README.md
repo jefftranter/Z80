@@ -83,7 +83,7 @@ cable.
 
 # Images
 
-![Assembled board](file://image1.png)
+![Assembled board](https://github.com/jefftranter/Z80/blob/master/AutoRepeatModule/image1.jpg)
 
 ![Side view showing connector](./image2.png)
 
