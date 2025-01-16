@@ -114,4 +114,5 @@ See https://creativecommons.org/licenses/by/4.0/
 ## References
 
 1. https://oshwlab.com/tranter/h89-h19-automatic-key-repeat
-3. https://sebhc.github.io/sebhc/documentation/supplemental/AnaPro_AutoKeyRepeat.pdf
+2. https://sebhc.github.io/sebhc/documentation/supplemental/AnaPro_AutoKeyRepeat.pdf
+3. https://certification.oshwa.org/ca000061.html
