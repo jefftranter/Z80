@@ -1,0 +1,27 @@
+Vinculum Commands Quick Reference
+---------------------------------
+
+Change directory:       vcd <path>
+
+Make directory:         vmd <directory>
+
+Directory listing:      vdir {-l}
+
+Get file from USB:      vget <source> {<dest>}
+
+Send file(s) to USB:    vput <source> {<source>} ...
+
+Direct VDIP commands:   vtalk
+
+PIP utility:            vpip {command}
+
+PIP commands are in the form <dest>=<source> or <source> -l
+Accepts drive designators (e.g. SY0: or A:) or USB: for flash drive.
+Defaults to copying from USB to current default drive.
+A blank line will exit.
+
+All commands can end with the option -p<xxx> where <xxx> specifies a
+port number in octal. The default port is 331. The H89 usually uses
+261. Can configure with file VPORT.DAT.
+
+VPUT and VPIP accept wildcard characters (* or ?).
