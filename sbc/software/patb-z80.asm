@@ -21,6 +21,12 @@
 
 SBC     EQU     1
 
+; Define one of either RAM or ROM below to determine whether building
+; this to run out of ROM or RAM.
+
+RAM     EQU     1
+;ROM     EQU     1
+
         CPU     Z80
 
 CR      EQU     0DH             ; CARRIAGE RETURN
@@ -75,11 +81,20 @@ ITEM    MACRO   P1
 ;  0000-1FFF  ARE FOR TBI CODE
 
         IFDEF   SBC
+        IFDEF   ROM
 BOTSCR  EQU     08080H
 TOPSCR  EQU     08200H
 BOTRAM  EQU     0A000H
 DFTLMT  EQU     0FFFFH
 BOTROM  EQU     00000H
+        ENDIF
+        IFDEF   RAM
+BOTSCR  EQU     0B080H
+TOPSCR  EQU     0B200H
+BOTRAM  EQU     0C000H
+DFTLMT  EQU     0FFFFH
+BOTROM  EQU     09000H
+        ENDIF
     ELSE
 BOTSCR  EQU     00080H
 TOPSCR  EQU     00200H
@@ -126,6 +141,7 @@ TEXT    DS      2
         ORG     BOTROM
 
         IFDEF   SBC
+        IFDEF   ROM
 
 ; Reset/RST 00 vector: jump to start entry point
 RESET:  JP      INIT
@@ -165,6 +181,7 @@ NMI:    RETN                    ; Return from NMI
 ; Start actual code at $0100
 
         DB      (0100H-$) DUP 0FFH
+        ENDIF
         ENDIF
 INIT
         IFDEF   SBC
