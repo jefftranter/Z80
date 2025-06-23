@@ -353,13 +353,17 @@ EX3     LD      A,7FH           ; PARTIAL MATCH, FIND
 EX4     INC     HL              ; JUMP ADDR., WHICH IS
         CP      (HL)            ; FLAGGED BY BIT 7
         JP      NC,EX4
-EX5     LD      A,(hl)          ; LOAD HL WITH THE JUMP
+EX5     LD      A,(HL)          ; LOAD HL WITH THE JUMP
         INC     HL              ; ADDRESS FROM THE TABLE
         LD      L,(HL)          ; ****************
-        IFDEF   SBC
+
+; The jump table has the high bit set, so we need to clear it to get
+; the real address. However, if the real jump table address does have
+; the high bit set (which is the case when running from RAM), we
+; should not change it.
+
+        IF      BOTROM < 08000H
         AND     07FH            ; CLEAR HIGH BIT TO GET REAL JUMP ADDRESS
-        ELSE
-        AND     0FFH
         ENDIF
         LD      H,A
         POP     AF              ; CLEAN UP THE GARBAGE
