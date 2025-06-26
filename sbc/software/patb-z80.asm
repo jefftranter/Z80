@@ -1869,7 +1869,15 @@ IN      IN      A,(0)
         IN      A,(1)           ; CHECK INPUT
         ENDIF
         AND     07FH            ; CONVERT TO 7-BIT ASCII
-        CP      003H            ; IS IT CONTROL-C?
+
+; Uncomment the three lines below if you want to convert all input
+; text to upper case.
+
+;       CP      'a'
+;       JR      C, OUUH
+;       SUB     020H            ; Convert a TO A
+
+OUUH    CP      003H            ; IS IT CONTROL-C?
         RET     NZ              ; NO, RETURN CH.
         JP      INIT            ; YES, RESTART
         IFDEF SBC
