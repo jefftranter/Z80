@@ -13,7 +13,7 @@ Send file(s) to USB:    vput <source> {<source>} ...
 
 Direct VDIP commands:   vtalk
 
-PIP utility:            vpip {command}
+PIP utility:            vpip {<command>}
 
 PIP commands are in the form <dest>=<source> or <source> -l
 Accepts drive designators (e.g. SY0: or A:) or USB: for flash drive.
@@ -25,3 +25,26 @@ port number in octal. The default port is 331. The H89 usually uses
 261. Can configure with file VPORT.DAT.
 
 VPUT and VPIP accept wildcard characters (* or ?).
+
+VDIP1 Firmware Commands that can be used with VTALK Command:
+(Refer to Future Technology Devices International Ltd. Vinculum Firmware User Manual)
+
+Firmware Version: FWV
+Directory: DIR [<file>]
+Change Directory: CD <file>
+Read Whole File: RD <file>
+Delete Directory: DLD <file>
+Make Directory: MKD <file> [<datetime>]
+Delete File: DLF <file>
+Write File: WRF <dword>
+Open File: OPW <file> [<datetime>]
+Close File: CLF <file>
+Read File: RDF <dword>
+Rename File: REN <source> <target>
+Open File for Reading: OPR <file> [<date>]
+Seek: SEK <dword>
+Free Space: FS or FSE
+Identify Disk Drive: IDD or IDDE
+Disk Volume Label: DVL
+Disk Serial Number: DSN
+Directory File Time Command: DIRT <file>
