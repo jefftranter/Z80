@@ -1,7 +1,10 @@
 * File transfer program example taken from the article "Getting
 * Started With Assembly Language Part VIII" by Pat Swayne in issue 47
 * (December 1983) of REMark magazine. It can be assembled on HDOS
-* using: ASM XFER=XFER Jeff Tranter <tranter@pobox.com>
+* using: ASM XFER=XFER
+* Tested under HDOS 2.0 and 3.02. Note that the call to LOADO is not
+* needed under HDOS 3.
+* Jeff Tranter <tranter@pobox.com>
 
 *       XFER - FILE TRANSFER PROGRAM
 *
