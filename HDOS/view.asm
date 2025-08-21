@@ -40,7 +40,7 @@ START   LXI    H,0
         DB     '>dev:VIEW dev:FILENAME.EXT',10,10
         DB     'where dev: is a drive designation '
         DB     '(SY1:, DK0:, etc.)',10
-        DB     'and FILENAME.EXT is the file to be VIEWed.
+        DB     'and FILENAME.EXT is the file to be VIEWed.'
         DB     10+80H
         XRA    A
         SCALL  .EXIT            EXIT TO HDOS
@@ -80,7 +80,7 @@ TYLOOP  MOV    A,M              GET A CHARACTER
         RET
 ERROR   PUSH    PSW             SAVE ERROR CODE
         CALL    $TYPTX
-        DB      10.'Error --',' '+80H
+        DB      10,'Error --',' '+80H
         POP     PSW
         MVI     H,7             ASCII BELL
         SCALL   .ERROR
