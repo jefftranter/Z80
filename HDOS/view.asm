@@ -89,5 +89,5 @@ ERROR   PUSH    PSW             SAVE ERROR CODE
 *       DATA AREA
 
 DEFALT  DB      'SY0DOC'
-BUFFER  EQU     *
+BUFFER  DS      256             DATA BUFFER
         END     START
