@@ -30,7 +30,7 @@
 *       BYE BYE.          (DEMO2 TYPES THIS)
 *       >                 (DEMO2 EXITS TO HDOS)
 ENTRY  LXI      H,DEMOA   EXECUTION STARTS HERE
-       SCALL    .PRINT    PRINT 'HI!' MESSAGE 
+       SCALL    .PRINT    PRINT 'HI!' MESSAGE
 
 *      LOOP ECHOING LINES
 
