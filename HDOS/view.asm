@@ -2,7 +2,7 @@
 * Started With Assembly Language Part VI" by Pat Swayne in issue 45
 * (October 1983) of REMark magazine. It can be assembled on HDOS
 * using: ASM VIEW=VIEW
-*
+* Tested under HDOS 2.0 and 3.02.
 * Jeff Tranter <tranter@pobox.com>
 
 *       VIEW -- VIEW FILES ON SCREEN
