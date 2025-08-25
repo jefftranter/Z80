@@ -1,7 +1,9 @@
 ; Hello program example taken from the article "Getting Started With
 ; Assembly Language Part III" by Pat Swayne in issue 40 (May 1983) of
-; REMark magazine. It can be assembled on CP/M using: ASM HELLO=HELLO
-; Tested under HDOS 2.0 and 3.02.
+; REMark magazine. It can be assembled on CP/M using:
+;   ASM HELLO=HELLO
+;   LOAD HELLO
+; Tested under CP/M 2.2.
 ; Jeff Tranter <tranter@pobox.com>
 
 ;       THIS PROGRAM IS AN ASSEMBLY VERSION OF
