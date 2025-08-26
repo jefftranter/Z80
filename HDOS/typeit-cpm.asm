@@ -2,8 +2,9 @@
 ; Assembly Language Part V" by Pat Swayne in issue 42 (July 1983) of
 ; REMark magazine. It can be assembled on CP/M using:
 ; ASM TYPEIT=TYPEIT
+; LOAD TYPEIT
 ; If you do not have a printer configured you can assign the console
-; to the listing device using the command: "STAT LST:=TTY:".
+; to the listing device using the command: "STAT LST:=CRT:".
 ; Tested under CP/M 2.2.
 ; Jeff Tranter <tranter@pobox.com>
 
@@ -66,7 +67,7 @@ LOOP    LXI     D,LINE          ;POINT TO LINE BUFFER
         INX     H               ;MOVE TO NEXT LOCATION
         MVI     M,8AH           ;INSERT LINE FEED + 80H
         MVI     E,0AH           ;GET A LINE FEED
-        MCI     C,CONOUT        ;GET CONSOLE OUTPUT FUNCTION
+        MVI     C,CONOUT        ;GET CONSOLE OUTPUT FUNCTION
         CALL    BDOS            ;PRINT LINE FEED ON CONSOLE
 
 ;       60 IF LEFT$(L$,1)="." THEN END
@@ -101,9 +102,9 @@ PRINTL  ANI     7FH             ;STRIP 8TH BIT FROM CHARACTER
 ;       DATA AND STORAGE
 
 TYPEL   DB      'TYPE LINES AT YOUR CONSOLE.  THEY',13,10
-;       DB      'WILL BE PRINTED (ON YOUR PRINTER)',13,10
-;       DB      'WHEN YOU HIT RETURN.  TYPE A PERIOD',13,10
-;       DB      'AT THE BEGINNING OF A LINE TO STOP.',13,10,'$'
+        DB      'WILL BE PRINTED (ON YOUR PRINTER)',13,10
+        DB      'WHEN YOU HIT RETURN.  TYPE A PERIOD',13,10
+        DB      'AT THE BEGINNING OF A LINE TO STOP.',13,10,'$'
 
 LINE    DB      80,0            ;LINE INPUT BUFFER
 
