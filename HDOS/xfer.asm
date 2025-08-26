@@ -14,7 +14,7 @@
 
 *       >XFER dev:FILENAME.EXT TO dev:
 *
-*       WHERE dev: IS A DRIVE DESIGNATIONS.
+*       WHERE dev: IS A DRIVE DESIGNATION.
 
 *       BY P. SWAYNE, HUG  26-OCT-83
 
