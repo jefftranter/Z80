@@ -15,7 +15,7 @@
 ;
 ;       THE FILE WILL BE LISTED ON THE SCREEN.
 ;
-;       BY  P.SWAYNE, HUG  8-OCT-83
+;       BY P.SWAYNE, HUG  8-OCT-83
 
 ;       CP/M SYSTEM CALLS, ETC.
 
