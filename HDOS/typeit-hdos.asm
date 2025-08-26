@@ -2,9 +2,9 @@
 * Assembly Language Part IV" by Pat Swayne in issue 41 (June 1983) of
 * REMark magazine. It can be assembled on HDOS using:
 * ASM TYPEIT=TYPEIT
-* If you do not have a printer configured as device LP: you can assign
-* the console as the printer using the command "PRN TT:"
-***CONFIRM THAT THIS WORKS***
+* If you do not have a printer configured as device LP: you can change
+* the definition of LPNAME from 'LP:' to 'TT:' and it will send output
+* to the console.
 * Tested under HDOS 2.0 and 3.02.
 * Jeff Tranter <tranter@pobox.com>
 
@@ -122,4 +122,3 @@ DEFALT  DB      0,0,0,0,0,0
 BUFFER  DS      110             MAIN INPUT-OUTPUT BUFFER
 
         END     START
-
