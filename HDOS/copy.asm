@@ -94,7 +94,7 @@ FNDSP   CALL    SOS             ;SKIP OVER IT
         JNZ     ERREX
         INX     H
         MOV     A,M
-        CP      ' '
+        CPI     ' '
         JNZ     ERREX
         CALL    SOS             ;FOUND "TO", SKIP TO DRIVE NAME
         SUI     '@'             ;REMOVE ASCII FROM DRIVE CODE
@@ -250,7 +250,7 @@ RECCNT  DW      0               ;RECORD COUNTER
 LASTFLG DB      0               ;LAST SEGMENT FLAG
 OUTFCB  DB      0,'           ',0,0,0,0
         DS      16
-        DB      0
+        DB      0,0,0,0
         DS      32              ;RESERVE STACK SPACE
 STACK   EQU     $
 BUFFER  EQU     $               ;BUFFER STARTS HERE
