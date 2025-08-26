@@ -35,11 +35,11 @@ START   LXI     H,0
         DAD     SP              ;LOCATE STACK
         LXI     SP,STACK        ;SET OUR OWN
         PUSH    H               ;SAVE CP/M'S STACK
-        LXI     D,FCB+1         ;POINT TO FCB SECOND CHAR
+        LXI     D,DFCB+1        ;POINT TO FCB SECOND CHAR
         LDAX    D               ;GET IT
         CPI     ' '             ;SPACE?
         JNZ     GOTFILE         ;NO, WE HAVE A FILE
-        LXI     D,NOFLE
+        LXI     D,NOFILE
         MVI     C,PRINT
         CALL    BDOS            ;PRINT NO FILE MESSAGE
         JMP     EXIT1           ;RETURN TO CP/M
@@ -52,7 +52,7 @@ GOTFILE DCX     D               ;BACK UP TO FCB START
         JNZ     RLOOP           ;GOOD OPEN
         LXI     D,NOOPEN
         MVI     C,PRINT
-        CALL    BDIS            ;SAY CAN'T OPEN FILE
+        CALL    BDOS            ;SAY CAN'T OPEN FILE
         JMP     EXIT            ;RETURN TO CP/M
 RLOOP   POP     D               ;GET FCB ADDRESS
         PUSH    D               ;SAVE IT AGAIN
