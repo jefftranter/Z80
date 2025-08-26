@@ -192,7 +192,7 @@ WRITLP  PUSH    D               ;SAVE POINTER
 GDWRIT  LXI     H,80H
         DAD     D               ;ELSE, UPDATE POINTER
         XCHG
-        LHLD    RECNT
+        LHLD    RECCNT
         DCX     H               ;DECREMENT RECORD COUNTER
         SHLD    RECCNT
         MOV     A,H
@@ -231,7 +231,7 @@ SOS     MOV     A,M             ;GET A CHARACTER
 TYPTX   XTHL                    ;SAVE HL, GET TEXT ADDR
 TYPTX1  MOV     A,M             ;GET CHARACTER
         PUSH    H               ;SAVE POINTER
-        MCI     C,CONOUT
+        MVI     C,CONOUT
         ANI     7FH             ;STRIP MARKER BIT
         MOV     E,A             ;CHARACTER TO E
         CALL    BDOS            ;PRINT IT
