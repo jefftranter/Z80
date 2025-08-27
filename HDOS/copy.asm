@@ -250,7 +250,7 @@ RECCNT  DW      0               ;RECORD COUNTER
 LASTFLG DB      0               ;LAST SEGMENT FLAG
 OUTFCB  DB      0,'           ',0,0,0,0
         DS      16
-        DB      0,0,0,0
+        DB      0
         DS      32              ;RESERVE STACK SPACE
 STACK   EQU     $
 BUFFER  EQU     $               ;BUFFER STARTS HERE
