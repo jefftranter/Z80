@@ -1,0 +1,33 @@
+                          BASIC CHEAT SHEET
+                          =================
+
+Function                Benton Harbor Basic     Microsoft Basic
+--------                -------------------     ----------------
+
+Start BASIC:            BASIC                   MBASIC
+
+Load file:              OLD"fname"              LOAD"fname"
+
+Save new file:          SAVE"fname"             SAVE"fname"
+
+Save existing file:     REPLACE"fname"          SAVE"fname"
+
+Delete file:            UNSAVE"fname"           n/a
+
+Delete program:         SCRATCH                 NEW
+
+Prompt to enter:        BUILD<line>,<inc>       AUTO<line>,<inc>
+
+Renumber program:       n/a                     RENUM
+
+Show memory usage:      FREE                    PRINT FRE(0)
+
+Show disk directory:    n/a                     FILES
+
+Exit BASIC:             BYE                     SYSTEM
+
+Variable types:
+  Integer               X                       X%
+  Single precision      X                       X or X!
+  Double precision      n/a                     X#
+  String                X$                      X$
