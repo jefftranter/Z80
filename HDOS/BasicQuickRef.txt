@@ -12,7 +12,7 @@ Save new file:          SAVE"fname"             SAVE"fname"
 
 Save existing file:     REPLACE"fname"          SAVE"fname"
 
-Delete file:            UNSAVE"fname"           n/a
+Delete file:            UNSAVE"fname"           KILL"fname"
 
 Delete program:         SCRATCH                 NEW
 
