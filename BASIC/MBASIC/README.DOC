@@ -1,0 +1,198 @@
+
+
+
+
+
+             HUG P/N 885-1088 MBASIC Games for H19/H8//H89
+
+Microsoft  BASIC (MBASIC) is required for all programs and most programs
+have been saved in condensed  form.  If a listing  is desired,  load the
+program into memory then output it to your printer  by using the command
+SAVE "LP:",A.   Your device  driver  must have been loaded  into  memory
+before running MBASIC.
+
+This disk  requires  the use of an H19 (H89)  terminal  for all programs
+because of the graphics used by the games.
+
+Do NOT try to use this disk with any other terminal.  HUG will NOT offer
+any support to change or allow usage of this disk on any other terminal.
+
+The recommended  minimum  system is 48k of memory however  most programs
+will run in much less.
+
+Programs and their authors (with comments from H.U.G.  <TLJ> ):
+
+
+1)  LUNAR.BAS				A. E. Dessler
+					5126 Loch Lomond
+					Houston, Tx   77096
+
+
+This Lunar Lander  game is self documenting.   You will get a tremendous
+"kick" out of landing  the "ship" safely.   Please  note that the expert
+level  "LEVEL  1" is almost  impossible,  there  is only one way to land
+safely at that level.
+
+(Modifications  to the original  program  where made by H.U.G.   GK: and
+<TLJ>)
+
+
+2)  BLKJACK.BAS				Wayne S. Reses
+					2 Bayshore Court
+					Margate, NJ  08402
+
+
+Blackjack has its own documention file .  .  .  TYPE SY1:BLKJACK.DOC  to
+view the documention  .  .  .  or COPY LP:=SY1:BLKJACK.DOC  to produce a
+hard copy.
+
+
+3)  NIT.BAS				Dr. Furman Smith
+    NIT.CMT				University of Houston Victoria Campus
+    DTC.BAS				2302-C Red River
+    NITDTC.DOC				Victoria, Tx  77901
+
+
+Please note in the documention file (NITDTC.DOC)  that Dr.  Smith refers
+to "RECREATIONAL  COMPUTING".   He has written and prepared an excellent
+article  for "RC" which is superbly  documented  to allow the reader  to
+create his own fantasy game.
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                  PAGE 2 
+
+
+
+The HUG STAFF regrets  that we cannot produce  a complete  disk with all
+documention  as submitted by Dr.  Smith.  It is in our judgment that his
+two Computerized  Fantasy Simulations will reach more users by including
+the games and partial documention with this MBASIC Graphic Games Disk.
+
+Dr.  Smith,  we at HEATH  USERS'  GROUP  commend  you  for  an excellent
+performance in creating "NELLAN IS THIRSTY" and "DEPOSIT THE CHAIR" with
+the intent of teaching others to create their own fantasy game(s).
+
+
+4)  BOWLING.BAS				David Arnold
+    GUESS.BAS				24 Magnet La.
+					Willingbord, NJ  08046
+
+
+The bowling game shows an excellent  display of H19//H89  graphics  with
+direct cursor addressing.  Both BOWLING and GUESS can be easily modified
+by a beginning MBASIC programmer.
+
+(The BOWLING  game graphics  and direct cursor addressing  were added by
+H.U.G.  <TLJ> )
+
+
+5)  ROBCHAS.BAS				Lyle Wilkinson
+    ROBCHAS.DAT				7634 Hollanderry Place
+					Cupertino, Ca  95014
+
+
+You will get a real "charge"  out of the graphics  with  ROBCHASe.   The
+documention  is contained  in the data file ROBCHAS.DAT  which is called
+into the main program when needed.  (The instruction file is set to read
+from "SY1:" ,if you have this disk mounted  on another  drive,  you will
+need to change line 2230 from "SY1:ROBCHAS.DAT" to "SY_:ROBCHAS.DAT".)
+
+If you are using  an H8-5 SERIAL  CARD you will need  to change  in line
+1250 .  .  .  "C=INP(232)" to "C=INP(250)".
+
+(Slight modifications and adaption to MBASIC were made by H.U.G.  <TLJ>)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                           PAGE 3 
+
+      ***********************************************************
+      *                    HEATH USERS' GROUP                   *
+      ***********************************************************
+      * The Heath Users' Group is provided by Heath Company  as *
+      * a service to its members  for the purpose  of fostering *
+      * the exchange  of ideas to enhance  their usage of Heath *
+      * Equipment.  As such,  little  or no evaluation  of  the *
+      * program(s) is performed. The prospective user is hereby *
+      * put on notice that the program  may contain  faults the *
+      * consequences  of which Heath Company in general and the *
+      * Heath Users' Group  (HUG)  in particular cannot be held *
+      * responsible.  The  prospective  user is,  by virtue  of *
+      * obtaining and using these programs,  assuming full risk *
+      * for all consequences.                                   * 
+      ***********************************************************
+      * These  (this)  program(s) were developed  and tested on *
+      * version  1.6  (50.05)  of Heath  Disk Operating  System *
+      * (HDOS)  and  believed to be bug free.  The Heath Users' *
+      * Group  cannot predict that the program  will perform on *
+      * future versions of HDOS. However if a version dependent *
+      * program surfaces,  REMARK will publish  all known fixes *
+      * for all products.  Individual  attention to problems of *
+      * this  nature is not possible  with a group as  large as *
+      * ours.                                                   *
+      ***********************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,66 @@
+
+
+
+
+
+                        Computerized Fantasy Simulations
+
+
+       This disk has two Computerized  Fantasy Simulations (2 CFS's) for
+       kids;
+                    NIT (.BAS) for Nellan is Thirsty and
+                    DTC (.BAS) for Deposit the Chair.
+
+       Both need  Microsoft  BASIC  and are stored  in ASCII  form.  The
+       associated  .CMT (comment)  files (also in ASCII form) have BASIC
+       line numbers so that they can be MERGEd with the main program  if
+       you like.
+
+       I don't know how much space the CFS's require.  I think  that NIT
+       needs 16 K of RAM above  MBASIC  for storage  and execution.  DTC
+       shouldn't  take that  much.  The question  is complicated  by how
+       often MBASIC collects its garbage.  If you have 48 K, you have no
+       problem; with 40 K you can probably run DTC but not NIT.
+       (COMMENT from STAFF: Both NIT.BAS and DTC.BAS need 48K.)
+
+       The July 1980 issue of RECREATIONAL  COMPUTING  has an article on
+       writing your own CFS; NIT is given there in a very readable form.
+       A followup article is scheduled  for later this year and explains
+       DTC. The NIT printout  in "RC" (not given  here since,  with .CMT
+       file, it takes 135 sectors) is designed  to show the logic of the
+       program; the DTC printout  to be in "RC" is designed  to show how
+       little modification  of NIT is required  to produce  a new CFS. I
+       call the general framework  of the two CFS's Enchanted  House and
+       claim  that  it is easy  to build  a CFS  using  it;  if you  are
+       interested, please read the articles and build your own Enchanted
+       House using the given framework.
+
+       Please  share the programs  given  on this disk.  If you build  a
+       version of Enchanted House, it is yours to sell, swap, give away,
+       or hoard.
+       						Comments from Author.
+
+       Both  NIT and DTC are  intended  for  children  as stated  by Dr.
+       Smith, however, "Big Kids" will enjoy using their imaginations to
+       complete  their travels through "Nellan is Thirsty"  and "Deposit
+       the Chair" versions of the Enchanted House.
+
+       After viewing both CFS's, I offer only two hints. . .
+
+                    1)  "Play" with them, and
+                    2)  Use your imagination.
+
+       Have fun "Kids".
+       						Comments from H.U.G.
+
+
+
+
+
+
+
+
+
+
+
+

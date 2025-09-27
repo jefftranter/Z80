@@ -1,0 +1,66 @@
+
+
+
+
+
+                     Blackjack Program Documentation
+
+       The  purpose  of Blackjack  is to provide  an  entertaining
+       real-life   simulation   of  casino  blackjack.   The  game
+       maintains  in a memory  array,  one to six  decks  of cards
+       (user selectable).  One or two players may play against the
+       house  (computer)  and may place  bets ranging  from  a two
+       dollar  minimum  to a five hundred  dollar  table  maximum,
+       although players may "bring" any amount of money they wish.
+
+       During play, players  have three options  - (H)it, (S)tand,
+       or (D)ouble.  When a player  recieves  a hit, his cards are
+       automatically  totaled and the total is displayed under his
+       cards, which are graphically  displayed on the screen. If a
+       player busts, control  is passed  to the next player  (in a
+       two player game) or to the dealer. The program  counts aces
+       as eleven unless the eleven would cause a bust. If a player
+       is in a bust  situation  and has only  one ace,  the ace is
+       counted  as one;  if he has two  or more,  only  the  least
+       number of aces needed to prevent a bust are counted  as one
+       (the others are counted as eleven) so as to give the player
+       the highest  possible  score. The stand option goes without
+       explanation.  Play  is passed  to the  next  player  or the
+       dealer.
+
+       The doubling option is available  to a player only when the
+       player has two cards in his hand (i.e. before recieving any
+       hits). When a player doubles, he receives a hit, his bet is
+       doubled,  and play passes to the next player. Note that the
+       program  will not allow a player to double  if he lacks the
+       money necessary to double his bet.
+
+       Ocasionally  a player gets blackjack.  Blackjack pays three
+       to two. The program automatically reshuffles the deck after
+       33/52 of the deck has been delt. Depending on the number of
+       decks selected,  the number  of turns before  re- shuffling
+       will vary. The program identifies  that it is shuffling  by
+       printing  "Shuffling"  in the  lower  right  corner  of the
+       screen.  At times the computer  will appear to have stopped
+       while  it is dealing.  This can occur  at any time however,
+       and is caused by Microsoft  Basic's "garbage  collec-  tion
+       routine".  The length of the delay depends on the number of
+       decks  selected  and is shortest  when  only  one  deck  is
+       selected.  Do not confuse this delay with shuffling  as the
+       shuffling  routine identifies  itself. The program does not
+       allow   splitting   due   to  limitations   in  graphically
+       displaying the cards on the screen.
+
+       If a player  runs out of money  during  play,  he is loaned
+       some money by the "pit boss". All transactions are recorded
+       by the program and at the end of the game (user selects "N"
+       to "Another  game?),  the amount  of money  on hand by each
+       player, including money on loan is displayed.
+
+
+
+
+
+
+
+
