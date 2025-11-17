@@ -98,8 +98,6 @@ int open(const char *name, int flags, mode_t mode)
     if (flags & O_BINARY)
         printk(" O_BINARY");
     printk("\nmode:");
-    if (mode & _IOUSE)
-        printk(" _IOUSE");
     if (mode & _IOREAD)
         printk(" _IOREAD");
     if (mode & _IOWRITE)
@@ -146,8 +144,6 @@ int creat(const char *name, mode_t mode)
 {
     printk("creat(%s, %d)\n", name, mode);
     printk("mode:");
-    if (mode & _IOUSE)
-        printk(" _IOUSE");
     if (mode & _IOREAD)
         printk(" _IOREAD");
     if (mode & _IOWRITE)
