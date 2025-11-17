@@ -1,6 +1,6 @@
 PRAGMAS = -pragma-define:CRT_MODEL=0 -pragma-define:HDOS=0x1 -pragma-define:CRT_ENABLE_COMMANDLINE=0x1 -pragma-define:CRT_ORG_CODE=0x2280 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
 
-all: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs scall.abs
+all: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs scall.abs mathdemo.abs
 
 world.abs: world.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) world.c hdos.c -create-app -m
@@ -29,6 +29,10 @@ cecho.abs: ../CPM/cecho.c hdos.c crt0.asm
 fileio.abs: ../CPM/fileio.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../CPM/fileio.c hdos.c -create-app -m
 	../HDOS/bin2abs.py a.rom fileio.abs
+
+mathdemo.abs: ../CPM/mathdemo.c hdos.c crt0.asm
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../CPM/mathdemo.c hdos.c -create-app -m
+	../HDOS/bin2abs.py a.rom mathdemo.abs
 
 clean:
 	$(RM) *.map *.bin *.rom *.abs

@@ -56,7 +56,7 @@ int main()
     hl = 0;
 
     printf("\nCalling .ERROR\n");
-    for (i = 1 ; i <= 56; i++) {
+    for (i = 1 ; i <= 10; i++) {
         a = i;
         hl = 0;
         scall(SYSCALL_ERROR, &a, &bc, &de, &hl);

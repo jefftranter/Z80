@@ -14,6 +14,8 @@ int main()
     printf("\nHello from z88dk!\n");
 
     /* Get characters and echo back. Exit if 'q', or 'Q' pressed. */
+    printf("\nType characters to echo, 'q' or 'Q' to quit:\n");
+
     while (1) {
         int c = getchar();
         printf("%c", c);
