@@ -4,9 +4,6 @@
 
   Jeff Tranter <tranter@pobox.com>
 
-  To see disassembly (useful for debugging), do:
-  ~/git/z88dk/bin/z88dk-dis -x a.map -o 0x2280 a.bin  | less -i
-
 */
 
 #include <stdio.h>
