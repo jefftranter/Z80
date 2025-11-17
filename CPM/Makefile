@@ -5,7 +5,7 @@ all: asm c native
 
 asm: hello.com example1.com example2.com jmon.com cls.com cls-vt52.com cls-heath.com tinybas.com go.com list.com echo.com glob.com test.com copy.com
 
-c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com cecho.com fileio.com arch.com unarch.com wildcard.com dump.com
+c: advent1.com advent2.com advent3.com demo.com disasm.com freq.com chello.com info.com nqueens.com rpncalc.com search.com sieve.com size.com yum.com cecho.com fileio.com arch.com unarch.com wildcard.com dump.com mathdemo.com
 
 native: arch unarch dir dump
 
@@ -153,8 +153,11 @@ wildcard.com: wildcard.c
 dump.com: dump.c
 	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o dump.com dump.c
 
+mathdemo.com: mathdemo.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o mathdemo.com mathdemo.c
+
 clean:
-	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs arch unarch dir dump
+	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs arch unarch dir dump mathdemo
 
 distclean: clean
 	$(RM) cpm22.z80 cpm2-asm.zip
