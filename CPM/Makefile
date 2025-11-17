@@ -142,16 +142,16 @@ fileio.com: fileio.c
 	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -lm -o fileio.com fileio.c
 
 arch.com: arch.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o arch.com arch.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o arch.com arch.c
 
 unarch.com: unarch.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o unarch.com unarch.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o unarch.com unarch.c
 
 wildcard.com: wildcard.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o wildcard.com wildcard.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o wildcard.com wildcard.c
 
 dump.com: dump.c
-	. $(HOME)/git/mine/Z80/z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o dump.com dump.c
+	. ../z88dk/env.sh && zcc $(OPTIONS) $(PRAGMAS) -o dump.com dump.c
 
 clean:
 	$(RM) *.sys *.bin *.lst *.lis *.map *.p *.o *.com *.abs arch unarch dir dump
