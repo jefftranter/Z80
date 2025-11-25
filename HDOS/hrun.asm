@@ -23,7 +23,7 @@
 ; 885-1223b_HRUN_HDOS_Emulator_for_CPM.h8d
 ; 885-1223c_HRUN_HDOS_Emulator_for_CPM.h8d
 ; 
-; This version has additional Y2K fixes by me `to support dates after
+; This version has additional Y2K fixes by me to support dates after
 ; 1999 in the DATE command. These were taken from similar fixes for HDOS
 ; 2.0.
 
