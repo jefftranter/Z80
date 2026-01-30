@@ -23,22 +23,22 @@ int main(int argc, char *argv[])
     int i, rc;
     char buffer[80];
 
-    printf("Opening file %s for write...\n", filename);
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Error: unable to open '%s'\n", filename);
-        return 1;
-    }
+    //printf("Opening file %s for write...\n", filename);
+    //fp = fopen(filename, "w");
+    //if (fp == NULL) {
+    //    printf("Error: unable to open '%s'\n", filename);
+    //    return 1;
+    //}
 
-    printf("Writing file...\n");
-    fprintf(fp, "File data line %02d\n", i);
+    //printf("Writing file...\n");
+    //fprintf(fp, "File data line %02d\n", i);
 
-    printf("Closing file...\n");
-    rc = fclose (fp);
-    if (rc != 0) {
-        printf("fclose returned status %d", rc);
-        return 1;
-    }
+    //printf("Closing file...\n");
+    //rc = fclose (fp);
+    //if (rc != 0) {
+    //    printf("fclose returned status %d", rc);
+    //    return 1;
+    //}
 
     printf("Opening file %s for read...\n", filename);
     fp = fopen(filename, "r");

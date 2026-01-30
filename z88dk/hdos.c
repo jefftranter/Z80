@@ -80,7 +80,7 @@ int open(const char *name, int flags, mode_t mode)
     uint16_t bc, de, hl;
     int channel, rc;
 
-    printk("open(%s, %d, %d)=5\n", name, flags, mode);
+    printk("open(%s, %d, %d)\n", name, flags, mode);
 
     printk("flags:");
     if (flags & O_RDONLY)
@@ -116,10 +116,10 @@ int open(const char *name, int flags, mode_t mode)
 
     // Channel can be 0 to 5 (-1 is the running program). Initially
     // hardcode to only channel 1 for now.
-    channel = 5;
+    channel = 1;
 
     strcpy(default, "SY0TMP");
-    strcpy(fname, "SY0:TEXT.TXT");
+    strcpy(fname, "SY0:TEST.TXT"); // Todo: Put in name from caller
 
     if (mode & _IOREAD) {
         request = SYSCALL_OPENR;
