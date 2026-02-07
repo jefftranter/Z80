@@ -17,7 +17,7 @@
 ;-------
 
     EXTERN    _main           ;main() is always external to crt0 code
-    PUBLIC    __Exit          ;jp'd to by exit()
+    PUBLIC    __Exit         ;jp'd to by exit()
     PUBLIC    l_dcal          ;jp(hl)
     EXTERN	  asm_im1_handler
     EXTERN	  asm_nmi_handler
@@ -38,25 +38,30 @@ ENDIF
     ; Default, don't change the stack pointer
     defc    TAR__register_sp = -1
     ; Default, 32 functions can be registered for atexit()
-    defc    TAR__clib_exit_stack_size = 0
+    defc    TAR__clib_exit_stack_size = 32
     ; Default, halt loop
     defc    TAR__crt_on_exit = 0x10001
 
     defc    __CPU_CLOCK = 4000000
     INCLUDE "crt/classic/crt_rules.inc"
 
+
     org    	CRT_ORG_CODE
+
 
 IF CRT_ORG_CODE = 0x0000
     jp      start
     INCLUDE "crt/classic/crt_z80_rsts.inc"
 ENDIF
 
+IFDEF CRT_INCLUDE_PREAMBLE
+    INCLUDE "crt_preamble.asm"
+ENDIF
+
 start:
     INCLUDE "crt/classic/crt_init_sp.inc"
     ; Setup BSS memory and perform other initialisation
     call    crt0_init
-
     ; Make room for the atexit() stack
     INCLUDE "crt/classic/crt_init_atexit.inc"
 
@@ -161,7 +166,8 @@ l_dcal:
     ; If we were given a model then use it
 IF DEFINED_CRT_MODEL
     defc __crt_model = CRT_MODEL
-ELSE
+ELIF DEFINED_CRT_ORG_BSS
+    ;; If BSS is defined, then assume we're ROM model
     defc __crt_model = 1
 ENDIF
     INCLUDE	"crt/classic/crt_section.inc"

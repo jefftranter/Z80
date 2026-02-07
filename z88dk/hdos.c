@@ -4,6 +4,12 @@
 
   Jeff Tranter <tranter@pobox.com>
 
+  TODO:
+  - Finish and debug read() and write()
+  - Implement creat()
+  - Add support for opening multiple files using different channel numbers
+  - Remove debug outut
+
   Calling tree (for debuggging):
 fopen()
   open()
@@ -76,9 +82,9 @@ __endasm
 
 int open(const char *name, int flags, mode_t mode)
 {
-    uint8_t request, a;
-    uint16_t bc, de, hl;
-    int channel, rc;
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+    static int channel, rc;
 
     printk("open(%s, %d, %d)\n", name, flags, mode);
 
@@ -115,11 +121,11 @@ int open(const char *name, int flags, mode_t mode)
     printk("\n");
 
     // Channel can be 0 to 5 (-1 is the running program). Initially
-    // hardcode to only channel 1 for now.
-    channel = 1;
+    // hardcoded to channel 3 for now.
+    channel = 3;
 
-    strcpy(default, "SY0TMP");
-    strcpy(fname, "SY0:TEST.TXT"); // Todo: Put in name from caller
+    strcpy(default, "SY0TXT");
+    strcpy(fname, "SY0:FOO.TXT"); // TODO: Put in name from caller
 
     if (mode & _IOREAD) {
         request = SYSCALL_OPENR;
@@ -165,20 +171,20 @@ int creat(const char *name, mode_t mode)
 
 int close(int fd)
 {
-    uint8_t a;
-    uint16_t bc, de, hl;
-    int rc;
+    static uint8_t a;
+    static uint16_t bc, de, hl;
+    static int rc;
 
     printk("close(%d)\n", fd);
 
-    a = 5;
+    a = 3; // Channel number; hardcoded to 3 for now.
     bc = 0; de = 0; hl = 0;
     printk("Calling scall(%d, %d, %d, %d, %d)\n", SYSCALL_CLOSE, a, bc, de, hl);
     rc = scall(SYSCALL_CLOSE, &a, &bc, &de, &hl);
     printk("return code = %d\n", rc);
     printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
-    return 0;
+    return 0; // TODO: Return success code
 }
 
 ssize_t read(int fd, void *ptr, size_t len)

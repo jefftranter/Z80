@@ -17,18 +17,18 @@ Close file.
 
 int main(int argc, char *argv[])
 {
-    char *filename = "test.txt";
+    char *filename = "TEST.TXT";
     FILE *fp;
     char c;
     int i, rc;
     char buffer[80];
 
-    //printf("Opening file %s for write...\n", filename);
-    //fp = fopen(filename, "w");
-    //if (fp == NULL) {
-    //    printf("Error: unable to open '%s'\n", filename);
-    //    return 1;
-    //}
+    printf("Opening file %s for write...\n", filename);
+    fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Error: unable to open '%s'\n", filename);
+        return 1;
+    }
 
     //printf("Writing file...\n");
     //fprintf(fp, "File data line %02d\n", i);
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
     //    return 1;
     //}
 
-    printf("Opening file %s for read...\n", filename);
-    fp = fopen(filename, "r");
-    if (fp == NULL) {
-        printf("Error: unable to open '%s'\n", filename);
-        return 1;
-    }
+    //printf("Opening file %s for read...\n", filename);
+    //fp = fopen(filename, "r");
+    //if (fp == NULL) {
+    //    printf("Error: unable to open '%s'\n", filename);
+    //    return 1;
+    //}
 
 #if 0
     /* Implementation using getc */
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-#if 1
+#if 0
     /* Implementation using fgets */
     printf("Reading file...\n");
     for (i = 1; i < 3; i++) {
