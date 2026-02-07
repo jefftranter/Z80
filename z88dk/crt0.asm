@@ -132,9 +132,11 @@ args:
 
     INCLUDE	"crt/classic/crt_command_line.inc"
 pshargs:
+    lxi     sp,2280h
     push    hl	; argv
     push    bc	; argc
 ELSE
+    lxi     sp,2280h
     ld      hl,0
     push    hl  ; argv
     push    hl  ; argc
