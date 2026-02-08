@@ -5,8 +5,7 @@
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
-  - Finish and debug read() and write()
-  - Implement creat()
+  - Implement read() and write()
   - Add support for opening multiple files using different channel numbers
   - Remove debug output
 
@@ -120,8 +119,8 @@ int open(const char *name, int flags, mode_t mode)
         printk(" _IOSTRING");
     printk("\n");
 
-    // Channel can be 0 to 5 (-1 is the running program). Initially
-    // hardcoded to channel 3 for now.
+    // Channel can be 0 to 5 (-1 is the running program). Hardcoded to
+    // channel 3 for now.
     channel = 3;
 
     strcpy(default, "SY0TXT");
@@ -131,6 +130,9 @@ int open(const char *name, int flags, mode_t mode)
         request = SYSCALL_OPENR;
     } else if (mode & _IOWRITE) {
         request = SYSCALL_OPENW;
+    } else {
+        printk("open: error, no mode specified\n");
+        return -1;
     }
 
     a = channel;
@@ -166,7 +168,10 @@ int creat(const char *name, mode_t mode)
         printk(" _IOSTRING");
     printk("\n");
 
-    return 10;
+    /* A call to creat() is equivalent to calling open() with flags
+       equal to O_CREAT|O_WRONLY|O_TRUNC. */
+
+    return open(name, O_CREAT|O_WRONLY|O_TRUNC, mode);
 }
 
 int close(int fd)
