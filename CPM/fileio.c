@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     //printf("Closing file...\n");
     //rc = fclose (fp);
     //if (rc != 0) {
-    //    printf("fclose returned status %d", rc);
+    //    printf("fclose returned status %d\n", rc);
     //    return 1;
     //}
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     printf("Closing file...\n");
     rc = fclose (fp);
     if (rc != 0) {
-        printf("fclose returned status %d", rc);
+        printf("fclose returned status %d\n", rc);
         return 1;
     }
 
