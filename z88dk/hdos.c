@@ -8,7 +8,7 @@
   - Finish and debug read() and write()
   - Implement creat()
   - Add support for opening multiple files using different channel numbers
-  - Remove debug outut
+  - Remove debug output
 
   Calling tree (for debuggging):
 fopen()
@@ -125,7 +125,7 @@ int open(const char *name, int flags, mode_t mode)
     channel = 3;
 
     strcpy(default, "SY0TXT");
-    strcpy(fname, "SY0:FOO.TXT"); // TODO: Put in name from caller
+    strcpy(fname, name);
 
     if (mode & _IOREAD) {
         request = SYSCALL_OPENR;
@@ -184,7 +184,7 @@ int close(int fd)
     printk("return code = %d\n", rc);
     printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
-    return 0; // TODO: Return success code
+    return rc;
 }
 
 ssize_t read(int fd, void *ptr, size_t len)
