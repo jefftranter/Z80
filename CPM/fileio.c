@@ -17,11 +17,11 @@ Close file.
 
 int main(int argc, char *argv[])
 {
-    char *filename = "TEST.TXT";
-    FILE *fp;
-    char c;
-    int i, rc;
-    char buffer[80];
+    static char *filename = "TEST.TXT";
+    static FILE *fp;
+    static char c;
+    static int i, rc;
+    static char buffer[80];
 
     printf("Opening file %s for write...\n", filename);
     fp = fopen(filename, "w");

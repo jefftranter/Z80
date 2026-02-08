@@ -38,7 +38,7 @@ ENDIF
     ; Default, don't change the stack pointer
     defc    TAR__register_sp = -1
     ; Default, 32 functions can be registered for atexit()
-    defc    TAR__clib_exit_stack_size = 32
+    defc    TAR__clib_exit_stack_size = 0
     ; Default, halt loop
     defc    TAR__crt_on_exit = 0x10001
 
@@ -129,14 +129,13 @@ args:
 
     ; Command line parsing code below wants (HL) = end of arguments,
     ; (C) = length of arguments, (B) = 0.
+    ; Returns with (HL) = argv and (BC) = argc.
 
     INCLUDE	"crt/classic/crt_command_line.inc"
 pshargs:
-    lxi     sp,2280h
     push    hl	; argv
     push    bc	; argc
 ELSE
-    lxi     sp,2280h
     ld      hl,0
     push    hl  ; argv
     push    hl  ; argc
