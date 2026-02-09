@@ -44,9 +44,99 @@ CSLECH  equ     %10000000       ; Bit for suppress echo
 CSLCHR  equ     %00000001       ; Bit for update in character mode
 __endasm
 
+
+/* Defines */
+#define BLOCK_SIZE 256
+
 /* Global Variables */
-char default[7]; // Default device and extension
-char fname[20]; // File name buffer
+char          default[7]; // Default device and extension
+char          fname[20]; // File name buffer
+unsigned char buf[BLOCK_SIZE];
+unsigned int  count;
+int           out_fd;
+int           error;
+
+// Initialize buffered writer
+int bw_open(int fd)
+{
+    printk("bw_open(%d)\n", fd);
+
+    out_fd = fd;
+    count = 0;
+    error = 0;
+
+    return 0;
+}
+
+// Write one 256-byte record
+int hdos_write()
+{
+    static int rc;
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+
+    printk("hdos_write()\n");
+
+    // Write buffer using .write system call
+    request = SYSCALL_WRITE; a = out_fd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
+    rc = scall(request, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
+    return rc;
+}
+
+// Write a single byte
+int bw_putc(int c)
+{
+    printk("bw_putc(\"%c\")\n", c);
+
+    if (error)
+        return -1;
+
+    buf[count++] = (unsigned char)c;
+
+    if (count == BLOCK_SIZE) {
+        if (hdos_write(out_fd, buf) != 0) {
+            error = 1;
+            return -1;
+        }
+        count = 0;
+    }
+
+    return c;
+}
+
+// Flush partial block (pad to 256 bytes)
+int bw_flush()
+{
+    unsigned int i;
+
+    printk("bw_flush()\n");
+
+    if (error) {
+        return -1;
+    }
+
+    if (count == 0) {
+        return 0;
+    }
+
+    /* Pad remainder of block */
+    for (i = count; i < BLOCK_SIZE; i++) {
+        buf[i] = 0;
+    }
+
+    if (hdos_write(out_fd, buf) != 0) {
+        error = 1;
+        return -1;
+    }
+
+    count = 0;
+
+    return 0;
+}
 
 int fputc_cons_native(char c) __naked
 {
@@ -145,6 +235,8 @@ int open(const char *name, int flags, mode_t mode)
     printk("return code = %d\n", rc);
     printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
+    bw_open(channel);
+
     return channel;
 }
 
@@ -182,6 +274,8 @@ int close(int fd)
 
     printk("close(%d)\n", fd);
 
+    bw_flush();
+
     a = 3; // Channel number; hardcoded to 3 for now.
     bc = 0; de = 0; hl = 0;
     printk("Calling scall(%d, %d, %d, %d, %d)\n", SYSCALL_CLOSE, a, bc, de, hl);
@@ -200,8 +294,14 @@ ssize_t read(int fd, void *ptr, size_t len)
 
 ssize_t write(int fd, void *ptr, size_t len)
 {
+    int i;
+
     // Uncommenting the line below will cause infinite recursion
     //printk("write(%d, %ld, %d)\n", fd, ptr, len);
+
+    for (i = 0; i < len; i++){
+        bw_putc(ptr[i]);
+    }
 
     return len;
 }

@@ -1,5 +1,5 @@
 ;
-; A configurable CRT for bare-metal targets
+; CRT for HDOS targets
 ;
 ;
 

@@ -30,15 +30,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    //printf("Writing file...\n");
-    //fprintf(fp, "File data line %02d\n", i);
+    for (i = 0; i < 1; i++) {
+        printf("Writing file...\n");
+        fprintf(fp, "Data line %02d\n", i);
+    }
 
-    //printf("Closing file...\n");
-    //rc = fclose (fp);
-    //if (rc != 0) {
-    //    printf("fclose returned status %d\n", rc);
-    //    return 1;
-    //}
+    printf("Closing file...\n");
+    rc = fclose (fp);
+    if (rc != 0) {
+        printf("fclose returned status %d\n", rc);
+        return 1;
+    }
 
     //printf("Opening file %s for read...\n", filename);
     //fp = fopen(filename, "r");
@@ -69,12 +71,12 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    printf("Closing file...\n");
-    rc = fclose (fp);
-    if (rc != 0) {
-        printf("fclose returned status %d\n", rc);
-        return 1;
-    }
+    //printf("Closing file...\n");
+    //rc = fclose (fp);
+    //if (rc != 0) {
+    //    printf("fclose returned status %d\n", rc);
+    //    return 1;
+    //}
 
     printf("Done.\n");
     return 0;
