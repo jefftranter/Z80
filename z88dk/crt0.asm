@@ -35,8 +35,10 @@ IF CRT_ORG_CODE = 0x0000
     defc    TAR__crt_enable_rst = $0000
 ENDIF
 
+IFNDEF      TAR__register_sp
     ; Default, don't change the stack pointer
     defc    TAR__register_sp = -1
+ENDIF
     ; Default, 32 functions can be registered for atexit()
     defc    TAR__clib_exit_stack_size = 0
     ; Default, halt loop
