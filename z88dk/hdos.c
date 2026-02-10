@@ -53,19 +53,89 @@ static char          default[7]; // Default device and extension
 static char          fname[20]; // File name buffer
 static unsigned char buf[BLOCK_SIZE];
 static unsigned int  count;
-static int           out_fd;
+static int           hfd;
 static int           error;
+static unsigned int  pos;      /* current position in buffer */
+static unsigned int  limit;    /* valid bytes in buffer */
+static int           eof_flag;
 
 // Initialize buffered writer
 int bw_open(int fd)
 {
     printk("bw_open(%d)\n", fd);
 
-    out_fd = fd;
+    hfd = fd;
     count = 0;
     error = 0;
 
     return 0;
+}
+
+// Initialize buffered reader
+int br_open(int fd)
+{
+    printk("br_open(%d)\n", fd);
+
+    hfd   = fd;
+    pos     = 0;
+    limit   = 0;
+    eof_flag = 0;
+    error   = 0;
+
+    return 0;
+}
+
+// Read one 256-byte record
+int hdos_read()
+{
+    static int rc;
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+
+    printk("hdos_read()\n");
+
+    // Read buffer using .READ system call
+    request = SYSCALL_READ; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
+    rc = scall(request, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
+    // Will return non-zero on EOF
+    return rc;
+}
+
+// Read a single byte
+int br_getc()
+{
+    int rc;
+
+    if (error)
+        return -1;
+
+    if (eof_flag)
+        return -1;   /* EOF */
+
+    /* Refill buffer if empty */
+    if (pos >= limit) {
+
+        rc = hdos_read();
+        if (rc != 0) {
+            eof_flag = 1;
+            return -1;
+        }
+
+        pos = 0;
+
+        /*
+         * For HDOS, limit is normally 256.
+         * If you track exact byte count elsewhere,
+         * adjust limit on final record.
+         */
+        limit = BLOCK_SIZE;
+    }
+
+    return buf[pos++];
 }
 
 // Write one 256-byte record
@@ -78,7 +148,7 @@ int hdos_write()
     printk("hdos_write()\n");
 
     // Write buffer using .WRITE system call
-    request = SYSCALL_WRITE; a = out_fd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    request = SYSCALL_WRITE; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
     printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
     printk("return code = %d\n", rc);
@@ -98,7 +168,7 @@ int bw_putc(int c)
     buf[count++] = (unsigned char)c;
 
     if (count == BLOCK_SIZE) {
-        if (hdos_write(out_fd, buf) != 0) {
+        if (hdos_write(hfd, buf) != 0) {
             error = 1;
             return -1;
         }
@@ -128,7 +198,7 @@ int bw_flush()
         buf[i] = 0;
     }
 
-    if (hdos_write(out_fd, buf) != 0) {
+    if (hdos_write(hfd, buf) != 0) {
         error = 1;
         return -1;
     }

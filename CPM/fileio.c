@@ -45,14 +45,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    //printf("Opening file %s for read...\n", filename);
-    //fp = fopen(filename, "r");
-    //if (fp == NULL) {
-    //    printf("Error: unable to open '%s'\n", filename);
-    //    return 1;
-    //}
+    printf("Opening file %s for read...\n", filename);
+    fp = fopen(filename, "r");
+    if (fp == NULL) {
+        printf("Error: unable to open '%s'\n", filename);
+        return 1;
+    }
 
-#if 0
+#if 1
     /* Implementation using getc */
     printf("Reading file...\n");
     for (i = 1; i < 3; i++) {
@@ -74,12 +74,12 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    //printf("Closing file...\n");
-    //rc = fclose (fp);
-    //if (rc != 0) {
-    //    printf("fclose returned status %d\n", rc);
-    //    return 1;
-    //}
+    printf("Closing file...\n");
+    rc = fclose (fp);
+    if (rc != 0) {
+        printf("fclose returned status %d\n", rc);
+        return 1;
+    }
 
     printf("Done.\n");
     return 0;
