@@ -49,12 +49,12 @@ __endasm
 #define BLOCK_SIZE 256
 
 /* Global Variables */
-char          default[7]; // Default device and extension
-char          fname[20]; // File name buffer
-unsigned char buf[BLOCK_SIZE];
-unsigned int  count;
-int           out_fd;
-int           error;
+static char          default[7]; // Default device and extension
+static char          fname[20]; // File name buffer
+static unsigned char buf[BLOCK_SIZE];
+static unsigned int  count;
+static int           out_fd;
+static int           error;
 
 // Initialize buffered writer
 int bw_open(int fd)
@@ -77,7 +77,7 @@ int hdos_write()
 
     printk("hdos_write()\n");
 
-    // Write buffer using .write system call
+    // Write buffer using .WRITE system call
     request = SYSCALL_WRITE; a = out_fd; bc = BLOCK_SIZE; de = buf; hl = 0;
     printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
@@ -111,7 +111,7 @@ int bw_putc(int c)
 // Flush partial block (pad to 256 bytes)
 int bw_flush()
 {
-    unsigned int i;
+    static unsigned int i;
 
     printk("bw_flush()\n");
 
@@ -268,7 +268,7 @@ int creat(const char *name, mode_t mode)
 
 int close(int fd)
 {
-    static uint8_t a;
+    static uint8_t request, a;
     static uint16_t bc, de, hl;
     static int rc;
 
@@ -277,9 +277,9 @@ int close(int fd)
     bw_flush();
 
     a = 3; // Channel number; hardcoded to 3 for now.
-    bc = 0; de = 0; hl = 0;
+    request = SYSCALL_CLOSE; bc = 0; de = 0; hl = 0;
     printk("Calling scall(%d, %d, %d, %d, %d)\n", SYSCALL_CLOSE, a, bc, de, hl);
-    rc = scall(SYSCALL_CLOSE, &a, &bc, &de, &hl);
+    rc = scall(request, &a, &bc, &de, &hl);
     printk("return code = %d\n", rc);
     printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
@@ -294,7 +294,7 @@ ssize_t read(int fd, void *ptr, size_t len)
 
 ssize_t write(int fd, void *ptr, size_t len)
 {
-    int i;
+    static int i;
 
     // Uncommenting the line below will cause infinite recursion
     //printk("write(%d, %ld, %d)\n", fd, ptr, len);
@@ -320,7 +320,7 @@ long lseek(int fd, long posn, int whence)
 
 int readbyte(int fd)
 {
-    unsigned char buffer;
+    static unsigned char buffer;
 
     printk("readbyte(%d)\n", fd);
 
@@ -357,11 +357,62 @@ int fsync(int fd)
     return 0;
 }
 
+/* Remove a file */
+int remove(const char *name)
+{
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+    static int rc;
+
+    printk("remove(%s)\n", name);
+
+    strcpy(default, "SY0TXT");
+    strcpy(fname, name);
+
+    a = 0; // Not used
+    bc = 0; // Not used
+    de = default;
+    hl = fname;
+    request = SYSCALL_DELETE;
+
+    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
+    rc = scall(request, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
+    return rc;
+}
+
+/* Rename a file from s to d */
+int rename(const char *s, const char *d)
+{
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+    static int rc;
+
+    printk("rename(%s, %s)\n", s, d);
+
+    strcpy(default, "SY0TXT");
+
+    a = 0; // Not used
+    bc = d; // New name
+    de = default; // Default block
+    hl = s; // Old name
+    request = SYSCALL_RENAME;
+
+    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
+    rc = scall(request, &a, &bc, &de, &hl);
+    printk("return code = %d\n", rc);
+    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
+
+    return rc;
+}
+
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.
    Returns carry status (normally 1 for error, 0 for success. */
 int scall(uint8_t request, uint8_t *a, uint16_t *bc, uint16_t *de, uint16_t *hl)
 {
-    Z80_registers regs;
+    static Z80_registers regs;
     extern uint8_t *CALLNO;
 
     // Write system call number after RST instruction

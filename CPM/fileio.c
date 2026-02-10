@@ -23,6 +23,9 @@ int main(int argc, char *argv[])
     static int i, rc;
     static char buffer[80];
 
+    //remove(filename);
+    //rename("TEST.TXT", "NEW.TXT");
+
     printf("Opening file %s for write...\n", filename);
     fp = fopen(filename, "w");
     if (fp == NULL) {
