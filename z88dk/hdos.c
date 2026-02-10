@@ -126,12 +126,6 @@ int br_getc()
         }
 
         pos = 0;
-
-        /*
-         * For HDOS, limit is normally 256.
-         * If you track exact byte count elsewhere,
-         * adjust limit on final record.
-         */
         limit = BLOCK_SIZE;
     }
 
@@ -358,8 +352,22 @@ int close(int fd)
 
 ssize_t read(int fd, void *ptr, size_t len)
 {
+    static int i, c;
+
     printk("read(%d, %ld, %d)\n", fd, ptr, len);
-    return -1; /* EOF */
+
+    for (i = 0; i < len; i++) {
+        c = br_getc();
+        if (c == -1)
+            break;
+        ptr[i] = c;
+    }
+
+    if (i == len) {
+        return i;
+    } else {
+        return -1; /* EOF */
+    }
 }
 
 ssize_t write(int fd, void *ptr, size_t len)
@@ -369,7 +377,7 @@ ssize_t write(int fd, void *ptr, size_t len)
     // Uncommenting the line below will cause infinite recursion
     //printk("write(%d, %ld, %d)\n", fd, ptr, len);
 
-    for (i = 0; i < len; i++){
+    for (i = 0; i < len; i++) {
         bw_putc(ptr[i]);
     }
 
