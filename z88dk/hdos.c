@@ -6,8 +6,9 @@
 
   TODO:
   - Implement read() and write()
-  - Add support for opening multiple files using different channel numbers
   - Remove debug output
+  - Optimize and clean up code
+  - Add support for opening multiple files using different channel numbers
 
   Calling tree (for debuggging):
 fopen()
@@ -358,8 +359,10 @@ ssize_t read(int fd, void *ptr, size_t len)
 
     for (i = 0; i < len; i++) {
         c = br_getc();
-        if (c == -1)
+        if (c == -1) {
+            return -1; /* EOF */
             break;
+        }
         ptr[i] = c;
     }
 

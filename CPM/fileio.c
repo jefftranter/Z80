@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 10; i++) {
         printf("Writing file...\n");
         fprintf(fp, "Data line %02d\n", i);
     }
@@ -55,18 +55,18 @@ int main(int argc, char *argv[])
 #if 1
     /* Implementation using getc */
     printf("Reading file...\n");
-    for (i = 1; i < 10; i++) {
+    while (1) {
         c = getc(fp);
-        printf("read: '%c'\n", c);
         if (c == EOF)
             break;
+        printf("read: '%c'\n", c);
     }
 #endif
 
 #if 0
     /* Implementation using fgets */
     printf("Reading file...\n");
-    for (i = 1; i < 3; i++) {
+    for (i = 1; i < 10; i++) {
         if (feof(fp))
             break;
         fgets(buffer, sizeof(buffer)-1, fp);
