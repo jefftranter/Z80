@@ -1,12 +1,15 @@
 /*
 
-  Input/output Routines for HDOS
+  Platform Support Routines for HDOS
 
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
   - Add support for opening multiple files using different channel numbers
-  - Implement lseek()
+  - Implement time and date functions?
+  - Implement system()?
+  - Implement lseek()?
+
 
   Calling tree (for debuggging):
 fopen()

@@ -3,7 +3,7 @@
 ;
 ;
 
-    MODULE z80_crt0 
+    MODULE z80_crt0
 
 ;-------
 ; Include zcc_opt.def to find out information about us
@@ -17,7 +17,7 @@
 ;-------
 
     EXTERN    _main           ;main() is always external to crt0 code
-    PUBLIC    __Exit         ;jp'd to by exit()
+    PUBLIC    __Exit          ;jp'd to by exit()
     PUBLIC    l_dcal          ;jp(hl)
     EXTERN	  asm_im1_handler
     EXTERN	  asm_nmi_handler
