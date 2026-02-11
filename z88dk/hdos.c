@@ -62,20 +62,24 @@ static int           eof_flag;
 // Initialize buffered writer
 int bw_open(int fd)
 {
-    hfd = fd;
     count = 0;
+    hfd = fd;
     error = 0;
+    pos = 0;
+    limit = 0;
+    eof_flag = 0;
     return 0;
 }
 
 // Initialize buffered reader
 int br_open(int fd)
 {
+    count = 0;
     hfd   = fd;
-    pos     = 0;
-    limit   = 0;
+    error = 0;
+    pos = 0;
+    limit = 0;
     eof_flag = 0;
-    error   = 0;
     return 0;
 }
 

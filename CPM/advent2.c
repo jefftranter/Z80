@@ -60,7 +60,7 @@
  * Linux.
  */
 
-#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__) || defined(CPM)
+#if defined(__linux__) || defined(__APPLE2ENH__) || defined(__C64__) || defined(CPM) || defined(HDOS)
 #define FILEIO 1
 #endif
 

@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         if (feof(fp))
             break;
         fgets(buffer, sizeof(buffer)-1, fp);
-        printf("Read: '%s'", buffer);
+        printf("Read: '%s'\n", buffer);
     }
 #endif
 

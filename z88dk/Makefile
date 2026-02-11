@@ -1,5 +1,5 @@
 ORG = 0x2680
-PRAGMAS = -pragma-define:CRT_MODEL=0 -pragma-define:HDOS=0x1 -pragma-define:CRT_ENABLE_COMMANDLINE=0x1 -pragma-define:CRT_ORG_CODE=$(ORG) -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -pragma-define:CRT_STACK_SIZE=280 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=0 -pragma-define:TAR__register_sp=$(ORG)
+PRAGMAS = -DHDOS -pragma-define:CRT_MODEL=0 -pragma-define:HDOS=0x1 -pragma-define:CRT_ENABLE_COMMANDLINE=0x1 -pragma-define:CRT_ORG_CODE=$(ORG) -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -pragma-define:CRT_STACK_SIZE=280 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=0 -pragma-define:TAR__register_sp=$(ORG)
 
 all: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs scall.abs mathdemo.abs
 
