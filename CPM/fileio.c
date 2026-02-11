@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     }
 
     for (i = 1; i <= 10; i++) {
-        printf("Writing file...\n");
+        printf("Writing: 'Data line %02d'\n", i);
         fprintf(fp, "Data line %02d\n", i);
     }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         c = getc(fp);
         if (c == EOF)
             break;
-        printf("read: '%c'\n", c);
+        printf("Read: '%c'\n", c);
     }
 #endif
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         if (feof(fp))
             break;
         fgets(buffer, sizeof(buffer)-1, fp);
-        printf("%s", buffer);
+        printf("Read: '%s'", buffer);
     }
 #endif
 

@@ -5,10 +5,9 @@
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
-  - Implement read() and write()
-  - Remove debug output
   - Optimize and clean up code
   - Add support for opening multiple files using different channel numbers
+  - Implement lseek()
 
   Calling tree (for debuggging):
 fopen()
@@ -63,26 +62,20 @@ static int           eof_flag;
 // Initialize buffered writer
 int bw_open(int fd)
 {
-    printk("bw_open(%d)\n", fd);
-
     hfd = fd;
     count = 0;
     error = 0;
-
     return 0;
 }
 
 // Initialize buffered reader
 int br_open(int fd)
 {
-    printk("br_open(%d)\n", fd);
-
     hfd   = fd;
     pos     = 0;
     limit   = 0;
     eof_flag = 0;
     error   = 0;
-
     return 0;
 }
 
@@ -93,14 +86,9 @@ int hdos_read()
     static uint8_t request, a;
     static uint16_t bc, de, hl;
 
-    printk("hdos_read()\n");
-
     // Read buffer using .READ system call
     request = SYSCALL_READ; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
-    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     // Will return non-zero on EOF
     return rc;
@@ -140,14 +128,9 @@ int hdos_write()
     static uint8_t request, a;
     static uint16_t bc, de, hl;
 
-    printk("hdos_write()\n");
-
     // Write buffer using .WRITE system call
     request = SYSCALL_WRITE; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
-    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     return rc;
 }
@@ -155,8 +138,6 @@ int hdos_write()
 // Write a single byte
 int bw_putc(int c)
 {
-    printk("bw_putc(\"%c\")\n", c);
-
     if (error)
         return -1;
 
@@ -178,8 +159,6 @@ int bw_flush()
 {
     static unsigned int i;
 
-    printk("bw_flush()\n");
-
     if (error) {
         return -1;
     }
@@ -199,7 +178,6 @@ int bw_flush()
     }
 
     count = 0;
-
     return 0;
 }
 
@@ -240,40 +218,6 @@ int open(const char *name, int flags, mode_t mode)
     static uint16_t bc, de, hl;
     static int channel, rc;
 
-    printk("open(%s, %d, %d)\n", name, flags, mode);
-
-    printk("flags:");
-    if (flags & O_RDONLY)
-        printk(" O_RDONLY");
-    if (flags & O_WRONLY)
-        printk(" O_WRONLY");
-    if (flags & O_RDWR)
-        printk(" O_RDWR");
-    if (flags & O_TRUNC)
-        printk(" O_TRUNC");
-    if (flags & O_CREAT)
-        printk(" O_CREAT");
-    if (flags & O_APPEND)
-        printk(" O_APPEND");
-    if (flags & O_BINARY)
-        printk(" O_BINARY");
-    printk("\nmode:");
-    if (mode & _IOREAD)
-        printk(" _IOREAD");
-    if (mode & _IOWRITE)
-        printk(" _IOWRITE");
-    if (mode & _IOEOF)
-        printk(" _IOEOF");
-    if (mode & _IOSYSTEM)
-        printk(" _IOSYSTEM");
-    if (mode & _IOEXTRA)
-        printk(" _IOEXTRA");
-    if (mode & _IOTEXT)
-        printk(" _IOTEXT");
-    if (mode & _IOSTRING)
-        printk(" _IOSTRING");
-    printk("\n");
-
     // Channel can be 0 to 5 (-1 is the running program). Hardcoded to
     // channel 3 for now.
     channel = 3;
@@ -286,8 +230,7 @@ int open(const char *name, int flags, mode_t mode)
     } else if (mode & _IOWRITE) {
         request = SYSCALL_OPENW;
     } else {
-        printk("open: error, no mode specified\n");
-        return -1;
+        return -1; // Error, no mode specified
     }
 
     a = channel;
@@ -295,10 +238,7 @@ int open(const char *name, int flags, mode_t mode)
     de = default;
     hl = fname;
 
-    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     bw_open(channel);
 
@@ -307,24 +247,6 @@ int open(const char *name, int flags, mode_t mode)
 
 int creat(const char *name, mode_t mode)
 {
-    printk("creat(%s, %d)\n", name, mode);
-    printk("mode:");
-    if (mode & _IOREAD)
-        printk(" _IOREAD");
-    if (mode & _IOWRITE)
-        printk(" _IOWRITE");
-    if (mode & _IOEOF)
-        printk(" _IOEOF");
-    if (mode & _IOSYSTEM)
-        printk(" _IOSYSTEM");
-    if (mode & _IOEXTRA)
-        printk(" _IOEXTRA");
-    if (mode & _IOTEXT)
-        printk(" _IOTEXT");
-    if (mode & _IOSTRING)
-        printk(" _IOSTRING");
-    printk("\n");
-
     /* A call to creat() is equivalent to calling open() with flags
        equal to O_CREAT|O_WRONLY|O_TRUNC. */
 
@@ -337,16 +259,11 @@ int close(int fd)
     static uint16_t bc, de, hl;
     static int rc;
 
-    printk("close(%d)\n", fd);
-
     bw_flush();
 
     a = 3; // Channel number; hardcoded to 3 for now.
     request = SYSCALL_CLOSE; bc = 0; de = 0; hl = 0;
-    printk("Calling scall(%d, %d, %d, %d, %d)\n", SYSCALL_CLOSE, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     return rc;
 }
@@ -354,8 +271,6 @@ int close(int fd)
 ssize_t read(int fd, void *ptr, size_t len)
 {
     static int i, c;
-
-    printk("read(%d, %ld, %d)\n", fd, ptr, len);
 
     for (i = 0; i < len; i++) {
         c = br_getc();
@@ -376,9 +291,6 @@ ssize_t read(int fd, void *ptr, size_t len)
 ssize_t write(int fd, void *ptr, size_t len)
 {
     static int i;
-
-    // Uncommenting the line below will cause infinite recursion
-    //printk("write(%d, %ld, %d)\n", fd, ptr, len);
 
     for (i = 0; i < len; i++) {
         bw_putc(ptr[i]);
@@ -403,8 +315,6 @@ int readbyte(int fd)
 {
     static unsigned char buffer;
 
-    printk("readbyte(%d)\n", fd);
-
     if (read(fd, &buffer, 1) <= 0) {
         return_c -1;
     }
@@ -428,13 +338,11 @@ int writebyte(int fd, int byte)
 
 void fabandon(FILE *fp)
 {
-    printk("fabandon(%d)\n", fp);
 }
 
 /* Not sure if this needs to be implemented. */
 int fsync(int fd)
 {
-    printk("fsync(%d)\n", fd);
     return 0;
 }
 
@@ -445,8 +353,6 @@ int remove(const char *name)
     static uint16_t bc, de, hl;
     static int rc;
 
-    printk("remove(%s)\n", name);
-
     strcpy(default, "SY0TXT");
     strcpy(fname, name);
 
@@ -456,10 +362,7 @@ int remove(const char *name)
     hl = fname;
     request = SYSCALL_DELETE;
 
-    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     return rc;
 }
@@ -471,8 +374,6 @@ int rename(const char *s, const char *d)
     static uint16_t bc, de, hl;
     static int rc;
 
-    printk("rename(%s, %s)\n", s, d);
-
     strcpy(default, "SY0TXT");
 
     a = 0; // Not used
@@ -481,10 +382,7 @@ int rename(const char *s, const char *d)
     hl = s; // Old name
     request = SYSCALL_RENAME;
 
-    printk("Calling syscall(%d, %d, %d, %d, %d)\n", request, a, bc, de, hl);
     rc = scall(request, &a, &bc, &de, &hl);
-    printk("return code = %d\n", rc);
-    printk("Returned with a=%d bc=%d de=%d hl=%d\n", a, bc, de, hl);
 
     return rc;
 }
