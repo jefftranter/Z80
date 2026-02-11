@@ -5,7 +5,6 @@
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
-  - Optimize and clean up code
   - Add support for opening multiple files using different channel numbers
   - Implement lseek()
 
@@ -55,8 +54,8 @@ static unsigned char buf[BLOCK_SIZE];
 static unsigned int  count;
 static int           hfd;
 static int           error;
-static unsigned int  pos;      /* current position in buffer */
-static unsigned int  limit;    /* valid bytes in buffer */
+static unsigned int  pos;      /* Current position in buffer */
+static unsigned int  limit;    /* Valid bytes in buffer */
 static int           eof_flag;
 
 // Initialize buffered writer
@@ -185,6 +184,7 @@ int bw_flush()
     return 0;
 }
 
+// Console output routine
 int fputc_cons_native(char c) __naked
 {
 __asm
@@ -203,6 +203,7 @@ pr1:    SCALL   SCOUT           ; System call for System Console Output
 __endasm
 }
 
+// Console input routine
 int fgetc_cons() __naked
 {
 __asm
