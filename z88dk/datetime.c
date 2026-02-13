@@ -61,6 +61,12 @@ static int set_date(const char *s)
         return 1;
     }
 
+    /* Make sure month is properly capitalized (command line options
+       get converted to upper case by HDOS). */
+    s[3] = toupper(s[3]);
+    s[4] = tolower(s[4]);
+    s[5] = tolower(s[5]);
+
     for (i = 0; i < 9; i++)
         HDOS_DATE[i] = s[i];
 
