@@ -6,7 +6,6 @@
 
   TODO:
   - Add support for opening multiple files using different channel numbers
-  - Implement time and date functions?
   - Implement system()?
   - Implement lseek()?
 
@@ -27,7 +26,6 @@ fclose()
 
 */
 
-#include <ctype.h>
 #include <fcntl.h>
 #include <hdos.h>
 #include <stdio.h>
@@ -408,7 +406,7 @@ int rename(const char *s, const char *d)
 void beep(unsigned int ms)
 {
     while (ms--) {
-        putc('\a', 0);
+        putchar('\a');
     }
 }
 
@@ -472,12 +470,6 @@ void wrdate(char *date)
         printf("Error: date must be exactly 9 characters.\n");
         return;
     }
-
-    /* Make sure month is properly capitalized (command line options
-       get converted to upper case by HDOS). */
-    date[3] = toupper(date[3]);
-    date[4] = tolower(date[4]);
-    date[5] = tolower(date[5]);
 
     for (i = 0; i < 9; i++)
         HDOS_DATE[i] = date[i];

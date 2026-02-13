@@ -11,48 +11,25 @@
  *   datetime -t HH:MM:SS -> set time (24-hour)
  */
 
+#include <hdos.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-/* Memory-mapped locations */
-#define HDOS_DATE   ((volatile unsigned char *)0x20BF)
-#define HDOS_TIME   ((volatile unsigned char *)0x20CA)
-
-/* Convert packed BCD byte to integer */
-static unsigned char bcd_to_int(unsigned char bcd)
-{
-    return ((bcd >> 4) * 10) + (bcd & 0x0F);
-}
-
-/* Convert integer (0-99) to packed BCD */
-static unsigned char int_to_bcd(unsigned char val)
-{
-    return ((val / 10) << 4) | (val % 10);
-}
-
 /* Display current date and time */
 static void show_datetime(void)
 {
-    char date[10];
-    unsigned char hh, mm, ss;
-    int i;
+    char s[10];
 
-    for (i = 0; i < 9; i++)
-        date[i] = HDOS_DATE[i];
-    date[9] = '\0';
-
-    hh = bcd_to_int(HDOS_TIME[0]);
-    mm = bcd_to_int(HDOS_TIME[1]);
-    ss = bcd_to_int(HDOS_TIME[2]);
-
-    printf("Date: %s\n", date);
-    printf("Time: %02u:%02u:%02u\n", hh, mm, ss);
+    rddate(s);
+    printf("Date: %s\n", s);
+    rdtime(s);
+    printf("Time: %s\n", s);
 }
 
 /* Set date (expects exactly 9 characters) */
-static int set_date(const char *s)
+static int set_date(char *s)
 {
     int i;
 
@@ -67,31 +44,14 @@ static int set_date(const char *s)
     s[4] = tolower(s[4]);
     s[5] = tolower(s[5]);
 
-    for (i = 0; i < 9; i++)
-        HDOS_DATE[i] = s[i];
-
+    wrdate(s);
     return 0;
 }
 
-/* Parse HH:MM:SS and set time */
+/* Set time */
 static int set_time(char *s)
 {
-    unsigned int hh, mm, ss;
-
-    if (sscanf(s, "%u:%u:%u", &hh, &mm, &ss) != 3) {
-        printf("Error: time format must be HH:MM:SS\n");
-        return 1;
-    }
-
-    if (hh > 23 || mm > 59 || ss > 59) {
-        printf("Error: invalid time value\n");
-        return 1;
-    }
-
-    HDOS_TIME[0] = int_to_bcd((unsigned char)hh);
-    HDOS_TIME[1] = int_to_bcd((unsigned char)mm);
-    HDOS_TIME[2] = int_to_bcd((unsigned char)ss);
-
+    wrtime(s);
     return 0;
 }
 
