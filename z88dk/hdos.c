@@ -27,10 +27,12 @@ fclose()
 
 */
 
-#include <stdio.h>
-#include <string.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <hdos.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 __asm
 SCALL   macro   call            ; SYSCALL macro
@@ -47,8 +49,15 @@ CSLCHR  equ     %00000001       ; Bit for update in character mode
 __endasm
 
 
-/* Defines */
+/* Defines and macros */
 #define BLOCK_SIZE 256
+#define TIKCNT 0x201B
+#define HDOS_DATE   ((volatile unsigned char *)0x20BF)
+#define HDOS_TIME   ((volatile unsigned char *)0x20CA)
+
+/* Disable/enable interrupts */
+#define di() __asm__("di")
+#define ei() __asm__("ei")
 
 /* Global Variables */
 static char          default[7]; // Default device and extension
@@ -393,6 +402,105 @@ int rename(const char *s, const char *d)
     rc = scall(request, &a, &bc, &de, &hl);
 
     return rc;
+}
+
+/* Beep the H-89/H-19 speaker for ms milliseconds. */
+void beep(unsigned int ms)
+{
+    while (ms--) {
+        putc('\a', 0);
+    }
+}
+
+/* Delay for specified milliseconds. Uses 2 ms clock interrupt. */
+void delay(unsigned int ms)
+{
+    unsigned int t;
+
+    ms >>= 1; // Divide by 2 to get interrupts
+    t = wpeek(TIKCNT) + ms + 1;
+    di();
+    wpoke(TIKCNT, 0);
+    ei();
+    while (ms > wpeek(TIKCNT))
+        ;
+    di();
+    wpoke(TIKCNT, t);
+    ei();
+}
+
+/* Convert packed BCD byte to integer */
+static unsigned char bcd_to_int(unsigned char bcd)
+{
+    return ((bcd >> 4) * 10) + (bcd & 0x0F);
+}
+
+/* Convert integer (0-99) to packed BCD */
+static unsigned char int_to_bcd(unsigned char val)
+{
+    return ((val / 10) << 4) | (val % 10);
+}
+
+/* Return HDOS date in format dd-Mmm-yy */
+void rddate(char *date)
+{
+    int i;
+
+    for (i = 0; i < 9; i++)
+        date[i] = HDOS_DATE[i];
+    date[9] = '\0';
+}
+
+/* Return HDOS time in format hh:mm:ss */
+void rdtime(char *time)
+{
+    unsigned char hh, mm, ss;
+
+    hh = bcd_to_int(HDOS_TIME[0]);
+    mm = bcd_to_int(HDOS_TIME[1]);
+    ss = bcd_to_int(HDOS_TIME[2]);
+
+    sprintf(time, "%02u:%02u:%02u", hh, mm, ss);
+}
+
+/* Set HDOS date in format dd-Mmm-yy */
+void wrdate(char *date)
+{
+    int i;
+
+    if (strlen(date) != 9) {
+        printf("Error: date must be exactly 9 characters.\n");
+        return;
+    }
+
+    /* Make sure month is properly capitalized (command line options
+       get converted to upper case by HDOS). */
+    date[3] = toupper(date[3]);
+    date[4] = tolower(date[4]);
+    date[5] = tolower(date[5]);
+
+    for (i = 0; i < 9; i++)
+        HDOS_DATE[i] = date[i];
+}
+
+/* Set HDOS time in format hh:mm:ss */
+void wrtime(char *time)
+{
+    unsigned int hh, mm, ss;
+
+    if (sscanf(time, "%u:%u:%u", &hh, &mm, &ss) != 3) {
+        printf("Error: time format must be hh:mm:ss\n");
+        return;
+    }
+
+    if (hh > 23 || mm > 59 || ss > 59) {
+        printf("Error: invalid time value\n");
+        return;
+    }
+
+    HDOS_TIME[0] = int_to_bcd((unsigned char)hh);
+    HDOS_TIME[1] = int_to_bcd((unsigned char)mm);
+    HDOS_TIME[2] = int_to_bcd((unsigned char)ss);
 }
 
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.
