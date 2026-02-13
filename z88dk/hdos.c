@@ -26,6 +26,11 @@ fclose()
 
 */
 
+
+/* Define this if you want file i/o support. Disable it to save memory
+   when it is not needed. */
+#define FS_SUPPORT 1
+
 #include <fcntl.h>
 #include <hdos.h>
 #include <stdio.h>
@@ -58,6 +63,7 @@ __endasm
 #define ei() __asm__("ei")
 
 /* Global Variables */
+#ifdef FS_SUPPORT
 static char          default[7]; // Default device and extension
 static char          fname[20]; // File name buffer
 static unsigned char buf[BLOCK_SIZE];
@@ -67,6 +73,40 @@ static int           error;
 static unsigned int  pos;      /* Current position in buffer */
 static unsigned int  limit;    /* Valid bytes in buffer */
 static int           eof_flag;
+#endif
+
+// Console output routine
+int fputc_cons_native(char c) __naked
+{
+__asm
+        pop     bc              ; Return address
+        pop     hl              ; Character to print in l
+        push    hl
+        push    bc
+        ld      a,l             ; Get char to print
+        cmp     '\n'            ; Is it newline?
+        jr      nz,pr1          ; Branch if not
+        ld      a,'\r'          ; If so, first print return
+        SCALL   SCOUT
+        ld      a,'\n'          ; Now print newline
+pr1:    SCALL   SCOUT           ; System call for System Console Output
+        ret
+__endasm
+}
+
+// Console input routine
+int fgetc_cons() __naked
+{
+__asm
+nr:     SCALL   SCIN            ; System call for System Console Input
+        jr      c,nr            ; Try again if no character ready
+        ld      l,a             ; Return the result in hl
+        ld      h,0
+        ret
+__endasm
+}
+
+#ifdef FS_SUPPORT
 
 // Initialize buffered writer
 int bw_open(int fd)
@@ -193,39 +233,6 @@ int bw_flush()
     count = 0;
     return 0;
 }
-
-// Console output routine
-int fputc_cons_native(char c) __naked
-{
-__asm
-        pop     bc              ; Return address
-        pop     hl              ; Character to print in l
-        push    hl
-        push    bc
-        ld      a,l             ; Get char to print
-        cmp     '\n'            ; Is it newline?
-        jr      nz,pr1          ; Branch if not
-        ld      a,'\r'          ; If so, first print return
-        SCALL   SCOUT
-        ld      a,'\n'          ; Now print newline
-pr1:    SCALL   SCOUT           ; System call for System Console Output
-        ret
-__endasm
-}
-
-// Console input routine
-int fgetc_cons() __naked
-{
-__asm
-nr:     SCALL   SCIN            ; System call for System Console Input
-        jr      c,nr            ; Try again if no character ready
-        ld      l,a             ; Return the result in hl
-        ld      h,0
-        ret
-__endasm
-}
-
-/* File i/o functions */
 
 int open(const char *name, int flags, mode_t mode)
 {
@@ -401,6 +408,7 @@ int rename(const char *s, const char *d)
 
     return rc;
 }
+#endif
 
 /* Beep the H-89/H-19 speaker for ms milliseconds. */
 void beep(unsigned int ms)
