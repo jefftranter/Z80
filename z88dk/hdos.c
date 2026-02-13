@@ -503,6 +503,21 @@ void wrtime(char *time)
     HDOS_TIME[2] = int_to_bcd((unsigned char)ss);
 }
 
+/* Return HDOS version number in BCD (e.g. 0x21 for 2.1) */
+int hdosversion()
+{
+    static int rc;
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+
+    // Get version .VERS system call
+    request = SYSCALL_VERS;
+    scall(request, &a, &bc, &de, &hl);
+
+    // Version returned in A.
+    return a;
+}
+
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.
    Returns carry status (normally 1 for error, 0 for success. */
 int scall(uint8_t request, uint8_t *a, uint16_t *bc, uint16_t *de, uint16_t *hl)

@@ -71,3 +71,6 @@ void wrdate(char *date);
 
 /* Set HDOS time in format hh:mm:ss */
 void wrtime(char *time);
+
+/* Return HDOS version number in BCD (e.g. $21 for 2.1) */
+int hdosversion();
