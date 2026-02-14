@@ -31,11 +31,12 @@ fclose()
    when it is not needed. */
 #define FS_SUPPORT 1
 
-#include <fcntl.h>
 #include <hdos.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 __asm
 SCALL   macro   call            ; SYSCALL macro
@@ -516,6 +517,13 @@ int hdosversion()
 
     // Version returned in A.
     return a;
+}
+
+/* Return clock ticks. Increases at the rate of CLOCKS_PER_SEC. Not
+   guaranteed to be monotonic. */
+clock_t clock()
+{
+    return wpeek(TIKCNT);
 }
 
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.

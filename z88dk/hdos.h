@@ -8,6 +8,10 @@
 
 #include <arch/z80.h>
 
+
+/* Clock rate, as returned by clock(), is 2 ms */
+#define CLOCKS_PER_SEC 500
+
 // System calls
 #define SYSCALL_EXIT   00
 #define SYSCALL_SCIN   01
