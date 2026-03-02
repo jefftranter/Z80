@@ -5,6 +5,7 @@
  *
  */
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #define VDP_DATA 0x98
@@ -77,6 +78,10 @@ int main(void)
         for (j = 0; j < 32; ++j) {
             vdp_write(j / 4); /* 8 bars across screen */
         }
+    }
+
+    while (1) {
+        /* infinite loop */
     }
 
     return 0;
