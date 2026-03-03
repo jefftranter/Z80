@@ -6,9 +6,12 @@ AY-3-8910 Register Demo
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define AY_REG_PORT   0xA0
 #define AY_DATA_PORT  0xA1
+
+static char buffer[10];
 
 void ay_write_reg(unsigned int reg, unsigned int value)
 {
@@ -40,8 +43,11 @@ void readRegister()
     int n;
 
     printf("Read Register:\n");
-    printf("Register number (in hex, 00 to FF): ");
-    scanf("%02X", &n);
+    printf("Register number (in hex, 00 to 0F): ");
+
+    fgets(buffer, sizeof(buffer)-1, stdin); /* Get keyboard input */
+    buffer[strlen(buffer)-1] = '\0'; /* Remove trailing newline */
+    n = strtol(buffer, 0, 16);
 
     printf("Register %02X: %02X\n", n, ay_read_reg(n));
 }
@@ -51,10 +57,17 @@ void writeRegister()
     int n, d;
     
     printf("Write Register:\n");
-    printf("Register number (in hex, 00 to FF): ");
-    scanf("%02X", &n);
+    printf("Register number (in hex, 00 to 0F): ");
+
+    fgets(buffer, sizeof(buffer)-1, stdin); /* Get keyboard input */
+    buffer[strlen(buffer)-1] = '\0'; /* Remove trailing newline */
+    n = strtol(buffer, 0, 16);
+
     printf("Value to write (in hex, 00 to FF): ");
-    scanf("%02X", &d);
+    fgets(buffer, sizeof(buffer)-1, stdin); /* Get keyboard input */
+    buffer[strlen(buffer)-1] = '\0'; /* Remove trailing newline */
+    d = strtol(buffer, 0, 16);
+
     ay_write_reg(n, d);
     printf("Wrote %02X to register %02X\n", d, n);
 }
@@ -106,7 +119,9 @@ int main()
     while (1) {
         commands();
 
-        scanf("%d", &cmd);
+        fgets(buffer, sizeof(buffer)-1, stdin); /* Get keyboard input */
+        buffer[strlen(buffer)-1] = '\0'; /* Remove trailing newline */
+        cmd = strtol(buffer, 0, 10);
 
         switch (cmd) {
         case 1:
