@@ -1,4 +1,4 @@
-all: scale.com bars.com
+all: scale.com bars.com joy.com
 
 scale.com: scale.c
 	. ../../z88dk/env.sh && zcc -mz80 +cpm -subtype=hz89 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o scale.com scale.c 
@@ -6,6 +6,9 @@ scale.com: scale.c
 bars.com: bars.c
 	. ../../z88dk/env.sh && zcc -mz80 +cpm -subtype=hz89 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o bars.com bars.c 
 
+joy.com: joy.c
+	. ../../z88dk/env.sh && zcc -mz80 +cpm -subtype=hz89 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o joy.com joy.c 
+
 clean:
-	$(RM) scale.com bars.com
+	$(RM) scale.com bars.com joy.com
 

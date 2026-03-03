@@ -5,7 +5,6 @@
  *
  */
 
-#include <stdint.h>
 #include <stdlib.h>
 
 #define VDP_DATA 0x98
