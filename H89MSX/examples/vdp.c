@@ -1,0 +1,139 @@
+/*
+   TMS9918A Text Mode Demo
+   z88dk compatible
+*/
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define VDP_DATA  0x98
+#define VDP_CTRL  0x99
+
+#define NAME_TABLE    0x0000
+#define PATTERN_TABLE 0x0800
+
+/* -------------------- */
+/* VDP access           */
+/* -------------------- */
+
+void vdp_write_reg(uint8_t reg, uint8_t value)
+{
+    outp(VDP_CTRL, value);
+    outp(VDP_CTRL, reg | 0x80);
+}
+
+void vdp_set_write_address(uint16_t addr)
+{
+    outp(VDP_CTRL, addr & 0xFF);
+    outp(VDP_CTRL, (addr >> 8) & 0x3F);
+}
+
+void vdp_write(uint8_t value)
+{
+    outp(VDP_DATA, value);
+}
+
+/* -------------------- */
+/* Font data (global)   */
+/* -------------------- */
+
+const uint8_t blank[8] = {0,0,0,0,0,0,0,0};
+
+const uint8_t font_A[8] = {0x18,0x24,0x42,0x42,0x7E,0x42,0x42,0};
+const uint8_t font_B[8] = {0x7C,0x42,0x42,0x7C,0x42,0x42,0x7C,0};
+const uint8_t font_C[8] = {0x3C,0x42,0x40,0x40,0x40,0x42,0x3C,0};
+const uint8_t font_D[8] = {0x78,0x44,0x42,0x42,0x42,0x44,0x78,0};
+const uint8_t font_E[8] = {0x7E,0x40,0x40,0x7C,0x40,0x40,0x7E,0};
+const uint8_t font_F[8] = {0x7E,0x40,0x40,0x7C,0x40,0x40,0x40,0};
+const uint8_t font_G[8] = {0x3C,0x42,0x40,0x4E,0x42,0x42,0x3C,0};
+const uint8_t font_H[8] = {0x42,0x42,0x42,0x7E,0x42,0x42,0x42,0};
+const uint8_t font_I[8] = {0x3C,0x18,0x18,0x18,0x18,0x18,0x3C,0};
+const uint8_t font_J[8] = {0x1E,0x04,0x04,0x04,0x44,0x44,0x38,0};
+const uint8_t font_K[8] = {0x42,0x44,0x48,0x70,0x48,0x44,0x42,0};
+const uint8_t font_L[8] = {0x40,0x40,0x40,0x40,0x40,0x40,0x7E,0};
+const uint8_t font_M[8] = {0x42,0x66,0x5A,0x5A,0x42,0x42,0x42,0};
+const uint8_t font_N[8] = {0x42,0x62,0x52,0x4A,0x46,0x42,0x42,0};
+const uint8_t font_O[8] = {0x3C,0x42,0x42,0x42,0x42,0x42,0x3C,0};
+const uint8_t font_P[8] = {0x7C,0x42,0x42,0x7C,0x40,0x40,0x40,0};
+const uint8_t font_Q[8] = {0x3C,0x42,0x42,0x42,0x4A,0x44,0x3A,0};
+const uint8_t font_R[8] = {0x7C,0x42,0x42,0x7C,0x48,0x44,0x42,0};
+const uint8_t font_S[8] = {0x3C,0x42,0x40,0x3C,0x02,0x42,0x3C,0};
+const uint8_t font_T[8] = {0x7E,0x18,0x18,0x18,0x18,0x18,0x18,0};
+const uint8_t font_U[8] = {0x42,0x42,0x42,0x42,0x42,0x42,0x3C,0};
+const uint8_t font_V[8] = {0x42,0x42,0x42,0x42,0x42,0x24,0x18,0};
+const uint8_t font_W[8] = {0x42,0x42,0x42,0x5A,0x5A,0x66,0x42,0};
+const uint8_t font_X[8] = {0x42,0x42,0x24,0x18,0x24,0x42,0x42,0};
+const uint8_t font_Y[8] = {0x42,0x42,0x24,0x18,0x18,0x18,0x18,0};
+const uint8_t font_Z[8] = {0x7E,0x02,0x04,0x18,0x20,0x40,0x7E,0};
+
+const uint8_t *letters[26] = {
+    font_A,font_B,font_C,font_D,font_E,font_F,font_G,
+    font_H,font_I,font_J,font_K,font_L,font_M,
+    font_N,font_O,font_P,font_Q,font_R,font_S,
+    font_T,font_U,font_V,font_W,font_X,font_Y,font_Z
+};
+
+/* -------------------- */
+
+void write_char_pattern(uint8_t index, const uint8_t *pattern)
+{
+    uint8_t i;
+    uint16_t addr;
+
+    addr = PATTERN_TABLE + ((uint16_t)index * 8);
+
+    vdp_set_write_address(addr);
+
+    for (i = 0; i < 8; i++)
+        vdp_write(pattern[i]);
+}
+
+void download_font(void)
+{
+    uint8_t i;
+
+    /* Clear 96 characters */
+    for (i = 0; i < 96; i++)
+        write_char_pattern(i, blank);
+
+    /* Write A-Z starting at ASCII 65 (index 33) */
+    for (i = 0; i < 26; i++)
+        write_char_pattern((uint8_t)(65 + i), letters[i]);
+}
+
+/* -------------------- */
+
+void main(void)
+{
+    uint16_t i;
+    uint8_t ch;
+
+    vdp_write_reg(1, 0x00);
+
+    vdp_write_reg(0, 0x00);
+    vdp_write_reg(1, 0x10);
+    vdp_write_reg(2, NAME_TABLE >> 10);
+    vdp_write_reg(4, PATTERN_TABLE >> 11);
+    vdp_write_reg(7, 0xF4);
+
+    download_font();
+
+    vdp_set_write_address(NAME_TABLE);
+
+    ch = 'A';
+
+    for (i = 0; i < 960; i++)
+    {
+        vdp_write(ch);
+        ch++;
+        if (ch > 'Z')
+            ch = 'A';
+    }
+
+    vdp_write_reg(1, 0x50);
+
+    printf("Got here\n");
+
+    while (1);
+}
