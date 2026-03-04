@@ -3,6 +3,8 @@ PRAGMAS = -DHDOS -pragma-define:CRT_MODEL=0 -pragma-define:HDOS=0x1 -pragma-defi
 
 all: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs scall.abs mathdemo.abs datetime.abs
 
+msx: scale.abs bars.abs joy.abs psg.abs vdp.abs
+
 world.abs: world.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) world.c hdos.c -create-app -m
 	../HDOS/bin2abs.py -a $(ORG) a.rom world.abs
@@ -38,6 +40,26 @@ fileio.abs: ../CPM/fileio.c hdos.c crt0.asm
 mathdemo.abs: ../CPM/mathdemo.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../CPM/mathdemo.c hdos.c -create-app -m
 	../HDOS/bin2abs.py -a $(ORG) a.rom mathdemo.abs
+
+scale.abs: ../H89MSX/examples/scale.c
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../H89MSX/examples/scale.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom scale.abs
+
+bars.abs: ../H89MSX/examples/bars.c
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../H89MSX/examples/bars.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom bars.abs
+
+joy.abs: ../H89MSX/examples/joy.c
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../H89MSX/examples/joy.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom joy.abs
+
+psg.abs: ../H89MSX/examples/psg.c
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../H89MSX/examples/psg.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom psg.abs
+
+vdp.abs: ../H89MSX/examples/vdp.c
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) -lm ../H89MSX/examples/vdp.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom vdp.abs
 
 clean:
 	$(RM) *.map *.bin *.rom *.abs
