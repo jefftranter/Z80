@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #define VDP_DATA 0x98
 #define VDP_CTRL 0x99
@@ -49,10 +50,12 @@ int main(void)
     uint16_t i, j;
     uint8_t color;
 
+    printf("Here 1\n");
     vdp_init_screen2();
 
     /* --- Pattern table (0x0000) ---
        Create 8 solid 8x8 tiles */
+    printf("Here 2\n");
     vdp_set_write(0x0000);
     for (i = 0; i < 8; ++i) {
         for (j = 0; j < 8; ++j) {
@@ -62,6 +65,7 @@ int main(void)
 
     /* --- Color table (0x2000) ---
        Each tile gets a unique color */
+    printf("Here 3\n");
     vdp_set_write(0x2000);
     for (i = 0; i < 8; ++i) {
         color = ((i + 1) << 4) | 0x01; /* FG color, blue BG */
@@ -72,6 +76,7 @@ int main(void)
 
     /* --- Name table (0x1800) ---
        32x24 tile map -> 8 vertical bars */
+    printf("Here 4\n");
     vdp_set_write(0x1800);
     for (i = 0; i < 24; ++i) {
         for (j = 0; j < 32; ++j) {
@@ -79,6 +84,7 @@ int main(void)
         }
     }
 
+    printf("Here 5\n");
     while (1) {
         /* infinite loop */
     }
