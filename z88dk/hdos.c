@@ -415,8 +415,9 @@ int rename(const char *s, const char *d)
 
 /* Transfer control to another program. Command should be a progam
    name, e.g. "SY0:BASIC.ABS". Passing arguments is not currently
-   supported. Does not return if it succeeds. Returns -1 if it
-   fails. */
+   supported. Does not return if it succeeds. Returns -1 if it fails.
+   This is currently failing to work unless the standard stack pointer
+   and start address of 0x2280 are used when building. */
 int execv(const char *command, const char *args[])
 {
     static uint8_t request, a;
@@ -550,8 +551,10 @@ clock_t clock()
     return wpeek(TIKCNT);
 }
 
-/* Wrapper for HDOS system call (scall). Pass in scall number and register values.
-   Returns carry status (normally 1 for error, 0 for success. */
+/* Wrapper for HDOS system call (scall). Pass in scall number and
+   register values. Returns carry status (normally 1 for error, 0 for
+   success.
+*/
 int scall(uint8_t request, uint8_t *a, uint16_t *bc, uint16_t *de, uint16_t *hl)
 {
     static Z80_registers regs;
