@@ -38,6 +38,15 @@ fclose()
 #include <string.h>
 #include <time.h>
 
+#ifdef FS_SUPPORT
+#ifndef MAXFILES
+#error MAXFILES not defined
+#endif
+#if MAXFILES < 1 || MAXFILES > 6
+#error Invalid MAXFILES value (must be 1 through 6)
+#endif
+#endif
+
 __asm
 SCALL   macro   call            ; SYSCALL macro
         rst     $38
@@ -69,7 +78,6 @@ static char          default[7]; // Default device and extension
 static char          fname[20]; // File name buffer
 static unsigned char buf[BLOCK_SIZE];
 static unsigned int  count;
-static int           hfd;
 static int           error;
 static unsigned int  pos;      /* Current position in buffer */
 static unsigned int  limit;    /* Valid bytes in buffer */
@@ -113,7 +121,6 @@ __endasm
 int bw_open(int fd)
 {
     count = 0;
-    hfd = fd;
     error = 0;
     pos = 0;
     limit = 0;
@@ -125,7 +132,6 @@ int bw_open(int fd)
 int br_open(int fd)
 {
     count = 0;
-    hfd   = fd;
     error = 0;
     pos = 0;
     limit = 0;
@@ -134,14 +140,14 @@ int br_open(int fd)
 }
 
 // Read one 256-byte record
-int hdos_read()
+int hdos_read(int fd)
 {
     static int rc;
     static uint8_t request, a;
     static uint16_t bc, de, hl;
 
     // Read buffer using .READ system call
-    request = SYSCALL_READ; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    request = SYSCALL_READ; a = fd; bc = BLOCK_SIZE; de = buf; hl = 0;
     rc = scall(request, &a, &bc, &de, &hl);
 
     // Will return non-zero on EOF
@@ -149,7 +155,7 @@ int hdos_read()
 }
 
 // Read a single byte
-int br_getc()
+int br_getc(int fd)
 {
     int rc;
 
@@ -162,7 +168,7 @@ int br_getc()
     /* Refill buffer if empty */
     if (pos >= limit) {
 
-        rc = hdos_read();
+        rc = hdos_read(fd);
         if (rc != 0) {
             eof_flag = 1;
             return -1;
@@ -176,21 +182,21 @@ int br_getc()
 }
 
 // Write one 256-byte record
-int hdos_write()
+int hdos_write(int fd)
 {
     static int rc;
     static uint8_t request, a;
     static uint16_t bc, de, hl;
 
     // Write buffer using .WRITE system call
-    request = SYSCALL_WRITE; a = hfd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    request = SYSCALL_WRITE; a = fd; bc = BLOCK_SIZE; de = buf; hl = 0;
     rc = scall(request, &a, &bc, &de, &hl);
 
     return rc;
 }
 
 // Write a single byte
-int bw_putc(int c)
+int bw_putc(int fd, int c)
 {
     if (error)
         return -1;
@@ -198,7 +204,7 @@ int bw_putc(int c)
     buf[count++] = (unsigned char)c;
 
     if (count == BLOCK_SIZE) {
-        if (hdos_write(hfd, buf) != 0) {
+        if (hdos_write(fd) != 0) {
             error = 1;
             return -1;
         }
@@ -209,7 +215,7 @@ int bw_putc(int c)
 }
 
 // Flush partial block (pad to 256 bytes)
-int bw_flush()
+int bw_flush(int fd)
 {
     static unsigned int i;
 
@@ -226,7 +232,7 @@ int bw_flush()
         buf[i] = 0;
     }
 
-    if (hdos_write(hfd, buf) != 0) {
+    if (hdos_write(fd) != 0) {
         error = 1;
         return -1;
     }
@@ -282,7 +288,7 @@ int close(int fd)
     static uint16_t bc, de, hl;
     static int rc;
 
-    bw_flush();
+    bw_flush(fd);
 
     a = 3; // Channel number; hardcoded to 3 for now.
     request = SYSCALL_CLOSE; bc = 0; de = 0; hl = 0;
@@ -296,7 +302,7 @@ ssize_t read(int fd, void *ptr, size_t len)
     static int i, c;
 
     for (i = 0; i < len; i++) {
-        c = br_getc();
+        c = br_getc(fd);
         if (c == -1) {
             return -1; /* EOF */
             break;
@@ -316,7 +322,7 @@ ssize_t write(int fd, void *ptr, size_t len)
     static int i;
 
     for (i = 0; i < len; i++) {
-        bw_putc(ptr[i]);
+        bw_putc(fd, ptr[i]);
     }
 
     return len;

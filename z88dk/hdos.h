@@ -8,6 +8,13 @@
 
 #include <arch/z80.h>
 
+/* Maximum number of open files. HDOS maximum is 6. Using smaller
+   numbers will use less memory for file buffers. Can redefine at
+   compile time. */
+
+#ifndef MAXFILES
+#define MAXFILES 6
+#endif
 
 /* Clock rate, as returned by clock(), is 2 ms */
 #define CLOCKS_PER_SEC 500
