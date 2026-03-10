@@ -5,7 +5,6 @@
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
-  - Implement system()?
   - Implement lseek()?
 
 */
@@ -19,6 +18,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 
@@ -527,6 +527,25 @@ int hdosversion()
 clock_t clock()
 {
     return wpeek(TIKCNT);
+}
+
+/* Transfer control to another program. Command should be a progam
+   name, e.g. "SY0:BASIC.ABS". Passing arguments is not currently
+   supported. Does not return if it succeeds. Returns -1 if it
+   fails. */
+int execv(const char *command, const char *args[])
+{
+    static uint8_t request, a;
+    static uint16_t bc, de, hl;
+
+    strcpy(fname, command);
+
+    request = SYSCALL_LINK;
+    a = 0; bc = 0; de = 0; hl = fname;
+    scall(request, &a, &bc, &de, &hl);
+
+    // If we get here, it failed.
+    return -1;
 }
 
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.
