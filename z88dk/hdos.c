@@ -1,28 +1,12 @@
 /*
 
-  Platform Support Routines for HDOS
+  Platform Support Routines for HDOS.
 
   Jeff Tranter <tranter@pobox.com>
 
   TODO:
-  - Add support for opening multiple files using different channel numbers
   - Implement system()?
   - Implement lseek()?
-
-
-  Calling tree (for debuggging):
-fopen()
-  open()
-fprintf()
-  writebyte()
-    write()
-feof() Internal to z88dk, when read returns -1.
-fgets()
-  readbyte()
-    read()
-cgetc()
-fclose()
-  close();
 
 */
 
@@ -62,26 +46,29 @@ CSLCHR  equ     %00000001       ; Bit for update in character mode
 __endasm
 
 
-/* Defines and macros */
+// Defines and macros
 #define BLOCK_SIZE 256
 #define TIKCNT 0x201B
-#define HDOS_DATE   ((volatile unsigned char *)0x20BF)
-#define HDOS_TIME   ((volatile unsigned char *)0x20CA)
+#define HDOS_DATE ((volatile unsigned char *)0x20BF)
+#define HDOS_TIME ((volatile unsigned char *)0x20CA)
 
-/* Disable/enable interrupts */
+// Disable/enable interrupts
 #define di() __asm__("di")
 #define ei() __asm__("ei")
 
-/* Global Variables */
+// Global Variables
 #ifdef FS_SUPPORT
 static char          default[7]; // Default device and extension
-static char          fname[20]; // File name buffer
-static unsigned char buf[BLOCK_SIZE];
-static unsigned int  count;
-static int           error;
-static unsigned int  pos;      /* Current position in buffer */
-static unsigned int  limit;    /* Valid bytes in buffer */
-static int           eof_flag;
+static char          fname[20];  // File name buffer
+
+// The below variables are stored for each open file, indexed by channel number.
+static int           chan_used[MAXFILES];       // Set to 1 if channel being used, 0 if free
+static unsigned char buf[MAXFILES][BLOCK_SIZE]; // Track data buffer
+static unsigned int  count[MAXFILES];           // Number of bytes to read/write
+static int           error[MAXFILES];           // Error flag
+static unsigned int  pos[MAXFILES];             // Current position in buffer
+static unsigned int  limit[MAXFILES];           // Valid bytes in buffer
+static int           eof_flag[MAXFILES];        // End of file flag
 #endif
 
 // Console output routine
@@ -120,22 +107,22 @@ __endasm
 // Initialize buffered writer
 int bw_open(int fd)
 {
-    count = 0;
-    error = 0;
-    pos = 0;
-    limit = 0;
-    eof_flag = 0;
+    count[fd] = 0;
+    error[fd] = 0;
+    pos[fd] = 0;
+    limit[fd] = 0;
+    eof_flag[fd] = 0;
     return 0;
 }
 
 // Initialize buffered reader
 int br_open(int fd)
 {
-    count = 0;
-    error = 0;
-    pos = 0;
-    limit = 0;
-    eof_flag = 0;
+    count[fd] = 0;
+    error[fd] = 0;
+    pos[fd] = 0;
+    limit[fd] = 0;
+    eof_flag[fd] = 0;
     return 0;
 }
 
@@ -147,7 +134,7 @@ int hdos_read(int fd)
     static uint16_t bc, de, hl;
 
     // Read buffer using .READ system call
-    request = SYSCALL_READ; a = fd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    request = SYSCALL_READ; a = fd; bc = BLOCK_SIZE; de = buf[fd]; hl = 0;
     rc = scall(request, &a, &bc, &de, &hl);
 
     // Will return non-zero on EOF
@@ -159,26 +146,26 @@ int br_getc(int fd)
 {
     int rc;
 
-    if (error)
+    if (error[fd])
         return -1;
 
-    if (eof_flag)
-        return -1;   /* EOF */
+    if (eof_flag[fd])
+        return -1;   // EOF
 
-    /* Refill buffer if empty */
-    if (pos >= limit) {
+    // Refill buffer if empty
+    if (pos[fd] >= limit[fd]) {
 
         rc = hdos_read(fd);
         if (rc != 0) {
-            eof_flag = 1;
+            eof_flag[fd] = 1;
             return -1;
         }
 
-        pos = 0;
-        limit = BLOCK_SIZE;
+        pos[fd] = 0;
+        limit[fd] = BLOCK_SIZE;
     }
 
-    return buf[pos++];
+    return buf[fd][pos[fd]++];
 }
 
 // Write one 256-byte record
@@ -189,7 +176,7 @@ int hdos_write(int fd)
     static uint16_t bc, de, hl;
 
     // Write buffer using .WRITE system call
-    request = SYSCALL_WRITE; a = fd; bc = BLOCK_SIZE; de = buf; hl = 0;
+    request = SYSCALL_WRITE; a = fd; bc = BLOCK_SIZE; de = buf[fd]; hl = 0;
     rc = scall(request, &a, &bc, &de, &hl);
 
     return rc;
@@ -198,17 +185,18 @@ int hdos_write(int fd)
 // Write a single byte
 int bw_putc(int fd, int c)
 {
-    if (error)
+    if (error[fd])
         return -1;
 
-    buf[count++] = (unsigned char)c;
+    buf[fd][count[fd]] = (unsigned char)c;
+    count[fd]++;
 
-    if (count == BLOCK_SIZE) {
+    if (count[fd] == BLOCK_SIZE) {
         if (hdos_write(fd) != 0) {
-            error = 1;
+            error[fd] = 1;
             return -1;
         }
-        count = 0;
+        count[fd] = 0;
     }
 
     return c;
@@ -219,25 +207,25 @@ int bw_flush(int fd)
 {
     static unsigned int i;
 
-    if (error) {
+    if (error[fd]) {
         return -1;
     }
 
-    if (count == 0) {
+    if (count[fd] == 0) {
         return 0;
     }
 
-    /* Pad remainder of block */
-    for (i = count; i < BLOCK_SIZE; i++) {
-        buf[i] = 0;
+    // Pad remainder of block
+    for (i = count[fd]; i < BLOCK_SIZE; i++) {
+        buf[fd][i] = 0;
     }
 
     if (hdos_write(fd) != 0) {
-        error = 1;
+        error[fd] = 1;
         return -1;
     }
 
-    count = 0;
+    count[fd] = 0;
     return 0;
 }
 
@@ -245,11 +233,20 @@ int open(const char *name, int flags, mode_t mode)
 {
     static uint8_t request, a;
     static uint16_t bc, de, hl;
-    static int channel, rc;
+    static int channel, rc, i;
 
-    // Channel can be 0 to 5 (-1 is the running program). Hardcoded to
-    // channel 3 for now.
-    channel = 3;
+    // Find the next available channel number.
+    for (i = 0; i < MAXFILES; i++) {
+        if (!chan_used[i]) {
+            channel = i;
+            chan_used[i] = 1; // Mark channel as used
+            break;
+        }
+    }
+
+    if (i == MAXFILES) {
+        return -1; // Too many open files
+    }
 
     strcpy(default, "SY0TXT");
     strcpy(fname, name);
@@ -290,9 +287,11 @@ int close(int fd)
 
     bw_flush(fd);
 
-    a = 3; // Channel number; hardcoded to 3 for now.
-    request = SYSCALL_CLOSE; bc = 0; de = 0; hl = 0;
+    request = SYSCALL_CLOSE; a = fd; bc = 0; de = 0; hl = 0;
     rc = scall(request, &a, &bc, &de, &hl);
+
+    // Mark channel as unused
+    chan_used[fd] = 0;
 
     return rc;
 }
@@ -304,7 +303,7 @@ ssize_t read(int fd, void *ptr, size_t len)
     for (i = 0; i < len; i++) {
         c = br_getc(fd);
         if (c == -1) {
-            return -1; /* EOF */
+            return -1; // EOF
             break;
         }
         ptr[i] = c;
@@ -313,7 +312,7 @@ ssize_t read(int fd, void *ptr, size_t len)
     if (i == len) {
         return i;
     } else {
-        return -1; /* EOF */
+        return -1; // EOF
     }
 }
 
@@ -361,21 +360,19 @@ int writebyte(int fd, int byte)
 }
 
 /* Abandon file with the handle fd - this is called by the system on
-   program exit should it not be able to close a file. This function
-   is a dummy function on the z88 but for example on the Spectrum +3
-   this function would be of use. */
-
+   program exit should it not be able to close a file. This is a dummy
+   function for now. */
 void fabandon(FILE *fp)
 {
 }
 
-/* Not sure if this needs to be implemented. */
+// Not sure if this needs to be implemented.
 int fsync(int fd)
 {
     return 0;
 }
 
-/* Remove a file */
+// Remove a file
 int remove(const char *name)
 {
     static uint8_t request, a;
@@ -396,7 +393,7 @@ int remove(const char *name)
     return rc;
 }
 
-/* Rename a file from s to d */
+// Rename a file from s to d
 int rename(const char *s, const char *d)
 {
     static uint8_t request, a;
@@ -417,7 +414,7 @@ int rename(const char *s, const char *d)
 }
 #endif
 
-/* Beep the H-89/H-19 speaker for ms milliseconds. */
+// Beep the H-89/H-19 speaker for ms milliseconds.
 void beep(unsigned int ms)
 {
     while (ms--) {
@@ -425,7 +422,7 @@ void beep(unsigned int ms)
     }
 }
 
-/* Delay for specified milliseconds. Uses 2 ms clock interrupt. */
+// Delay for specified milliseconds. Uses 2 ms clock interrupt.
 void delay(unsigned int ms)
 {
     unsigned int t;
@@ -442,19 +439,19 @@ void delay(unsigned int ms)
     ei();
 }
 
-/* Convert packed BCD byte to integer */
+// Convert packed BCD byte to integer
 static unsigned char bcd_to_int(unsigned char bcd)
 {
     return ((bcd >> 4) * 10) + (bcd & 0x0F);
 }
 
-/* Convert integer (0-99) to packed BCD */
+// Convert integer (0-99) to packed BCD
 static unsigned char int_to_bcd(unsigned char val)
 {
     return ((val / 10) << 4) | (val % 10);
 }
 
-/* Return HDOS date in format dd-Mmm-yy */
+// Return HDOS date in format dd-Mmm-yy
 void rddate(char *date)
 {
     int i;
@@ -464,7 +461,7 @@ void rddate(char *date)
     date[9] = '\0';
 }
 
-/* Return HDOS time in format hh:mm:ss */
+// Return HDOS time in format hh:mm:ss
 void rdtime(char *time)
 {
     unsigned char hh, mm, ss;
@@ -476,7 +473,7 @@ void rdtime(char *time)
     sprintf(time, "%02u:%02u:%02u", hh, mm, ss);
 }
 
-/* Set HDOS date in format dd-Mmm-yy */
+// Set HDOS date in format dd-Mmm-yy
 void wrdate(char *date)
 {
     int i;
@@ -490,7 +487,7 @@ void wrdate(char *date)
         HDOS_DATE[i] = date[i];
 }
 
-/* Set HDOS time in format hh:mm:ss */
+// Set HDOS time in format hh:mm:ss
 void wrtime(char *time)
 {
     unsigned int hh, mm, ss;
@@ -510,7 +507,7 @@ void wrtime(char *time)
     HDOS_TIME[2] = int_to_bcd((unsigned char)ss);
 }
 
-/* Return HDOS version number in BCD (e.g. 0x21 for 2.1) */
+// Return HDOS version number in BCD (e.g. 0x21 for 2.1)
 int hdosversion()
 {
     static int rc;
