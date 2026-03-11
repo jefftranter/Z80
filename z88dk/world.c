@@ -7,9 +7,21 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
 
 int main()
 {
+
+/* Test for execv(). For now, need to move stack pointer back to
+   default value in order for .LINK system call to succeed. */
+
+ /*
+#asm
+    ld sp,0x2280
+#endasm
+    execv("SY0:BASIC.ABS", 0);
+ */
+
     /* Print a message */
     printf("\nHello from z88dk!\n");
 
