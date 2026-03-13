@@ -1,6 +1,6 @@
 PRAGMAS = -pragma-define:CRT_MODEL=1 -pragma-define:CRT_ORG_CODE=0x8000 -pragma-define:CRT_ON_EXIT=0x0000 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
 
-all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin hello.hex sieve.hex advent1.hex advent2.hex advent3.hex
+all:	int32k.bin bas32k.bin rom.bin sysmon.bin ml.bin jmon.bin patb.bin patb-z80.bin jmon-patb.bin hello.hex sieve.hex advent1.hex advent2.hex advent3.hex advent4.hex
 
 rom.bin: int32k.bin bas32k.bin
 	cat int32k.bin bas32k.bin >rom.bin
@@ -77,6 +77,14 @@ advent3.hex: ../../CPM/advent3.c hardware.asm
 	mv a.ihx advent3.hex
 	rm a.bin a_DATA.bin
 	sed -i 's/^:00000001FF$$/:008000017F/' advent3.hex
+
+advent4.hex: ../../CPM/advent4.c hardware.asm
+	. ../../z88dk/env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../../CPM/advent4.c hardware.asm -create-app -m -Cz--ihex
+	mv a.rom advent4.bin
+	mv a.map advent4.map
+	mv a.ihx advent4.hex
+	rm a.bin a_DATA.bin
+	sed -i 's/^:00000001FF$$/:008000017F/' advent4.hex
 
 clean:
 	$(RM) *.bin *.lst *.map *.hex *.p

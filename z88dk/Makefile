@@ -1,7 +1,7 @@
 ORG = 0x2680
 PRAGMAS = -DHDOS -pragma-define:CRT_MODEL=0 -pragma-define:HDOS=0x1 -pragma-define:CRT_ENABLE_COMMANDLINE=0x1 -pragma-define:CRT_ORG_CODE=$(ORG) -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -pragma-define:CRT_STACK_SIZE=280 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=0 -pragma-define:TAR__register_sp=$(ORG)
 
-all: world.abs advent1.abs advent2.abs advent3.abs cecho.abs fileio.abs scall.abs mathdemo.abs datetime.abs
+all: world.abs advent1.abs advent2.abs advent3.abs advent4.abs cecho.abs fileio.abs scall.abs mathdemo.abs datetime.abs
 
 msx: scale.abs bars.abs joy.abs psg.abs vdp.abs
 
@@ -28,6 +28,10 @@ advent2.abs: ../CPM/advent2.c hdos.c crt0.asm
 advent3.abs: ../CPM/advent3.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../CPM/advent3.c hdos.c -create-app -m
 	../HDOS/bin2abs.py -a $(ORG) a.rom advent3.abs
+
+advent4.abs: ../CPM/advent4.c hdos.c crt0.asm
+	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../CPM/advent4.c hdos.c -create-app -m
+	../HDOS/bin2abs.py -a $(ORG) a.rom advent4.abs
 
 cecho.abs: ../CPM/cecho.c hdos.c crt0.asm
 	. ./env.sh && zcc +z80 -clib=classic -crt0=crt0.asm $(PRAGMAS) ../CPM/cecho.c hdos.c -create-app -m
