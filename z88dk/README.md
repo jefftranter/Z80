@@ -9,4 +9,7 @@ arguments, making HDOS system calls, and some utility functions.
 You can disassemble a binary by using a command like:
   z88dk-dis -x a.map -o 0x2680 a.bin
 
+This work is somewhat obsolete as of March 2026 as official support
+for HDOS is now becoming available on z88dk.
+
 For more background, see https://github.com/z88dk/z88dk/wiki/Classic--Homebrew
