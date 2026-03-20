@@ -42,7 +42,4 @@ advent4.abs: ../CPM/advent4.c
 	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o advent4.bin ../CPM/advent4.c
 
 clean:
-	$(RM) *.p
-
-distclean:
-	$(RM) *.lst *.p *.bin *.hex *.abs
+	$(RM) *.p *.lst *.p *.bin *.hex *.abs
