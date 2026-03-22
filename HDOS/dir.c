@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 
-const char months[12][4] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+const char months[12][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 /* Dump a directory entry */
 void dump_entry(const char *entry) {
@@ -82,7 +82,7 @@ void dump_entry(const char *entry) {
     printf("%3s ", tmp);
 
     /* Creation time */
-    printf("   %02x:%02x ", entry[11], entry[12]);
+    printf("%02x:%02x ", entry[11], entry[12]);
 
     /* Number of accesses */
     printf("   %3d ", entry[13] & 0xff);
@@ -117,7 +117,7 @@ void dump_entry(const char *entry) {
     printf("   %3d ", entry[17] & 0xff);
 
     /* Last sector index */
-    printf("    %3d ", entry[18] & 0xff);   
+    printf("  %3d ", entry[18] & 0xff);
 
     /* Creation date:
        1111 1100 0000 0000
@@ -128,14 +128,24 @@ void dump_entry(const char *entry) {
     y = (w & 0b1111111000000000) >> 9;
     m = (w & 0b0000000111100000) >> 5;
     d = w & 0b0000000000011111;
-    printf("%02d-%3s-%02d ", d, months[m], y);
+
+    if (w == 0) {
+        printf("<No-Date> ");
+    } else {
+        printf("%02d-%3s-%02d ", d, months[m-1], y);
+    }
 
     /* Last access date */
     w = (entry[21] & 0xff) + 256 * (entry[22] & 0xff);
     y = (w & 0b1111111000000000) >> 9;
     m = (w & 0b0000000111100000) >> 5;
     d = w & 0b0000000000011111;
-    printf("%02d-%3s-%02d ", d, months[m], y);
+
+    if (w == 0) {
+        printf("<No-Date> ");
+    } else {
+        printf("%02d-%3s-%02d ", d, months[m-1], y);
+    }
 
     printf("\n");
 }
@@ -153,9 +163,8 @@ void dump_file(const char *filename) {
         perror(buf);
         return;
     }
-
-    printf("Name     Ext Creation Access Flags    User FGroup LGroup LSector Creation  Access\n");
-    printf("-------- --- -------- ------ -------- ---- ------ ------ ------- --------- --------\n");
+    printf("Name     Ext Creat Access Flags    User FGroup LGroup LSect Creation  Access\n");
+    printf("-------- --- ----- ------ -------- ---- ------ ------ ----- --------- --------\n");
 
     while ((bytes_read = fread(buffer, 1, 23, file)) > 0) {
         dump_entry(buffer);
@@ -171,6 +180,9 @@ void dump_file(const char *filename) {
 
 int main(int argc, char *argv[]) {
     char direct[16];
+
+    /* argc is not yet working on z88dk for HDOS */
+    argc = 1;
 
     if (argc == 1) {
 #ifdef __linux__
