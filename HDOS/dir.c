@@ -39,6 +39,9 @@
   Bits 8–5: Month (1-12).
   Bits 4–0: Day (1-31). 
 
+  Note that the above is the Y2K encoding for years used by HDOS with
+  Y2K patches. The older pre-Y2K encoding only used 6 bits and the
+  value stored was the year minus 70.
 */
 
 #include <ctype.h>
