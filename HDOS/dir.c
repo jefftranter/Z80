@@ -1,6 +1,6 @@
 /* Dump HDOS directory contents.
 
-  Directory is contained in the file DIRECT.SYS on each disk drive.
+  The directory is contained in the file DIRECT.SYS on each disk drive.
   Each entry is 23 bytes long.
   After each 22 entries, there is padding of 6 unused bytes.
   If the first character of the filename is 0xff or 0xfe then the file
@@ -41,13 +41,13 @@
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 const char months[12][4] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
+/* Dump a directory entry */
 void dump_entry(const char *entry) {
     char tmp[16];
     int i, w, y, m, d;
@@ -57,7 +57,7 @@ void dump_entry(const char *entry) {
         return;
     }
 
-    /* Convert -1 or 02 to '?' and nulls to spaces in filename */
+    /* Convert -1 or -2 to '?' and non-printable chars to spaces in filename */
     for (i = 0; i < 8; i++) {
         if (isprint(entry[i])) {
             tmp[i] = entry[i];
@@ -70,6 +70,7 @@ void dump_entry(const char *entry) {
     tmp[8] = 0;
     printf("%8s ", tmp);
 
+    /* Print extension. Convert non-printable chars to spaces. */
     for (i = 0; i < 3; i++) {
         if (isprint(entry[8+i])) {
             tmp[i] = entry[8+i];
@@ -139,6 +140,7 @@ void dump_entry(const char *entry) {
     printf("\n");
 }
 
+/* Read a DIRECT.SYS file and dump each directory entry */
 void dump_file(const char *filename) {
     char buffer[23];
     size_t bytes_read;

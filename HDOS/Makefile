@@ -1,6 +1,6 @@
 all: xdemo.abs xcls.abs c_progs
 
-c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs
+c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs
 
 xdemo.abs: xdemo.bin
 	./bin2abs.py xdemo.bin xdemo.abs
@@ -40,6 +40,9 @@ advent3.abs: ../CPM/advent3.c
 
 advent4.abs: ../CPM/advent4.c
 	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o advent4.bin ../CPM/advent4.c
+
+dir.abs: dir.c
+	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o dir.bin dir.c
 
 clean:
 	$(RM) *.p *.lst *.p *.bin *.hex *.abs
