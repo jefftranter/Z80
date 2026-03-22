@@ -6,6 +6,8 @@
 
 */
 
+#include <stdint.h>
+
 /* Clock rate, as returned by clock(), is 2 ms */
 #ifdef CLOCKS_PER_SEC
 #undef CLOCKS_PER_SEC
@@ -39,6 +41,12 @@ void wrtime(char *time);
 /* Return clock ticks. Increases at the rate of CLOCKS_PER_SEC. Not
    guaranteed to be monotonic. */
 clock_t clock();
+
+/* Return default disk device, e.g. "SY0" */
+char *defaultDevice();
+
+/* Return default file extension, e.g. "ABS" */
+char *defaultExtension();
 
 /* Wrapper for HDOS system call (scall). Pass in scall number and register values.
    Returns carry status (normally 1 for error, 0 for success. */

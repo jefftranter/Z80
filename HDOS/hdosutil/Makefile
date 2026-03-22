@@ -1,8 +1,8 @@
 libtest.abs: libtest.c hdosutil.lib
 	. ../../z88dk/env.sh && zcc +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lhdosutil -o libtest.bin libtest.c
 
-hdosutil.lib: beep.o clock.o delay.o rddate.o rdtime.o scall.o wrdate.o wrtime.o
-	. ../../z88dk/env.sh && z80asm -xhdosutil beep.o clock.o delay.o rddate.o rdtime.o scall.o wrdate.o wrtime.o
+hdosutil.lib: beep.o clock.o delay.o rddate.o rdtime.o scall.o wrdate.o wrtime.o defdevice.o defext.o
+	. ../../z88dk/env.sh && z80asm -xhdosutil beep.o clock.o delay.o rddate.o rdtime.o scall.o wrdate.o wrtime.o defdevice.o defext.o
 
 beep.o: beep.c
 	. ../../z88dk/env.sh && zcc -mz80 +hdos -c beep.c
@@ -27,6 +27,12 @@ wrdate.o: wrdate.c
 
 wrtime.o: wrtime.c
 	. ../../z88dk/env.sh && zcc -mz80 +hdos -c wrtime.c
+
+defdevice.o: defdevice.c
+	. ../../z88dk/env.sh && zcc -mz80 +hdos -c defdevice.c
+
+defext.o: defext.c
+	. ../../z88dk/env.sh && zcc -mz80 +hdos -c defext.c
 
 clean:
 	$(RM) *.o *.bin *.abs *.lib

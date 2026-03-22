@@ -33,6 +33,10 @@ int main()
     rdtime(s);
     printf("Time: %s\n", s);
 
+    printf("Default Device: %s\n", defaultDevice());
+
+    printf("Default Extension: %s\n", defaultExtension());
+
     a = 0; bc = 0; de = 0; hl = 0;
     printf("\nCalling .VERS\n");
     rc = scall(SYSCALL_VERS, &a, &bc, &de, &hl);
