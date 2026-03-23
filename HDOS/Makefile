@@ -1,6 +1,6 @@
 all: xdemo.abs xcls.abs c_progs
 
-c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs
+c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs wildcard.abs
 
 xdemo.abs: xdemo.bin
 	./bin2abs.py xdemo.bin xdemo.abs
@@ -28,6 +28,9 @@ xcls.p: xcls.asm
 
 fileio.abs: ../CPM/fileio.c
 	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o fileio.bin ../CPM/fileio.c
+
+wildcard.abs: wildcard.c
+	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o wildcard.bin wildcard.c
 
 advent1.abs: ../CPM/advent1.c
 	. ../z88dk/env.sh && zcc -mz80 +hdos -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm -o advent1.bin ../CPM/advent1.c
