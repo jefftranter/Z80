@@ -4,6 +4,18 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Return default disk device, e.g. "SY0" */
+char *defaultDevice()
+{
+    static char s[4];
+
+    /* Stored as 3 bytes from $006A-$006C (HDOS 3 only) */
+    memcpy(s, 0x6a, 3);
+    s[3] = 0; // Null terminate.
+
+    return s;
+}
+
 /* Match directory entries against a glob pattern */
 void match_entry(const char *entry, char *pattern) {
     int i, j;
@@ -54,8 +66,13 @@ void match_entry(const char *entry, char *pattern) {
 void loop_dir(char *pattern) {
     char buffer[23];
     int reads = 0;
+    char dir[16];
 
-    FILE *file = fopen("DIRECT.SYS", "rb"); // Open the file in binary mode
+    strcpy(dir, defaultDevice());
+    strcat(dir, ":");
+    strcat(dir, "DIRECT.SYS");
+
+    FILE *file = fopen(dir, "rb"); // Open the file in binary mode
     if (file == NULL) {
         perror("Failed to open DIRECT.SYS");
         return;
@@ -78,6 +95,7 @@ void loop_dir(char *pattern) {
 
 int main(int argc, char *argv[]) {
     int i;
+    char *dev;
     char s[20];
 
     /* Uncomment below when argc is working on HDOS
@@ -90,6 +108,9 @@ int main(int argc, char *argv[]) {
         loop_dir(argv[1]);
     }
     */
+
+    dev = defaultDevice();
+    printf("Default drive: %s\n", dev);
 
     printf("Pattern? ");
     fflush(stdout);
