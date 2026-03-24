@@ -53,13 +53,10 @@ void match_entry(const char *entry, char *pattern) {
     // Terminating null */
     filename[j] = 0;
 
-    printf("%12s   ", filename);
-    glob(filename, pattern) ? printf("Y") : printf("N");
-    printf("      ");
-    glob_dos(filename, pattern) ? printf("Y") : printf("N");
-    printf("        ");
-    glob_fat(filename, pattern) ? printf("Y") : printf("N");
-    printf("\n");
+    // Note that there are variants glob(), glob_dos(), and glob_fat()
+    if (glob_dos(filename, pattern)) {
+        printf("%s\n", filename);
+    }
 }
 
 /* Read a DIRECT.SYS file and iterate over each directory entry */
@@ -77,9 +74,6 @@ void loop_dir(char *pattern) {
         perror("Failed to open DIRECT.SYS");
         return;
     }
-
-    printf("Filename      glob glob_dos glob_fat\n");
-    printf("------------  ---- -------- --------\n");
 
     while (fread(buffer, 1, 23, file) > 0) {
         match_entry(buffer, pattern);
