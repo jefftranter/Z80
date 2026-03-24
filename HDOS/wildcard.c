@@ -77,15 +77,25 @@ void loop_dir(char *pattern) {
 }
 
 int main(int argc, char *argv[]) {
+    int i;
+    char s[20];
 
-    //if (argc != 2) {
-    //    printf("usage: wildcard <pattern>\n");
-    //    return 1;
-    //}
+    /* Uncomment below when argc is working on HDOS
+    if (argc < 2) {
+        printf("usage: wildcard <pattern...>\n");
+        return 1;
+    }
 
-    //loop_dir(argv[1]);
-    loop_dir("*.ABS");
-    loop_dir("*.SYS");
+    for (i = 1; i < argc; i++) {
+        loop_dir(argv[1]);
+    }
+    */
+
+    printf("Pattern? ");
+    fflush(stdout);
+    fgets(s, sizeof(s)-1, stdin);
+    s[strlen(s)-1] = '\0';
+    loop_dir(s);
 
     return 0;
 }
