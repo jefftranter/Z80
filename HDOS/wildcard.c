@@ -30,7 +30,7 @@ void match_entry(const char *entry, char *pattern) {
     j++;
 
     /* Add extension. */
-    for (i = 8; i < 12; i++) {
+    for (i = 8; i < 11; i++) {
         if (entry[i] == 0) {
             break;
         }
@@ -89,4 +89,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
