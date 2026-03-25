@@ -184,9 +184,6 @@ void dump_file(const char *filename) {
 int main(int argc, char *argv[]) {
     char direct[16];
 
-    /* argc is not yet working on z88dk for HDOS */
-    argc = 1;
-
     if (argc == 1) {
 #ifdef __linux__
         strcpy(direct, "DIRECT.SYS");

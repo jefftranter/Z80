@@ -92,25 +92,15 @@ int main(int argc, char *argv[]) {
     char *dev;
     char s[20];
 
-    /* Uncomment below when argc is working on HDOS
     if (argc < 2) {
         printf("usage: wildcard <pattern...>\n");
         return 1;
     }
 
     for (i = 1; i < argc; i++) {
+        printf("Pattern: %s\n", argv[i]);
         loop_dir(argv[1]);
     }
-    */
-
-    dev = defaultDevice();
-    printf("Default drive: %s\n", dev);
-
-    printf("Pattern? ");
-    fflush(stdout);
-    fgets(s, sizeof(s)-1, stdin);
-    s[strlen(s)-1] = '\0';
-    loop_dir(s);
 
     return 0;
 }
