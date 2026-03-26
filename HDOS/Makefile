@@ -1,4 +1,4 @@
-CFLAGS=-mz80 +hdos -startup=3 -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1 -lm
+CFLAGS=-mz80 +hdos -startup=3 -create-app -Cz--abs -pragma-define:CLIB_DISABLE_FGETS_CURSOR=1
 
 all: xdemo.abs xcls.abs c_progs
 
