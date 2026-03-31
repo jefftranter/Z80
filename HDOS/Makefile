@@ -2,7 +2,7 @@ CFLAGS=-mz80 +hdos -startup=3 -create-app -Cz--abs -pragma-define:CLIB_DISABLE_F
 
 all: xdemo.abs xcls.abs c_progs
 
-c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs wildcard.abs cecho.abs
+c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs wildcard.abs cecho.abs hdemo.abs
 
 xdemo.abs: xdemo.bin
 	./bin2abs.py xdemo.bin xdemo.abs
@@ -51,6 +51,10 @@ advent4.abs: ../CPM/advent4.c
 
 dir.abs: dir.c
 	. ../z88dk/env.sh && zcc $(CFLAGS) -o dir.bin dir.c
+
+
+hdemo.abs: hdemo.c
+	. ../z88dk/env.sh && zcc $(CFLAGS) -o hdemo.bin hdemo.c
 
 clean:
 	$(RM) *.p *.lst *.p *.bin *.hex *.abs
