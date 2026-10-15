@@ -18,10 +18,10 @@ Run CONFIG to configure FujiNet.
 Run FNDISK to mount drives (can optionally pass first drive letter to
 use).
 
-Drive assignments when booting from CF Flash:
-A: - E:  CF Flash drives
-F: - H:  Physical floppy drives
-I: - P:  FujiNet drives, slot 1 through 8
+Typical drive Assignments when booting from CF Flash:
+A: - E:  CF Flash drives (D: - H: if booting from floppy)
+F: - H:  Physical floppy drives (A: - C: if booting from floppy)
+I: - P:  FujiNet drives, slots 1 through 8
 
 FujiNet Devices:
 LST: is assigned to UL1: (FujiNet printer). Printed document appears
@@ -46,10 +46,10 @@ Use:
 Run CONFIG to configure FujiNet.
 Use MOUNT command (e.g. MOUNT FN0:) to mount FujiNet drives.
 
-Drive assignments when booting from CF Flash:
+Typical Drive Assignments:
 SY0: - SY7: CF Flash drives
 DK0: - DK1: Physical floppy drives
-FN0: - FN7: FujiNet drives, slot 1 through 8
+FN0: - FN7: FujiNet drives, slots 1 through 8
 
 FujiNet Devices:
 LP0: is FujiNet printer. Printed document appears on web page.
