@@ -1,0 +1,59 @@
+                Heathkit H-89 FujiNet Quick Reference
+                   Jeff Tranter <tranter@pobox.com>
+                             15 Oct 2026
+
+See: https://github.com/FujiNetWIFI/fujinet-h89
+
+CP/M:
+=====
+
+Initial Setup:
+Need at least 3K of high memory available (e.g. 61K CP/M system). See
+documentation for details.
+
+Use:
+Run CONFIG to configure FujiNet.
+Run FNDISK to mount drives (can optionally pass first drive letter to
+use).
+
+Drive assignments when booting from CF Flash:
+A: - E:  CF Flash drives
+F:       First physical floppy drive
+G:       Second physical floppy drive
+H:       First physical floppy drive (duplicate)
+I: - P:  FujiNet drives, slot 1 through 8
+
+FujiNet Devices:
+LST: is assigned to UL1: (FujiNet printer). Printed document appears
+on web page.
+Web server appears at IP address (e.g. http://192.168.40.180/).
+
+http://192.168.40.180/
+
+Utility Programs:
+NPIP program is similar to CP/M PIP but also supports copying to and
+from URLs (e.g. (TNFS://HOST/PATH, SD:/NAME, ...).
+
+HDOS:
+=====
+
+Initial Setup:
+Copy FN.DVD to boot drive (e.g. SY0:).
+Copy LP.DVD if FujiNet printer support is desired (back up original
+HDOS LP.DVD first).
+
+Use:
+Run CONFIG to configure FujiNet.
+Use MOUNT command (e.g. MOUNT FN0:) to mount FujiNet drives.
+
+Drive assignments when booting from CF Flash:
+SY0: - SY7: CF Flash drives
+FN0: - FN7: FujiNet drives, slot 1 through 8
+
+FujiNet Devices:
+LP0: is FujiNet printer. Printed document appears on web page.
+Web server appears at IP address (e.g. http://192.168.40.180/).
+
+Utility Programs:
+NPIP program is similar to HDOS PIP but also supports copying to and
+from URLs (e.g. (TNFS://HOST/PATH, SD:/NAME, ...).
