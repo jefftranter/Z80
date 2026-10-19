@@ -92,19 +92,19 @@ main:
 
         call    crlf
 
-        jp      ex_done
+        ret
 
 failed:
         call    crlf
         ld      hl,msg_err
         call    print
-        jp      ex_done
+        ret
 
 baddate:
         call    crlf
         ld      hl,msg_bad
         call    print
-        jp      ex_done
+        ret
 
 ;-----------------------------------------------------------
 ; VALIDATE
@@ -265,17 +265,17 @@ ta_done:
 ;
 ; HDOS packed date:
 ;
-;   bits 15..9 = year since 1970
+;   bits 15..9 = year
 ;   bits  8..5 = month
 ;   bits  4..0 = day
 ;
 ;-----------------------------------------------------------
 
 setdate:
-        ; Year since 1970
+        ; Year
 
         ld      a,(tbuf+2)
-        add     a,30
+;       add     a,30            ; Uncomment this line for HDOS without Y2K patches (stored year after 1970)
 
         ; Year shifted left nine bits
 
