@@ -1,35 +1,22 @@
 ;-----------------------------------------------------------
-; FNDATE - Set HDOS 3 date and time from FujiNet
+; FNCLOCK - Set date and time from FujiNet on Heathkit H89.
 ;
-; Heathkit H89 / Z80 / HDOS 3
-;
-; Based on FujiNet exclock.asm.
-;
-; Uses FujiNet APETIME_GETTIME.
-;
-; FujiNet returns six binary bytes:
-;   0 = day
-;   1 = month
-;   2 = year since 2000
-;   3 = hour
-;   4 = minute
-;   5 = second
-;
-; HDOS 3 system locations:
-;   20BFH  S.DATE  ASCII date (9 bytes)
-;   20C8H  S.DATC  Packed date (2 bytes)
-;   20CAH  S.TIME  BCD time (3 bytes)
-;
-; Displays the date and time read back from HDOS.
-;
+; Jeff Tranter <tranter@pobox.com>
 ;-----------------------------------------------------------
+
+; Define exactly one of HDOS or CPM in the assembler command line
+; or uncomment one definition below.
+;HDOS    EQU     1
+;CPM     EQU     1
 
         INCLUDE "os.inc"
         INCLUDE "fujinet.inc"
 
+IF HDOS
 S_DATE  EQU     20BFH
 S_DATC  EQU     20C8H
 S_TIME  EQU     20CAH
+ENDIF
 
 ;-----------------------------------------------------------
 ; Main program
@@ -51,6 +38,7 @@ main:
 
         ; Convert ASCII date
 
+IF HDOS
         call    setascii
 
         ; Convert packed date
@@ -60,6 +48,10 @@ main:
         ; Convert BCD time
 
         call    settime
+ENDIF
+IF CPM
+        call    cpmset
+ENDIF
 
         ; Display date and time
 
@@ -67,6 +59,7 @@ main:
         ld      hl,msg_ok
         call    print
 
+IF HDOS
         ; Copy date from HDOS memory to a
         ; null-terminated buffer.
 
@@ -78,6 +71,10 @@ main:
         xor     a
         ld      (datebuf+9),a
 
+ENDIF
+IF CPM
+        call    cpmdate
+ENDIF
         ld      hl,datebuf
         call    print
 
@@ -173,6 +170,8 @@ invalid:
 ; Nine characters, no terminator.
 ;-----------------------------------------------------------
 
+IF HDOS
+; Build DD-MMM-YY in HDOS S.DATE.
 setascii:
         ; Day, two ASCII digits
 
@@ -231,51 +230,12 @@ setascii:
 
         ret
 
-;-----------------------------------------------------------
-; TWOASCII
-;
-; Convert binary number 0..99 to two ASCII digits.
-;
-; Input:
-;   A = binary number
-;
-; Output:
-;   D = ASCII tens
-;   E = ASCII units
-;-----------------------------------------------------------
-
-twoascii:
-        ld      d,'0'
-
-ta_loop:
-        cp      10
-        jr      c,ta_done
-
-        sub     10
-        inc     d
-        jr      ta_loop
-
-ta_done:
-        add     a,'0'
-        ld      e,a
-        ret
-
-;-----------------------------------------------------------
-; SETDATE
-;
-; HDOS packed date:
-;
-;   bits 15..9 = year
-;   bits  8..5 = month
-;   bits  4..0 = day
-;
-;-----------------------------------------------------------
-
+; HDOS packed date: year << 9 | month << 5 | day.
 setdate:
         ; Year
 
         ld      a,(tbuf+2)
-;       add     a,30            ; Uncomment this line for HDOS without Y2K patches (stored year after 1970)
+;       add     a,30            ; Uncomment this line for HDOS without Y2K patches (stores year after 1970)
 
         ; Year shifted left nine bits
 
@@ -372,6 +332,100 @@ bb_done:
 
         or      c
         ret
+ENDIF
+
+IF CPM
+; CP/M 2.2.04 clock structure: *(word *)0009H - 11.
+; Offsets: 0 seconds, 1 minutes, 2 hours,
+;          3 day, 4 month, 5 year (binary).
+; Clock ISR may update time asynchronously: disable interrupts
+; during both writing and reading the six-byte structure.
+clockptr:
+        ld      hl,(0009H)
+        ld      de,11
+        or      a
+        sbc     hl,de
+        ret
+
+cpmset:
+        call    clockptr
+        di
+        ld      a,(tbuf+5)
+        ld      (hl),a
+        inc     hl
+        ld      a,(tbuf+4)
+        ld      (hl),a
+        inc     hl
+        ld      a,(tbuf+3)
+        ld      (hl),a
+        inc     hl
+        ld      a,(tbuf)
+        ld      (hl),a
+        inc     hl
+        ld      a,(tbuf+1)
+        ld      (hl),a
+        inc     hl
+        ld      a,(tbuf+2)
+        ld      (hl),a
+        ei
+        ret
+
+; Read date back from CP/M and format DD-MMM-YY.
+cpmdate:
+        call    clockptr
+        di
+        ld      de,cpmsnap
+        ld      bc,6
+        ldir
+        ei
+        ld      a,(cpmsnap+3)
+        call    twoascii
+        ld      a,d
+        ld      (datebuf),a
+        ld      a,e
+        ld      (datebuf+1),a
+        ld      a,'-'
+        ld      (datebuf+2),a
+        ld      a,(cpmsnap+4)
+        dec     a
+        ld      e,a
+        ld      d,0
+        ld      c,e
+        ld      b,0
+        sla     e
+        rl      d
+        ld      hl,months
+        add     hl,de
+        add     hl,bc
+        ld      de,datebuf+3
+        ld      bc,3
+        ldir
+        ld      a,'-'
+        ld      (datebuf+6),a
+        ld      a,(cpmsnap+5)
+        call    twoascii
+        ld      a,d
+        ld      (datebuf+7),a
+        ld      a,e
+        ld      (datebuf+8),a
+        xor     a
+        ld      (datebuf+9),a
+        ret
+ENDIF
+
+; Convert binary 0..99 to two ASCII digits (D,E).
+twoascii:
+        ld      d,'0'
+ta_loop:
+        cp      10
+        jr      c,ta_done
+        sub     10
+        inc     d
+        jr      ta_loop
+ta_done:
+        add     a,'0'
+        ld      e,a
+        ret
 
 ;-----------------------------------------------------------
 ; SHOWTIME
@@ -384,13 +438,23 @@ bb_done:
 ;-----------------------------------------------------------
 
 showtime:
+IF HDOS
         ld      hl,S_TIME
+ENDIF
+IF CPM
+        ld      hl,cpmsnap+2
+ENDIF
         ld      de,timebuf
 
         ; Hours
 
         ld      a,(hl)
+IF HDOS
         call    bcdascii
+ENDIF
+IF CPM
+        call    binaryascii
+ENDIF
         call    store2
 
         ld      a,':'
@@ -399,9 +463,19 @@ showtime:
 
         ; Minutes
 
+IF HDOS
         inc     hl
+ENDIF
+IF CPM
+        dec     hl
+ENDIF
         ld      a,(hl)
+IF HDOS
         call    bcdascii
+ENDIF
+IF CPM
+        call    binaryascii
+ENDIF
         call    store2
 
         ld      a,':'
@@ -410,9 +484,19 @@ showtime:
 
         ; Seconds
 
+IF HDOS
         inc     hl
+ENDIF
+IF CPM
+        dec     hl
+ENDIF
         ld      a,(hl)
+IF HDOS
         call    bcdascii
+ENDIF
+IF CPM
+        call    binaryascii
+ENDIF
         call    store2
 
         ; Terminate string
@@ -440,6 +524,20 @@ showtime:
 ;   B = ASCII units
 ;-----------------------------------------------------------
 
+IF CPM
+; Convert binary byte to ASCII digits C,B.
+; Preserve HL (source pointer) and DE (destination pointer).
+binaryascii:
+        push    hl
+        push    de
+        call    twoascii
+        ld      c,d
+        ld      b,e
+        pop     de
+        pop     hl
+        ret
+ENDIF
+IF HDOS
 bcdascii:
         push    af
 
@@ -463,6 +561,7 @@ bcdascii:
         ld      b,a
 
         ret
+ENDIF
 
 ;-----------------------------------------------------------
 ; STORE2
@@ -504,13 +603,21 @@ datebuf:
 timebuf:
         defs    9
 
+IF CPM
+cpmsnap: defs    6
+ENDIF
 months:
         defm    "JANFEBMARAPRMAYJUN"
         defm    "JULAUGSEPOCTNOVDEC"
 
 msg_ok:
+IF HDOS
         defm    "HDOS date and time set to ",0
+ENDIF
+IF CPM
+        defm    "CP/M date and time set to ",0
 
+ENDIF
 msg_space:
         defm    " ",0
 
