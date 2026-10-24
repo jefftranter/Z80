@@ -2,7 +2,7 @@ CFLAGS=-mz80 +hdos -startup=3 -create-app -Cz--abs -pragma-define:CLIB_DISABLE_F
 
 INC=$(HOME)/git/fujinet-manuals/h89/programmers-handbook/src/asm/inc
 
-all: xdemo.abs xcls.abs fnclock.abs fnclock.com c_progs
+all: xdemo.abs xcls.abs c_progs
 
 c_progs: fileio.abs advent1.abs advent2.abs advent3.abs advent4.abs dir.abs wildcard.abs cecho.abs hdemo.abs
 
@@ -54,16 +54,8 @@ advent4.abs: ../CPM/advent4.c
 dir.abs: dir.c
 	. ../z88dk/env.sh && zcc $(CFLAGS) -o dir.bin dir.c
 
-fnclock.abs: fnclock.asm
-	.  $(HOME)/git/mine/Z80/z88dk/env.sh &&	z88dk-z80asm -l -m -b -DHDOS -I=$(INC) fnclock.asm
-	mv fnclock.bin fnclock.abs
-
-fnclock.com: fnclock.asm
-	.  $(HOME)/git/mine/Z80/z88dk/env.sh &&	z88dk-z80asm -l -m -b -DCPM -I=$(INC) fnclock.asm
-	mv fnclock.bin fnclock.com
-
 hdemo.abs: hdemo.c
 	. ../z88dk/env.sh && zcc $(CFLAGS) -o hdemo.bin hdemo.c
 
 clean:
-	$(RM) *.p *.lst *.map *.lis *.o *.p *.bin *.hex *.abs fnclock.com
+	$(RM) *.p *.lst *.map *.lis *.o *.p *.bin *.hex *.abs
