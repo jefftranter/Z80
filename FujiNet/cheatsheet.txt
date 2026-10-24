@@ -1,6 +1,6 @@
                 Heathkit H-89 FujiNet Quick Reference
                    Jeff Tranter <tranter@pobox.com>
-                             15 Oct 2026
+                             24 Oct 2026
 
 See: https://github.com/FujiNetWIFI/fujinet-h89
 
@@ -44,7 +44,8 @@ microSD card.
 
 Use:
 Run CONFIG to configure FujiNet.
-Use MOUNT command (e.g. MOUNT FN0:) to mount FujiNet drives.
+Use MOUNT command (e.g. MOUNT FN0:) to mount FujiNet drives (under
+HDOS 3, "MM FN:" will mount all FujiNet drives).
 
 Typical Drive Assignments:
 SY0: - SY7: CF Flash drives
@@ -58,3 +59,11 @@ Web server appears at IP address (e.g. http://192.168.40.180/).
 Utility Programs:
 NPIP program is similar to HDOS PIP but also supports copying to and
 from URLs (e.g. (TNFS://HOST/PATH, SD:/NAME).
+NC is a program inspired by Linux netcat that supports connecting via
+a URL to various protocols such as SSH, FTP, TELNET, and CPM. Key f5
+will exit.
+
+FujiNet Boot:
+Using a special monitor ROM, you can directly load and run the FujiNet
+CONFIG program from the H89 monitor using the command "G 17200". In
+future, this should also support booting from FujiNet drives.
