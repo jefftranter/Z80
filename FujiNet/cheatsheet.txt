@@ -1,6 +1,6 @@
                 Heathkit H-89 FujiNet Quick Reference
                    Jeff Tranter <tranter@pobox.com>
-                             24 Oct 2026
+                             26 Oct 2026
 
 See: https://github.com/FujiNetWIFI/fujinet-h89
 
@@ -67,3 +67,7 @@ FujiNet Boot:
 Using a special monitor ROM, you can directly load and run the FujiNet
 CONFIG program from the H89 monitor using the command "G 17200". In
 future, this should also support booting from FujiNet drives.
+
+ESP32 Console Access:
+Connect computer running terminal emulator to ESP USB port, speed
+460800 bps.
