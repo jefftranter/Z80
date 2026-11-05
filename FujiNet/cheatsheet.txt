@@ -1,6 +1,6 @@
                 Heathkit H-89 FujiNet Quick Reference
                    Jeff Tranter <tranter@pobox.com>
-                             26 Oct 2026
+                              4 Nov 2026
 
 See: https://github.com/FujiNetWIFI/fujinet-h89
 
@@ -10,11 +10,11 @@ CP/M:
 Initial Setup:
 Need at least 3K of high memory available (e.g. 61K CP/M system). See
 documentation for details.
-Can optionally store disk images in h8d format on FAT32-formatted
-microSD card.
+Need 100K CP/M disk images in h8d format. Can be on a server (e.g.
+TNFS) or on the FAT32-formatted microSD card.
 
 Use:
-Run CONFIG to configure FujiNet.
+Run FNCONFIG to configure FujiNet.
 Run FNDISK to mount drives (can optionally pass first drive letter to
 use).
 
@@ -39,11 +39,11 @@ Initial Setup:
 Copy FN.DVD to boot drive (e.g. SY0:).
 Copy LP.DVD if FujiNet printer support is desired (back up original
 HDOS LP.DVD first).
-Can optionally store disk images in h8d format on FAT32-formatted
-microSD card.
+Need 100K, 200K, 400K, or 1800K HDOS disk images in h8d format. Can be
+on a server (e.g. TNFS) or on the FAT32-formatted microSD card.
 
 Use:
-Run CONFIG to configure FujiNet.
+Run FNCONFIG to configure FujiNet.
 Use MOUNT command (e.g. MOUNT FN0:) to mount FujiNet drives (under
 HDOS 3, "MM FN:" will mount all FujiNet drives).
 
@@ -65,7 +65,7 @@ will exit.
 
 FujiNet Boot:
 Using a special monitor ROM, you can directly load and run the FujiNet
-CONFIG program from the H89 monitor using the command "G 17200". In
+FNCONFIG program from the H89 monitor using the command "G 17200". In
 future, this should also support booting from FujiNet drives.
 
 ESP32 Console Access:
