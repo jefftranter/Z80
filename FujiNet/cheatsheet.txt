@@ -1,9 +1,6 @@
                 Heathkit H-89 FujiNet Quick Reference
-                  Based on H89 FujiNet release 1.07
-                   Jeff Tranter <tranter@pobox.com>
-                              8 Nov 2026
-
-See: https://github.com/FujiNetWIFI/fujinet-h89
+                  Based on H89 FujiNet release 1.08
+             Jeff Tranter <tranter@pobox.com> 13 Nov 2026
 
 CP/M:
 =====
@@ -31,16 +28,14 @@ Utility Programs:
 NPIP program is similar to CP/M PIP but also supports copying to and
 from URLs (e.g. (TNFS://HOST/PATH, SD:/NAME).
 NC is a program inspired by Linux netcat that supports connecting via
-a URL to various protocols such as SSH, FTP, TELNET, and CPM. Key f5
-will exit.
+a URL to various protocols such as SSH, FTP, TELNET, and CPM.
 
 HDOS:
 =====
 
 Initial Setup:
 Copy FN.DVD to boot drive (e.g. SY0:).
-Copy LP.DVD if FujiNet printer support is desired (back up original
-HDOS LP.DVD first).
+Copy LP.DVD if FujiNet printer support is desired (back up original).
 Need 100K, 200K, 400K, or 1800K HDOS disk images in h8d format. Can be
 on a server (e.g. TNFS) or on the FAT32-formatted microSD card.
 
@@ -62,8 +57,7 @@ Utility Programs:
 NPIP program is similar to HDOS PIP but also supports copying to and
 from URLs (e.g. (TNFS://HOST/PATH, SD:/NAME).
 NC is a program inspired by Linux netcat that supports connecting via
-a URL to various protocols such as SSH, FTP, TELNET, and CPM. Key f5
-will exit.
+a URL to various protocols such as SSH, FTP, TELNET, and CPM.
 
 FujiNet Boot:
 Using a special monitor ROM, you can directly load and run the FujiNet
@@ -71,5 +65,4 @@ FNCONFIG program from the H89 monitor using the command "G 17200". In
 future, this should also support booting from FujiNet drives.
 
 ESP32 Console Access:
-Connect computer running terminal emulator to ESP USB port, speed
-460800 bps.
+Connect computer to ESP32 USB port, speed 460800 bps.
