@@ -1,5 +1,5 @@
                 Heathkit H-89 FujiNet Quick Reference
-                  Based on H89 FujiNet release 1.08
+                  Based on H89 FujiNet release 1.09
              Jeff Tranter <tranter@pobox.com> 13 Nov 2026
 
 CP/M:
